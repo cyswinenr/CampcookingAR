@@ -112,6 +112,20 @@
                 app:show_timeout="3000"
                 app:resize_mode="fit" />
 
+            <!-- 全屏按钮 -->
+            <ImageButton
+                android:id="@+id/fullscreenButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@android:drawable/ic_menu_crop"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:tint="@android:color/white"
+                android:contentDescription="全屏"
+                android:padding="12dp"
+                app:layout_constraintEnd_toEndOf="@id/videoPlayer"
+                app:layout_constraintBottom_toBottomOf="@id/videoPlayer"
+                android:layout_margin="16dp" />
+
             <!-- 加载进度条 -->
             <ProgressBar
                 android:id="@+id/progressBar"

@@ -29,6 +29,7 @@ class VideoActivity : AppCompatActivity() {
     private lateinit var videoAdapter: VideoListAdapter
     private val videoList = mutableListOf<Video>()
     private var currentVideo: Video? = null
+    private var isFullScreen = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -187,7 +188,79 @@ class VideoActivity : AppCompatActivity() {
     private fun setupListeners() {
         // 返回按钮
         binding.backButton.setOnClickListener {
-            finish()
+            if (isFullScreen) {
+                exitFullScreen()
+            } else {
+                finish()
+            }
+        }
+        
+        // 全屏按钮
+        binding.fullscreenButton?.setOnClickListener {
+            if (isFullScreen) {
+                exitFullScreen()
+            } else {
+                enterFullScreen()
+            }
+        }
+    }
+    
+    /**
+     * 进入全屏模式
+     */
+    private fun enterFullScreen() {
+        isFullScreen = true
+        
+        // 隐藏系统UI
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        )
+        
+        // 隐藏其他UI元素
+        binding.topBar?.visibility = View.GONE
+        binding.videoListCard?.visibility = View.GONE
+        binding.videoInfoSection?.visibility = View.GONE
+        
+        // 更新全屏按钮图标
+        binding.fullscreenButton?.setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+        
+        Toast.makeText(this, "全屏模式", Toast.LENGTH_SHORT).show()
+    }
+    
+    /**
+     * 退出全屏模式
+     */
+    private fun exitFullScreen() {
+        isFullScreen = false
+        
+        // 恢复系统UI
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+        )
+        
+        // 显示其他UI元素
+        binding.topBar?.visibility = View.VISIBLE
+        binding.videoListCard?.visibility = View.VISIBLE
+        binding.videoInfoSection?.visibility = View.VISIBLE
+        
+        // 更新全屏按钮图标
+        binding.fullscreenButton?.setImageResource(android.R.drawable.ic_menu_crop)
+        
+        Toast.makeText(this, "退出全屏", Toast.LENGTH_SHORT).show()
+    }
+    
+    override fun onBackPressed() {
+        if (isFullScreen) {
+            exitFullScreen()
+        } else {
+            super.onBackPressed()
         }
     }
     
