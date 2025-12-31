@@ -7,5 +7,92 @@
     <string name="enter_app">进入应用</string>
     <string name="version_info">版本 1.0</string>
     <string name="welcome">欢迎使用野炊教学系统</string>
+    
+    <!-- 团队信息页面 -->
+    <string name="team_info_title">团队信息登记</string>
+    <string name="team_info_subtitle">请填写您的小组信息</string>
+    <string name="hint_school">学校名称</string>
+    <string name="label_grade">年级</string>
+    <string name="label_class">班级</string>
+    <string name="label_stove">炉号</string>
+    <string name="label_member_count">小组人数（1-15人）</string>
+    <string name="label_member_names">人员姓名</string>
+    <string name="hint_member_name">姓名（最多5字）</string>
+    <string name="button_reset">重置</string>
+    <string name="button_start">开始野炊</string>
+    
+    <!-- 下拉选项提示 -->
+    <string name="prompt_select_grade">请选择年级</string>
+    <string name="prompt_select_class">请选择班级</string>
+    <string name="prompt_select_stove">请选择炉号</string>
+    
+    <!-- 提示信息 -->
+    <string name="toast_input_incomplete">请填写完整信息</string>
+    <string name="toast_info_saved">信息已保存</string>
+    <string name="toast_reset_confirm">已重置</string>
+    <string name="toast_member_count_invalid">小组人数必须在1-15之间</string>
+    <string name="member_label">成员 %d</string>
+    
+    <!-- 年级选项 -->
+    <string-array name="grades">
+        <item>请选择年级</item>
+        <item>高一</item>
+        <item>高二</item>
+    </string-array>
+    
+    <!-- 班级选项 -->
+    <string-array name="classes">
+        <item>请选择班级</item>
+        <item>1班</item>
+        <item>2班</item>
+        <item>3班</item>
+        <item>4班</item>
+        <item>5班</item>
+        <item>6班</item>
+        <item>7班</item>
+        <item>8班</item>
+        <item>9班</item>
+        <item>10班</item>
+        <item>11班</item>
+        <item>12班</item>
+        <item>13班</item>
+        <item>14班</item>
+        <item>15班</item>
+        <item>16班</item>
+        <item>17班</item>
+        <item>18班</item>
+        <item>19班</item>
+        <item>20班</item>
+        <item>21班</item>
+        <item>22班</item>
+        <item>23班</item>
+        <item>24班</item>
+        <item>25班</item>
+    </string-array>
+    
+    <!-- 炉号选项 -->
+    <string-array name="stoves">
+        <item>请选择炉号</item>
+        <item>1号炉</item>
+        <item>2号炉</item>
+        <item>3号炉</item>
+        <item>4号炉</item>
+        <item>5号炉</item>
+        <item>6号炉</item>
+        <item>7号炉</item>
+        <item>8号炉</item>
+        <item>9号炉</item>
+        <item>10号炉</item>
+        <item>11号炉</item>
+        <item>12号炉</item>
+        <item>13号炉</item>
+        <item>14号炉</item>
+        <item>15号炉</item>
+        <item>16号炉</item>
+        <item>17号炉</item>
+        <item>18号炉</item>
+        <item>19号炉</item>
+        <item>20号炉</item>
+    </string-array>
 </resources>
 

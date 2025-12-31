@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 主界面 - 竖屏布局，信息采集表单（重新设计） -->
+<!-- 主界面 - 横屏布局，信息采集表单（重新设计） -->
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -14,18 +14,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="40dp">
 
-        <!-- 顶部标题 -->
+        <!-- 顶部标题区域 -->
         <TextView
             android:id="@+id/pageTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/team_info_title"
             android:textColor="@color/title_color"
-            android:textSize="28sp"
+            android:textSize="36sp"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:layout_marginBottom="8dp" />
 
         <TextView
             android:id="@+id/pageSubtitle"
@@ -33,23 +33,38 @@
             android:layout_height="wrap_content"
             android:text="@string/team_info_subtitle"
             android:textColor="@color/subtitle_color"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp" />
+            android:textSize="18sp"
+            android:layout_marginBottom="24dp" />
 
-        <!-- 表单区域 -->
+        <!-- 表单内容区域（左右分栏） -->
         <LinearLayout
-            android:id="@+id/formSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp">
+
+            <!-- 左侧表单区域 -->
+            <LinearLayout
+                android:id="@+id/leftFormSection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="20dp">
 
             <!-- 学校 -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/schoolInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="20dp"
                 android:hint="@string/hint_school"
                 app:boxBackgroundMode="outline"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
                 app:startIconDrawable="@android:drawable/ic_dialog_map"
                 app:startIconTint="@color/fire_orange">
 
@@ -58,7 +73,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:textSize="16sp" />
+                    android:textSize="20sp"
+                    android:padding="16dp" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- 年级下拉框 -->
@@ -67,17 +83,17 @@
                 android:layout_height="wrap_content"
                 android:text="@string/label_grade"
                 android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"
                 android:layout_marginStart="4dp" />
 
             <Spinner
                 android:id="@+id/gradeSpinner"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="60dp"
                 android:background="@drawable/spinner_background"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp"
                 android:spinnerMode="dropdown" />
 
             <!-- 班级下拉框 -->
@@ -86,17 +102,17 @@
                 android:layout_height="wrap_content"
                 android:text="@string/label_class"
                 android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"
                 android:layout_marginStart="4dp" />
 
             <Spinner
                 android:id="@+id/classSpinner"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="60dp"
                 android:background="@drawable/spinner_background"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp"
                 android:spinnerMode="dropdown" />
 
             <!-- 炉号下拉框 -->
@@ -105,26 +121,31 @@
                 android:layout_height="wrap_content"
                 android:text="@string/label_stove"
                 android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"
                 android:layout_marginStart="4dp" />
 
             <Spinner
                 android:id="@+id/stoveSpinner"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="60dp"
                 android:background="@drawable/spinner_background"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp"
                 android:spinnerMode="dropdown" />
 
             <!-- 小组人数（1-15） -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/memberCountInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="20dp"
                 android:hint="@string/label_member_count"
                 app:boxBackgroundMode="outline"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
                 app:startIconDrawable="@android:drawable/ic_menu_agenda"
                 app:startIconTint="@color/fire_red"
                 app:suffixText="人">
@@ -134,9 +155,21 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:textSize="16sp"
+                    android:textSize="20sp"
+                    android:padding="16dp"
                     android:maxLength="2" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            </LinearLayout>
+
+            <!-- 右侧人员姓名区域 -->
+            <LinearLayout
+                android:id="@+id/rightFormSection"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="20dp">
 
             <!-- 人员姓名标题 -->
             <TextView
@@ -144,9 +177,9 @@
                 android:layout_height="wrap_content"
                 android:text="@string/label_member_names"
                 android:textColor="@color/text_primary"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 android:layout_marginStart="4dp" />
 
             <!-- 人员姓名输入框容器（动态添加） -->
@@ -154,56 +187,63 @@
                 android:id="@+id/memberNamesContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="16dp">
+                android:orientation="vertical">
 
                 <!-- 提示文本（当没有输入框时显示） -->
                 <TextView
                     android:id="@+id/memberNamesHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="↑ 请先选择小组人数"
+                    android:text="← 请先选择小组人数"
                     android:textColor="@color/subtitle_color"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:padding="16dp"
                     android:layout_gravity="center" />
 
             </LinearLayout>
 
+            </LinearLayout>
+
         </LinearLayout>
 
-        <!-- 按钮区域 -->
+        <!-- 底部按钮区域 -->
         <LinearLayout
+            android:id="@+id/buttonSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:gravity="center">
 
+            <!-- 重置按钮 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/resetButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
+                android:layout_width="180dp"
+                android:layout_height="64dp"
+                android:layout_marginEnd="20dp"
                 android:text="@string/button_reset"
-                android:textSize="16sp"
-                app:cornerRadius="28dp"
+                android:textSize="20sp"
+                app:cornerRadius="32dp"
                 app:strokeColor="@color/fire_orange"
                 app:strokeWidth="2dp"
-                app:backgroundTint="@android:color/transparent" />
+                app:backgroundTint="@android:color/transparent"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconGravity="textStart" />
 
+            <!-- 开始按钮 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/startButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
+                android:layout_width="240dp"
+                android:layout_height="72dp"
                 android:text="@string/button_start"
-                android:textSize="18sp"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                app:cornerRadius="28dp"
-                app:backgroundTint="@color/fire_orange" />
+                app:cornerRadius="36dp"
+                app:elevation="8dp"
+                app:backgroundTint="@color/fire_orange"
+                app:icon="@android:drawable/ic_media_play"
+                app:iconSize="32dp"
+                app:iconGravity="textStart" />
 
         </LinearLayout>
 
