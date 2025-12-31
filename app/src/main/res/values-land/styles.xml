@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 横屏专用样式 -->
+<resources>
+    <style name="SplashTitleStyle">
+        <item name="android:textSize">@dimen/splash_title_size</item>
+        <item name="android:textColor">@color/title_color</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:shadowColor">#80000000</item>
+        <item name="android:shadowDx">3</item>
+        <item name="android:shadowDy">3</item>
+        <item name="android:shadowRadius">6</item>
+    </style>
+    
+    <style name="SplashSubtitleStyle">
+        <item name="android:textSize">@dimen/splash_subtitle_size</item>
+        <item name="android:textColor">@color/subtitle_color</item>
+    </style>
+</resources>
+

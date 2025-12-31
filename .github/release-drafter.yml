@@ -1,0 +1,57 @@
+# Release自动草稿配置
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: '🚀 新功能'
+    labels:
+      - 'enhancement'
+      - 'feature'
+  - title: '🐛 Bug修复'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: '📚 文档'
+    labels:
+      - 'documentation'
+  - title: '🔧 维护'
+    labels:
+      - 'chore'
+      - 'dependencies'
+  - title: '⚡ 性能优化'
+    labels:
+      - 'performance'
+  - title: '♻️ 代码重构'
+    labels:
+      - 'refactor'
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+  minor:
+    labels:
+      - 'minor'
+  patch:
+    labels:
+      - 'patch'
+  default: patch
+
+template: |
+  ## 更新内容
+  
+  $CHANGES
+  
+  ## 贡献者
+  
+  感谢以下贡献者的付出：$CONTRIBUTORS
+  
+  ---
+  
+  **完整变更日志**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
+

@@ -1,0 +1,16 @@
+## This file must *NOT* be checked into Version Control Systems,
+# as it contains information specific to your local configuration.
+#
+# Location of the Android SDK:
+# Windows示例:
+sdk.dir=C\:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
+
+# Mac示例:
+# sdk.dir=/Users/YourUsername/Library/Android/sdk
+
+# Linux示例:
+# sdk.dir=/home/YourUsername/Android/Sdk
+
+# 请根据您的实际Android SDK安装路径修改上述配置
+# 然后将此文件重命名为 local.properties
+

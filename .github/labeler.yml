@@ -1,0 +1,39 @@
+# PR自动标签配置
+# 根据修改的文件自动为PR添加标签
+
+# Android代码
+android:
+  - 'app/src/**/*.kt'
+  - 'app/src/**/*.java'
+
+# UI/布局
+ui:
+  - 'app/src/main/res/layout/**'
+  - 'app/src/main/res/drawable/**'
+  - 'app/src/main/res/values/**'
+
+# 资源文件
+resources:
+  - 'app/src/main/res/**'
+
+# 配置文件
+config:
+  - '*.gradle'
+  - 'gradle/**'
+  - 'app/src/main/AndroidManifest.xml'
+
+# 文档
+documentation:
+  - '*.md'
+  - 'docs/**'
+
+# CI/CD
+ci:
+  - '.github/workflows/**'
+  - '.github/**/*.yml'
+
+# 依赖
+dependencies:
+  - '**/build.gradle'
+  - 'gradle.properties'
+

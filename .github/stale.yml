@@ -1,0 +1,30 @@
+# 自动处理闲置的Issue和PR配置
+
+# Issue闲置天数
+daysUntilStale: 60
+# Issue闲置后多少天关闭
+daysUntilClose: 7
+
+# 需要检查的标签（留空表示检查所有）
+exemptLabels:
+  - pinned
+  - security
+  - priority: high
+
+# 闲置Issue添加的标签
+staleLabel: stale
+
+# 闲置Issue的评论
+markComment: >
+  这个Issue由于60天没有活动而被标记为闲置。
+  如果这个问题仍然存在，请回复此评论，否则将在7天后自动关闭。
+  感谢您的贡献！
+
+# 关闭Issue的评论
+closeComment: >
+  这个Issue由于长时间没有活动而被自动关闭。
+  如果您认为这个问题仍需要解决，请重新打开Issue。
+
+# 限制仅处理Issue（不处理PR）
+only: issues
+

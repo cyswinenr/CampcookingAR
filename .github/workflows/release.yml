@@ -1,0 +1,64 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+    
+    - name: 设置JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+    
+    - name: 授予Gradle执行权限
+      run: chmod +x gradlew
+    
+    - name: 构建Release APK
+      run: ./gradlew assembleRelease
+    
+    - name: 签名APK（如果配置了密钥）
+      run: echo "如需签名，请配置密钥"
+      continue-on-error: true
+    
+    - name: 创建Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          app/build/outputs/apk/release/app-release.apk
+        body: |
+          ## 南粤风炊火 - 野炊教学AR应用
+          
+          ### 新版本发布
+          
+          **主要特性:**
+          - 精美封面启动页
+          - 横屏平板优化
+          - 流畅动画效果
+          
+          **设备要求:**
+          - Android 7.0 及以上
+          - 推荐10-11寸平板
+          - 横屏使用
+          
+          **安装说明:**
+          1. 下载 APK 文件
+          2. 传输到平板设备
+          3. 允许安装未知来源应用
+          4. 点击安装
+          
+          感谢使用！
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

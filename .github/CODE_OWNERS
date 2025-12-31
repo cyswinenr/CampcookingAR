@@ -1,0 +1,22 @@
+# 代码所有者文件
+# 指定谁负责审查项目中的代码
+
+# 全局所有者
+# * @your-github-username
+
+# 特定目录的所有者
+# /app/src/main/java/ @backend-team
+# /app/src/main/res/ @ui-team
+# /docs/ @documentation-team
+
+# 配置文件
+*.gradle @build-team
+*.yml @devops-team
+*.xml @config-team
+
+# 文档文件
+*.md @documentation-team
+
+# 示例：取消注释并替换为实际的GitHub用户名
+# * @your-org/maintainers
+

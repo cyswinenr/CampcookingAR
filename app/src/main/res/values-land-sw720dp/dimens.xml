@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 10寸以上平板横屏专用尺寸 - 最优显示效果 -->
+<resources>
+    <dimen name="splash_image_margin_horizontal">120dp</dimen>
+    <dimen name="splash_image_margin_vertical">60dp</dimen>
+    <dimen name="splash_title_margin">40dp</dimen>
+    <dimen name="splash_bottom_margin">40dp</dimen>
+    <dimen name="corner_radius">12dp</dimen>
+</resources>
+

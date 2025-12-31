@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设备配置 - 横屏平板优化 -->
+<resources>
+    <!-- 支持的最小屏幕宽度：10寸平板 -->
+    <integer name="min_screen_width_dp">600</integer>
+    
+    <!-- 推荐的屏幕宽度：10-11寸平板 -->
+    <integer name="recommended_screen_width_dp">720</integer>
+    
+    <!-- 强制横屏模式 -->
+    <bool name="force_landscape">true</bool>
+</resources>
+

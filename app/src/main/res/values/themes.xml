@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 应用主题 -->
+    <style name="Theme.CampCookingAR" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/wood_brown</item>
+        <item name="colorPrimaryVariant">@color/nature_green</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/fire_orange</item>
+        <item name="colorSecondaryVariant">@color/fire_red</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+    
+    <!-- 封面页主题 -->
+    <style name="Theme.CampCookingAR.Splash" parent="Theme.CampCookingAR">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>
+
