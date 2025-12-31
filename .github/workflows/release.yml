@@ -31,7 +31,7 @@ jobs:
       continue-on-error: true
     
     - name: 创建Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           app/build/outputs/apk/release/app-release.apk
