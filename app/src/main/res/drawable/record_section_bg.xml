@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 过程记录区域背景 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- 渐变背景 - 红色调 -->
+    <gradient
+        android:angle="135"
+        android:startColor="#FFEBEE"
+        android:centerColor="#FFCDD2"
+        android:endColor="#EF9A9A"
+        android:type="linear" />
+    
+</shape>
+

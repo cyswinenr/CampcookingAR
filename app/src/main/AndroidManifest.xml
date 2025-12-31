@@ -29,6 +29,18 @@
             android:name=".MainActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
+        
+        <!-- 导航页 Activity -->
+        <activity
+            android:name=".NavigationActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        
+        <!-- 视频页 Activity -->
+        <activity
+            android:name=".VideoActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
     </application>
 
 </manifest>

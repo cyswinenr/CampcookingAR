@@ -33,6 +33,19 @@
     <string name="toast_member_count_invalid">小组人数必须在1-15之间</string>
     <string name="member_label">成员 %d</string>
     
+    <!-- 导航页面 -->
+    <string name="nav_title">请选择功能</string>
+    <string name="nav_video_title">微课视频</string>
+    <string name="nav_video_desc">观看野炊教学视频\n学习烹饪技巧</string>
+    <string name="nav_record_title">过程记录</string>
+    <string name="nav_record_desc">记录野炊过程\n拍照上传作品</string>
+    
+    <!-- 视频页面 -->
+    <string name="video_page_title">微课视频</string>
+    <string name="video_list_title">视频列表</string>
+    <string name="button_back">返回</string>
+    <string name="video_play_icon">播放图标</string>
+    
     <!-- 年级选项 -->
     <string-array name="grades">
         <item>请选择年级</item>

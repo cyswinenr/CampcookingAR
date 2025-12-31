@@ -27,5 +27,10 @@
     <color name="fire_yellow">#FFD700</color>
     <color name="nature_green">#228B22</color>
     <color name="wood_brown">#8B4513</color>
+    
+    <!-- 视频页颜色 -->
+    <color name="video_item_selected">#FFEBE0</color>
+    <color name="button_text_color">#FFFFFF</color>
+    <color name="button_background_color">#FF8C00</color>
 </resources>
 

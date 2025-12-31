@@ -1,0 +1,64 @@
+package com.campcooking.ar
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.campcooking.ar.databinding.ActivityNavigationBinding
+
+/**
+ * 导航页Activity
+ * 横向分为两部分：微课视频 和 过程记录
+ */
+class NavigationActivity : AppCompatActivity() {
+    
+    private lateinit var binding: ActivityNavigationBinding
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // 保持全屏模式
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            or View.SYSTEM_UI_FLAG_FULLSCREEN
+            or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        )
+        
+        binding = ActivityNavigationBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
+        // 获取传递的团队信息
+        val teamName = intent.getStringExtra("teamName") ?: "野炊小组"
+        binding.teamNameText.text = teamName
+        
+        setupListeners()
+    }
+    
+    /**
+     * 设置点击事件
+     */
+    private fun setupListeners() {
+        // 微课视频区域点击
+        binding.videoSection.setOnClickListener {
+            val intent = Intent(this, VideoActivity::class.java)
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+        
+        // 过程记录区域点击
+        binding.recordSection.setOnClickListener {
+            Toast.makeText(this, "进入过程记录", Toast.LENGTH_SHORT).show()
+            // TODO: 跳转到过程记录页面
+        }
+    }
+    
+    override fun onBackPressed() {
+        // 返回键直接退出
+        finishAffinity()
+    }
+}
+

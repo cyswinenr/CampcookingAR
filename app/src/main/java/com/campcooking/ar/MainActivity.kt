@@ -1,5 +1,6 @@
 package com.campcooking.ar
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -324,13 +325,15 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(
             this,
             "欢迎 ${teamInfo.getTeamName()}！准备开始野炊...",
-            Toast.LENGTH_LONG
+            Toast.LENGTH_SHORT
         ).show()
         
-        // TODO: 跳转到下一个页面（野炊教学页面）
-        // 可以将 teamInfo 通过 Intent 传递给下一个 Activity
-        
-        Toast.makeText(this, R.string.toast_info_saved, Toast.LENGTH_SHORT).show()
+        // 跳转到导航页面
+        val intent = Intent(this, NavigationActivity::class.java)
+        intent.putExtra("teamName", teamInfo.getTeamName())
+        startActivity(intent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        finish()
     }
     
     override fun onBackPressed() {

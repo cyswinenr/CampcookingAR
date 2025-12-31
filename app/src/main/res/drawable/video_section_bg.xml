@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 微课视频区域背景 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- 渐变背景 - 橙色调 -->
+    <gradient
+        android:angle="135"
+        android:startColor="#FFF3E0"
+        android:centerColor="#FFE0B2"
+        android:endColor="#FFCC80"
+        android:type="linear" />
+    
+</shape>
+

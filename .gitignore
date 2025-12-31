@@ -85,3 +85,17 @@ lint-results-debug_files/
 # Android Profiling
 *.hprof
 
+# Video files (too large for GitHub)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.mkv
+*.webm
+
+# Specifically ignore video files in res/raw/
+app/src/main/res/raw/*.mp4
+app/src/main/res/raw/*.avi
+app/src/main/res/raw/*.mov
+
