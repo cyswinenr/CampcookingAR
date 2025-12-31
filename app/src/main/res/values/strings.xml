@@ -4,6 +4,7 @@
     <string name="app_subtitle">野炊教学·户外烹饪指南</string>
     <string name="app_cover_desc">野炊教学应用封面</string>
     <string name="tap_to_continue">点击屏幕继续</string>
+    <string name="enter_app">进入应用</string>
     <string name="version_info">版本 1.0</string>
     <string name="welcome">欢迎使用野炊教学系统</string>
 </resources>

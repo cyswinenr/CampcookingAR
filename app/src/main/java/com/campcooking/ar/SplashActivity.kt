@@ -17,7 +17,6 @@ import com.campcooking.ar.databinding.ActivitySplashBinding
 class SplashActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivitySplashBinding
-    private val splashDelay = 3000L // 3秒后自动进入主页
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,15 +36,14 @@ class SplashActivity : AppCompatActivity() {
         
         setupUI()
         startAnimations()
-        navigateToMainAfterDelay()
     }
     
     /**
      * 设置UI交互
      */
     private fun setupUI() {
-        // 点击封面任意位置可以直接进入主页
-        binding.root.setOnClickListener {
+        // 点击"进入应用"按钮进入主页
+        binding.enterButton.setOnClickListener {
             navigateToMain()
         }
     }
@@ -74,27 +72,37 @@ class SplashActivity : AppCompatActivity() {
             }
         }, 500)
         
-        // 底部提示延迟淡入
+        // 进入按钮延迟出现，带缩放和淡入效果
         Handler(Looper.getMainLooper()).postDelayed({
-            binding.tapToContinue.apply {
+            binding.enterButton.apply {
                 visibility = View.VISIBLE
-                val blinkAnim = AlphaAnimation(0.3f, 1f).apply {
-                    duration = 800
-                    repeatMode = AlphaAnimation.REVERSE
-                    repeatCount = AlphaAnimation.INFINITE
-                }
-                startAnimation(blinkAnim)
+                // 缩放+淡入组合动画
+                alpha = 0f
+                scaleX = 0.8f
+                scaleY = 0.8f
+                animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(600)
+                    .withEndAction {
+                        // 动画结束后添加轻微的呼吸效果
+                        animate()
+                            .scaleX(1.05f)
+                            .scaleY(1.05f)
+                            .setDuration(800)
+                            .withEndAction {
+                                animate()
+                                    .scaleX(1f)
+                                    .scaleY(1f)
+                                    .setDuration(800)
+                                    .start()
+                            }
+                            .start()
+                    }
+                    .start()
             }
         }, 1500)
-    }
-    
-    /**
-     * 延迟后自动跳转到主页
-     */
-    private fun navigateToMainAfterDelay() {
-        Handler(Looper.getMainLooper()).postDelayed({
-            navigateToMain()
-        }, splashDelay)
     }
     
     /**

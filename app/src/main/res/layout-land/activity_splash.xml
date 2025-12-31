@@ -65,18 +65,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appTitle" />
 
-    <!-- 点击继续提示 - 右下角 -->
-    <TextView
-        android:id="@+id/tapToContinue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="40dp"
-        android:text="@string/tap_to_continue"
-        android:textColor="@color/hint_color"
-        android:textSize="20sp"
+    <!-- 进入应用按钮 - 屏幕中下方 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/enterButton"
+        android:layout_width="240dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="80dp"
+        android:text="@string/enter_app"
+        android:textSize="24sp"
+        android:textStyle="bold"
         android:visibility="invisible"
+        app:cornerRadius="36dp"
+        app:elevation="8dp"
+        app:backgroundTint="@color/fire_orange"
+        app:icon="@android:drawable/ic_media_play"
+        app:iconSize="32dp"
+        app:iconGravity="textStart"
+        app:iconPadding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- 版本信息 - 左下角 -->
     <TextView
