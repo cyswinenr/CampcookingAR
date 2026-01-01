@@ -63,6 +63,28 @@ object VideoConfig {
                 fileName = "video_chop_ribs.mp4",
                 category = "基础技能",
                 order = 3
+            ),
+            
+            // 视频4：野炊砍柴方法
+            Video(
+                id = 4,
+                title = "野炊砍柴方法",
+                description = "野炊砍柴方法",
+                duration = "1:00",
+                fileName = "野炊砍柴.mp4",
+                category = "基础技能",
+                order = 4
+            ),
+            
+            // 视频5：番茄炒鸡蛋
+            Video(
+                id = 5,
+                title = "番茄炒鸡蛋",
+                description = "番茄炒鸡蛋",
+                duration = "1:00",
+                fileName = "番茄炒鸡蛋.mp4",
+                category = "菜式",
+                order = 5
             )
         )
     }
