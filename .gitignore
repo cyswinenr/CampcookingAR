@@ -85,7 +85,11 @@ lint-results-debug_files/
 # Android Profiling
 *.hprof
 
-# Video files (too large for GitHub)
+# =================================================================
+# 视频文件（不同步到 GitHub，文件太大）
+# =================================================================
+
+# 所有视频文件格式
 *.mp4
 *.avi
 *.mov
@@ -93,9 +97,22 @@ lint-results-debug_files/
 *.flv
 *.mkv
 *.webm
+*.m4v
+*.3gp
+*.mpg
+*.mpeg
 
-# Specifically ignore video files in res/raw/
+# 特别指定 res/raw/ 中的视频文件（确保不会同步）
 app/src/main/res/raw/*.mp4
 app/src/main/res/raw/*.avi
 app/src/main/res/raw/*.mov
+app/src/main/res/raw/*.wmv
+app/src/main/res/raw/*.flv
+app/src/main/res/raw/*.mkv
+app/src/main/res/raw/*.webm
+
+# 外部存储位置的视频（如果以后使用）
+Documents/CampcookingAR/Videos/*.mp4
+
+# =================================================================
 

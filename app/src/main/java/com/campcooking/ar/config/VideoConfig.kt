@@ -6,12 +6,26 @@ import com.campcooking.ar.data.Video
  * 视频配置管理类
  * 
  * 【重要】如何更新视频：
- * 1. 将视频文件（.mp4）放入 app/src/main/res/raw/ 文件夹
- * 2. 视频文件名使用小写字母和下划线，如：video_fire_skills.mp4
- * 3. 在下面的 videoList 中添加配置信息
- * 4. 重新编译运行即可
+ * 
+ * 方案：外部存储（Documents 文件夹）
+ * 1. 通过 USB 连接平板到电脑
+ * 2. 将视频文件复制到：内部存储/Documents/CampcookingAR/Videos/
+ * 3. 视频文件名可以使用中文，如：生火技巧.mp4
+ * 4. 在下面的 videoList 中添加配置信息
+ * 5. 重新编译运行即可
+ * 
+ * 优点：
+ * - ✅ 编译速度快（视频不在项目中）
+ * - ✅ 更新视频不需要重新编译（只需复制文件）
+ * - ✅ 支持中文文件名
+ * - ✅ APK 文件小
  */
 object VideoConfig {
+    
+    /**
+     * 视频文件夹路径（相对于 Documents 目录）
+     */
+    const val VIDEO_FOLDER = "CampcookingAR/Videos"
     
     /**
      * 获取所有视频列表
@@ -24,7 +38,7 @@ object VideoConfig {
                 title = "生火技巧",
                 description = "学习如何快速安全地生火，掌握柴火的摆放和点火技巧。",
                 duration = "1:27",
-                resourceName = "video_fire_skills",
+                fileName = "video_fire_skills.mp4",
                 category = "基础技能",
                 order = 1
             ),
@@ -34,8 +48,8 @@ object VideoConfig {
                 id = 2,
                 title = "砍鸡的方法",
                 description = "学习如何正确砍鸡",
-                duration = "2:30",
-                resourceName = "video_cut_chicken",
+                duration = "1:00",
+                fileName = "video_cut_chicken.mp4",
                 category = "基础技能",
                 order = 2
             ),
@@ -44,9 +58,9 @@ object VideoConfig {
             Video(
                 id = 3,
                 title = "砍排骨方法",
-                description = "学习如何正确砍排骨。详细讲解烹饪前的准备工作、火候的掌握技巧、调味的正确方法。",
-                duration = "3:15",
-                resourceName = "video_chop_ribs",
+                description = "砍排骨方法",
+                duration = "1:00",
+                fileName = "video_chop_ribs.mp4",
                 category = "基础技能",
                 order = 3
             )

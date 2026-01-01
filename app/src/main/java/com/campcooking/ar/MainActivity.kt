@@ -12,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityMainBinding
+import com.campcooking.ar.utils.TeamInfoManager
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
@@ -22,11 +23,13 @@ import com.google.android.material.textfield.TextInputLayout
  * - 炉号：纯数字
  * - 小组人数：1-15人
  * - 人员姓名：根据人数动态生成输入框
+ * - 支持数据持久化保存
  */
 class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
     private val teamInfo = TeamInfo()
+    private lateinit var teamInfoManager: TeamInfoManager
     
     // 存储动态生成的姓名输入框
     private val memberNameInputs = mutableListOf<TextInputEditText>()
@@ -47,8 +50,14 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        // 初始化数据管理器
+        teamInfoManager = TeamInfoManager(this)
+        
         setupSpinners()
         setupListeners()
+        
+        // 加载保存的数据
+        loadSavedData()
     }
     
     /**
@@ -111,9 +120,17 @@ class MainActivity : AppCompatActivity() {
             }
         })
         
+        // 保存按钮点击事件
+        binding.saveButton.setOnClickListener {
+            if (validateAndSaveInfo()) {
+                saveTeamInfo()
+            }
+        }
+        
         // 开始按钮点击事件
         binding.startButton.setOnClickListener {
             if (validateAndSaveInfo()) {
+                saveTeamInfo()
                 showConfirmDialog()
             }
         }
@@ -315,7 +332,70 @@ class MainActivity : AppCompatActivity() {
         teamInfo.memberCount = 0
         teamInfo.memberNames = ""
         
+        // 清除持久化数据
+        teamInfoManager.clearTeamInfo()
+        
         Toast.makeText(this, R.string.toast_reset_confirm, Toast.LENGTH_SHORT).show()
+    }
+    
+    /**
+     * 保存团队信息
+     */
+    private fun saveTeamInfo() {
+        teamInfoManager.saveTeamInfo(teamInfo)
+        Toast.makeText(this, "信息已保存", Toast.LENGTH_SHORT).show()
+    }
+    
+    /**
+     * 加载保存的数据
+     */
+    private fun loadSavedData() {
+        val savedInfo = teamInfoManager.loadTeamInfo()
+        if (savedInfo != null) {
+            // 恢复学校
+            binding.schoolInput.setText(savedInfo.school)
+            
+            // 恢复年级
+            val gradeArray = resources.getStringArray(R.array.grades)
+            val gradeIndex = gradeArray.indexOf(savedInfo.grade)
+            if (gradeIndex >= 0) {
+                binding.gradeSpinner.setSelection(gradeIndex)
+            }
+            
+            // 恢复班级
+            val classArray = resources.getStringArray(R.array.classes)
+            val classIndex = classArray.indexOf(savedInfo.className)
+            if (classIndex >= 0) {
+                binding.classSpinner.setSelection(classIndex)
+            }
+            
+            // 恢复炉号
+            val stoveArray = resources.getStringArray(R.array.stoves)
+            val stoveIndex = stoveArray.indexOf(savedInfo.stoveNumber)
+            if (stoveIndex >= 0) {
+                binding.stoveSpinner.setSelection(stoveIndex)
+            }
+            
+            // 恢复小组人数
+            if (savedInfo.memberCount > 0) {
+                binding.memberCountInput.setText(savedInfo.memberCount.toString())
+                
+                // 恢复成员姓名
+                val namesList = teamInfoManager.getMemberNamesList()
+                if (namesList.isNotEmpty()) {
+                    // 等待输入框生成后填充数据
+                    binding.memberCountInput.post {
+                        namesList.forEachIndexed { index, name ->
+                            if (index < memberNameInputs.size) {
+                                memberNameInputs[index].setText(name)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            Toast.makeText(this, "已恢复上次保存的信息", Toast.LENGTH_SHORT).show()
+        }
     }
     
     /**

@@ -19,6 +19,7 @@
     <string name="label_member_names">人员姓名</string>
     <string name="hint_member_name">姓名（最多5字）</string>
     <string name="button_reset">重置</string>
+    <string name="button_save">保存</string>
     <string name="button_start">开始野炊</string>
     
     <!-- 下拉选项提示 -->
