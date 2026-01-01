@@ -49,11 +49,19 @@
     <color name="nature_green">#9BC59D</color>           <!-- 鼠尾草绿（成功） -->
     <color name="nature_forest">#2E7D32</color>          <!-- 森林绿（深绿） -->
     <color name="nature_sage">#A8C69A</color>            <!-- 浅鼠尾草绿 -->
+    <color name="nature_green_alpha">#E8F5E9</color>    <!-- 浅绿色半透明背景 -->
+    <color name="nature_green_dark">#2E7D32</color>      <!-- 深绿色文字 -->
+
+    <!-- Material Design 3 标准色 -->
+    <color name="material_green_500">#4CAF50</color>    <!-- MD3 绿色500 -->
+    <color name="material_orange_500">#FF9800</color>   <!-- MD3 橙色500 -->
 
     <!-- 大地色系 -->
     <color name="wood_brown">#A67C52</color>             <!-- 陶土棕 -->
     <color name="earth_sand">#D4A574</color>             <!-- 沙色 -->
     <color name="earth_clay">#8B6F47</color>             <!-- 摩卡棕 -->
+    <color name="fire_orange_alpha">#FFF3E0</color>     <!-- 浅橙色半透明背景 -->
+    <color name="fire_orange_dark">#E65100</color>       <!-- 深橙色文字 -->
 
     <!-- 水色系 -->
     <color name="water_lake">#4FC3F7</color>             <!-- 湖水蓝 -->

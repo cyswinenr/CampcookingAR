@@ -645,48 +645,98 @@ class RecordActivity : AppCompatActivity() {
     }
     
     /**
-     * 设置标签
+     * 设置标签（Material Design 3 标准方案 - 大字体）
      */
     private fun setupTags() {
         val currentStage = processRecord.currentStage
         val stageRecord = getCurrentStageRecord()
         val tagGroup = RecordConfig.stageTagsMap[currentStage]
-        
+
         // 清空现有标签
         binding.positiveTagsChipGroup.removeAllViews()
         binding.problemTagsChipGroup.removeAllViews()
-        
-        // 添加正面标签
+
+        // 添加正面标签（Material Design 3 绿色系）
         tagGroup?.positive?.forEach { tag ->
-            val chip = Chip(this).apply {
+            val chip = com.google.android.material.chip.Chip(this).apply {
                 text = tag
                 isCheckable = true
                 isChecked = stageRecord.selectedTags.contains(tag)
+                // 增大Chip字体
+                textSize = 16f
+                chipMinHeight = 52f
+
+                // 未选中状态：浅绿背景，深绿文字，绿色边框
+                if (!isChecked) {
+                    chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.nature_green_alpha)
+                    setTextColor(ContextCompat.getColor(context, R.color.nature_green_dark))
+                    chipStrokeColor = ContextCompat.getColorStateList(context, R.color.material_green_500)
+                    chipStrokeWidth = 2f
+                } else {
+                    // 选中状态：绿色填充，白色文字
+                    chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.material_green_500)
+                    setTextColor(ContextCompat.getColor(context, android.R.color.white))
+                    chipStrokeWidth = 0f
+                }
+
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
                         stageRecord.selectedTags.add(tag)
+                        // 选中后更新样式
+                        chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.material_green_500)
+                        setTextColor(ContextCompat.getColor(context, android.R.color.white))
+                        chipStrokeWidth = 0f
                     } else {
                         stageRecord.selectedTags.remove(tag)
+                        // 取消选中后更新样式
+                        chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.nature_green_alpha)
+                        setTextColor(ContextCompat.getColor(context, R.color.nature_green_dark))
+                        chipStrokeColor = ContextCompat.getColorStateList(context, R.color.material_green_500)
+                        chipStrokeWidth = 2f
                     }
                     saveRecord()
                 }
             }
             binding.positiveTagsChipGroup.addView(chip)
         }
-        
-        // 添加问题标签
+
+        // 添加问题标签（Material Design 3 橙色系）
         tagGroup?.problems?.forEach { tag ->
-            val chip = Chip(this).apply {
+            val chip = com.google.android.material.chip.Chip(this).apply {
                 text = tag
                 isCheckable = true
                 isChecked = stageRecord.selectedTags.contains(tag)
-                setChipBackgroundColorResource(R.color.fire_red)
-                setTextColor(ContextCompat.getColor(context, android.R.color.white))
+                // 增大Chip字体
+                textSize = 16f
+                chipMinHeight = 52f
+
+                // 未选中状态：浅橙背景，深橙文字，橙色边框
+                if (!isChecked) {
+                    chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.fire_orange_alpha)
+                    setTextColor(ContextCompat.getColor(context, R.color.fire_orange_dark))
+                    chipStrokeColor = ContextCompat.getColorStateList(context, R.color.material_orange_500)
+                    chipStrokeWidth = 2f
+                } else {
+                    // 选中状态：橙色填充，白色文字
+                    chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.material_orange_500)
+                    setTextColor(ContextCompat.getColor(context, android.R.color.white))
+                    chipStrokeWidth = 0f
+                }
+
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
                         stageRecord.selectedTags.add(tag)
+                        // 选中后更新样式
+                        chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.material_orange_500)
+                        setTextColor(ContextCompat.getColor(context, android.R.color.white))
+                        chipStrokeWidth = 0f
                     } else {
                         stageRecord.selectedTags.remove(tag)
+                        // 取消选中后更新样式
+                        chipBackgroundColor = ContextCompat.getColorStateList(context, R.color.fire_orange_alpha)
+                        setTextColor(ContextCompat.getColor(context, R.color.fire_orange_dark))
+                        chipStrokeColor = ContextCompat.getColorStateList(context, R.color.material_orange_500)
+                        chipStrokeWidth = 2f
                     }
                     saveRecord()
                 }
