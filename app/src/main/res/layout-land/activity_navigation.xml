@@ -97,8 +97,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/nav_video_title"
-                    android:textColor="@color/text_primary"
-                    android:textSize="36sp"
+                    android:textColor="@color/fire_orange"
+                    android:textSize="72sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="16dp" />
 
@@ -107,10 +107,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/nav_video_desc"
-                    android:textColor="@color/subtitle_color"
-                    android:textSize="20sp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="40sp"
                     android:gravity="center"
-                    android:lineSpacingExtra="4dp" />
+                    android:lineSpacingExtra="8dp" />
 
             </LinearLayout>
 

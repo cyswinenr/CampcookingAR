@@ -169,9 +169,14 @@ class RecordActivity : AppCompatActivity() {
             stages = CookingStage.getAllStages(),
             processRecord = processRecord,
             onStageClick = { stage ->
-                // 切换到选中的阶段
+                // 直接切换到选中的阶段，不弹出确认框
                 if (processRecord.currentStage != stage) {
-                    showSwitchStageDialog(stage)
+                    processRecord.currentStage = stage
+                    if (!processRecord.stages.containsKey(stage)) {
+                        processRecord.startStage(stage)
+                    }
+                    saveRecord()
+                    updateCurrentStageUI()
                 }
             }
         )
