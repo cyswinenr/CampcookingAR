@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
 import android.net.Uri
 import android.provider.MediaStore
@@ -11,16 +12,27 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
+import com.campcooking.ar.R
 import com.campcooking.ar.data.MediaItem
 import com.campcooking.ar.data.MediaType
 import com.campcooking.ar.databinding.ItemPhotoBinding
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
- * 照片/视频列表适配器
+ * 照片/视频列表适配器 - 专业版
+ *
+ * 功能：
+ * - 显示文件信息（大小、时长、时间）
+ * - 优化图片加载（采样、缩放）
+ * - 视频缩略图生成
+ * - 查看/播放功能
+ * - 删除功能
  */
 class PhotoListAdapter(
     private var mediaItems: MutableList<MediaItem>,
+    private val onViewClick: (MediaItem) -> Unit,
     private val onDeleteClick: (Int) -> Unit
 ) : RecyclerView.Adapter<PhotoListAdapter.PhotoViewHolder>() {
 
@@ -30,140 +42,318 @@ class PhotoListAdapter(
         fun bind(mediaItem: MediaItem, position: Int) {
             val file = File(mediaItem.path)
 
+            // 设置媒体信息
+            binding.mediaTypeView.text = if (mediaItem.type == MediaType.PHOTO) "📷 照片" else "🎥 视频"
+            binding.mediaTimeView.text = formatTimestamp(mediaItem.timestamp)
+
             when (mediaItem.type) {
                 MediaType.PHOTO -> {
-                    // 加载照片
-                    if (file.exists()) {
-                        val uri = Uri.fromFile(file)
-                        binding.photoImageView.setImageURI(uri)
-                    }
-                    // 隐藏视频相关UI
+                    loadOptimizedPhoto(file)
                     binding.videoIconView.visibility = android.view.View.GONE
-                    binding.videoLabelView.visibility = android.view.View.GONE
-
-                    // 点击照片查看大图
-                    binding.photoImageView.setOnClickListener {
-                        // TODO: 实现查看大图功能
-                    }
+                    binding.videoDurationView.visibility = android.view.View.GONE
+                    binding.viewButton.text = "查看"
+                    binding.viewButton.setIconResource(android.R.drawable.ic_menu_view)
                 }
                 MediaType.VIDEO -> {
-                    // 加载视频缩略图
-                    loadVideoThumbnail(mediaItem.path)
-                    // 显示视频标识
+                    loadVideoThumbnail(file)
                     binding.videoIconView.visibility = android.view.View.VISIBLE
-                    binding.videoLabelView.visibility = android.view.View.VISIBLE
+                    binding.videoDurationView.visibility = android.view.View.VISIBLE
+                    binding.viewButton.text = "播放"
+                    binding.viewButton.setIconResource(android.R.drawable.ic_media_play)
 
-                    // 点击视频播放
-                    binding.photoImageView.setOnClickListener {
-                        playVideo(mediaItem.path)
-                    }
+                    // 获取并显示视频时长
+                    val duration = getVideoDuration(file)
+                    binding.videoDurationView.text = formatDuration(duration)
                 }
             }
 
+            // 显示文件大小
+            binding.mediaInfoView.text = formatFileSize(file.length())
+
+            // 查看按钮点击
+            binding.viewButton.setOnClickListener {
+                onViewClick(mediaItem)
+            }
+
             // 删除按钮点击
-            binding.deletePhotoButton.setOnClickListener {
+            binding.deleteButton.setOnClickListener {
                 onDeleteClick(position)
+            }
+        }
+
+        /**
+         * 优化照片加载（避免OOM）
+         */
+        private fun loadOptimizedPhoto(file: File) {
+            try {
+                if (!file.exists()) {
+                    binding.photoImageView.setImageResource(android.R.drawable.ic_menu_gallery)
+                    return
+                }
+
+                // 获取图片尺寸
+                val options = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                }
+                BitmapFactory.decodeFile(file.absolutePath, options)
+
+                // 计算采样率
+                val reqWidth = 200
+                val reqHeight = 200
+                var inSampleSize = 1
+
+                if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+                    val halfHeight = options.outHeight / 2
+                    val halfWidth = options.outWidth / 2
+
+                    while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                        inSampleSize *= 2
+                    }
+                }
+
+                // 加载采样后的图片
+                val decodeOptions = BitmapFactory.Options().apply {
+                    inSampleSize = inSampleSize
+                    inPreferredConfig = Bitmap.Config.RGB_565 // 减少内存占用
+                }
+
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath, decodeOptions)
+                if (bitmap != null) {
+                    binding.photoImageView.setImageBitmap(bitmap)
+                } else {
+                    binding.photoImageView.setImageResource(android.R.drawable.ic_menu_gallery)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                binding.photoImageView.setImageResource(android.R.drawable.ic_menu_gallery)
             }
         }
 
         /**
          * 加载视频缩略图
          */
-        private fun loadVideoThumbnail(videoPath: String) {
+        private fun loadVideoThumbnail(file: File) {
+            android.util.Log.d("PhotoListAdapter", "开始加载视频缩略图: ${file.absolutePath}")
+            android.util.Log.d("PhotoListAdapter", "文件存在: ${file.exists()}, 大小: ${file.length()} bytes")
+
             try {
-                val file = File(videoPath)
-                if (file.exists()) {
-                    // 使用ThumbnailUtils获取视频缩略图
-                    val thumbnail = ThumbnailUtils.createVideoThumbnail(
-                        videoPath,
-                        MediaStore.Video.Thumbnails.MINI_KIND
-                    )
-                    if (thumbnail != null) {
-                        binding.photoImageView.setImageBitmap(thumbnail)
-                    } else {
-                        // 如果无法获取缩略图，使用深灰色背景
-                        loadDefaultVideoBackground()
-                    }
-                } else {
-                    // 文件不存在，显示错误背景
-                    loadDefaultVideoBackground()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                // 出错时使用默认背景
-                loadDefaultVideoBackground()
-            }
-        }
-
-        /**
-         * 加载默认视频背景（当缩略图无法加载时）
-         */
-        private fun loadDefaultVideoBackground() {
-            // 创建一个深灰色的背景
-            val bitmap = Bitmap.createBitmap(120, 120, Bitmap.Config.ARGB_8888)
-            bitmap.eraseColor(0xFF424242.toInt()) // 深灰色
-            binding.photoImageView.setImageBitmap(bitmap)
-        }
-
-        /**
-         * 播放视频
-         */
-        private fun playVideo(videoPath: String) {
-            try {
-                val file = File(videoPath)
-
-                // 检查文件是否存在
                 if (!file.exists()) {
-                    android.widget.Toast.makeText(
-                        binding.root.context,
-                        "❌ 视频文件不存在\n路径: $videoPath",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
+                    android.util.Log.e("PhotoListAdapter", "视频文件不存在!")
+                    loadDefaultThumbnail()
                     return
                 }
 
                 // 检查文件大小
-                val fileSizeKB = file.length() / 1024
-                if (fileSizeKB < 10) {
-                    android.widget.Toast.makeText(
-                        binding.root.context,
-                        "⚠️ 视频文件过小 (${fileSizeKB}KB)\n可能录制失败，请重新录制",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
+                if (file.length() < 100) {
+                    android.util.Log.e("PhotoListAdapter", "视频文件过小: ${file.length()} bytes")
+                    loadDefaultThumbnail()
                     return
                 }
 
-                // 使用FileProvider获取URI
-                val uri = FileProvider.getUriForFile(
-                    binding.root.context,
-                    binding.root.context.packageName + ".fileprovider",
-                    file
-                )
+                var thumbnail: Bitmap? = null
 
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "video/mp4")
-                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // 方法1: 使用ThumbnailUtils
+                android.util.Log.d("PhotoListAdapter", "尝试方法1: ThumbnailUtils")
+                thumbnail = ThumbnailUtils.createVideoThumbnail(
+                    file.absolutePath,
+                    MediaStore.Video.Thumbnails.MINI_KIND
+                )
+                android.util.Log.d("PhotoListAdapter", "方法1结果: ${thumbnail != null}")
+
+                // 方法2: 如果ThumbnailUtils失败，使用MediaMetadataRetriever
+                if (thumbnail == null) {
+                    android.util.Log.d("PhotoListAdapter", "尝试方法2: MediaMetadataRetriever")
+                    var retriever: MediaMetadataRetriever? = null
+                    try {
+                        retriever = MediaMetadataRetriever()
+                        retriever.setDataSource(file.absolutePath)
+
+                        // 获取第一帧
+                        val bitmap = retriever.frameAtTime
+                        android.util.Log.d("PhotoListAdapter", "MediaMetadataRetriever获取帧: ${bitmap != null}")
+
+                        if (bitmap != null) {
+                            // 缩放到合适大小
+                            val targetWidth = 200
+                            val targetHeight = 200
+                            thumbnail = ThumbnailUtils.extractThumbnail(
+                                bitmap,
+                                targetWidth,
+                                targetHeight
+                            )
+                            android.util.Log.d("PhotoListAdapter", "缩放后的缩略图: ${thumbnail != null}")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("PhotoListAdapter", "MediaMetadataRetriever失败: ${e.message}", e)
+                    } finally {
+                        retriever?.release()
+                    }
                 }
 
-                // 检查是否有应用可以播放视频
-                if (intent.resolveActivity(binding.root.context.packageManager) != null) {
-                    binding.root.context.startActivity(intent)
+                // 方法3: 使用ContentResolver（最可靠的方法）
+                if (thumbnail == null) {
+                    android.util.Log.d("PhotoListAdapter", "尝试方法3: ContentResolver")
+                    try {
+                        val context = binding.root.context
+                        val contentResolver = context.contentResolver
+
+                        // 查询视频缩略图
+                        val projection = arrayOf(
+                            MediaStore.Video.Thumbnails.DATA
+                        )
+
+                        val cursor = contentResolver.query(
+                            MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI,
+                            projection,
+                            "${MediaStore.Video.Thumbnails.VIDEO_ID} = ?",
+                            arrayOf(getVideoId(context, file.absolutePath).toString()),
+                            null
+                        )
+
+                        cursor?.use {
+                            if (it.moveToFirst()) {
+                                val thumbPath = it.getString(it.getColumnIndexOrThrow(MediaStore.Video.Thumbnails.DATA))
+                                android.util.Log.d("PhotoListAdapter", "找到缩略图路径: $thumbPath")
+
+                                if (thumbPath != null && File(thumbPath).exists()) {
+                                    thumbnail = BitmapFactory.decodeFile(thumbPath)
+                                    android.util.Log.d("PhotoListAdapter", "从文件加载缩略图: ${thumbnail != null}")
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("PhotoListAdapter", "ContentResolver失败: ${e.message}", e)
+                    }
+                }
+
+                // 设置缩略图或默认图
+                if (thumbnail != null) {
+                    android.util.Log.d("PhotoListAdapter", "成功加载视频缩略图!")
+                    binding.photoImageView.setImageBitmap(thumbnail)
                 } else {
-                    android.widget.Toast.makeText(
-                        binding.root.context,
-                        "❌ 未找到视频播放应用",
-                        android.widget.Toast.LENGTH_LONG
-                    ).show()
+                    android.util.Log.w("PhotoListAdapter", "所有方法都失败，使用默认缩略图")
+                    loadDefaultThumbnail()
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
-                android.widget.Toast.makeText(
-                    binding.root.context,
-                    "❌ 播放视频失败\n${e.javaClass.simpleName}: ${e.message}",
-                    android.widget.Toast.LENGTH_LONG
-                ).show()
+                android.util.Log.e("PhotoListAdapter", "加载视频缩略图异常: ${e.message}", e)
+                loadDefaultThumbnail()
             }
+        }
+
+        /**
+         * 获取视频ID
+         */
+        private fun getVideoId(context: Context, videoPath: String): Long {
+            try {
+                val projection = arrayOf(MediaStore.Video.Media._ID)
+                val selection = "${MediaStore.Video.Media.DATA} = ?"
+                val selectionArgs = arrayOf(videoPath)
+
+                context.contentResolver.query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null
+                )?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        return cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID))
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PhotoListAdapter", "获取视频ID失败: ${e.message}", e)
+            }
+            return -1
+        }
+
+        /**
+         * 加载默认缩略图（视频缩略图加载失败时使用）
+         */
+        private fun loadDefaultThumbnail() {
+            android.util.Log.d("PhotoListAdapter", "加载默认视频缩略图")
+
+            // 创建渐变背景（从深灰到黑色）
+            val bitmap = Bitmap.createBitmap(200, 200, Bitmap.Config.RGB_565)
+            val canvas = android.graphics.Canvas(bitmap)
+
+            // 绘制渐变背景
+            val gradient = android.graphics.LinearGradient(
+                0f, 0f, 0f, 200f,
+                0xFF424242.toInt(), 0xFF212121.toInt(),
+                android.graphics.Shader.TileMode.CLAMP
+            )
+            val paint = android.graphics.Paint().apply {
+                shader = gradient
+            }
+            canvas.drawRect(0f, 0f, 200f, 200f, paint)
+
+            // 绘制视频图标
+            val iconPaint = android.graphics.Paint().apply {
+                color = android.graphics.Color.WHITE
+                alpha = 180
+                isAntiAlias = true
+            }
+
+            // 绘制播放三角形
+            val path = android.graphics.Path().apply {
+                val centerX = 100f
+                val centerY = 100f
+                val size = 40f
+
+                moveTo(centerX - size * 0.4f, centerY - size * 0.5f)
+                lineTo(centerX - size * 0.4f, centerY + size * 0.5f)
+                lineTo(centerX + size * 0.5f, centerY)
+                close()
+            }
+            canvas.drawPath(path, iconPaint)
+
+            binding.photoImageView.setImageBitmap(bitmap)
+            android.util.Log.d("PhotoListAdapter", "默认缩略图已设置")
+        }
+
+        /**
+         * 获取视频时长（毫秒）
+         */
+        private fun getVideoDuration(file: File): Long {
+            return try {
+                val retriever = MediaMetadataRetriever()
+                retriever.setDataSource(file.absolutePath)
+                val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                retriever.release()
+                time?.toLongOrNull() ?: 0L
+            } catch (e: Exception) {
+                e.printStackTrace()
+                0L
+            }
+        }
+
+        /**
+         * 格式化时长（毫秒 -> MM:SS）
+         */
+        private fun formatDuration(durationMs: Long): String {
+            val totalSeconds = durationMs / 1000
+            val minutes = totalSeconds / 60
+            val seconds = totalSeconds % 60
+            return String.format("%02d:%02d", minutes, seconds)
+        }
+
+        /**
+         * 格式化文件大小
+         */
+        private fun formatFileSize(size: Long): String {
+            if (size < 1024) return "$size B"
+            val kb = size / 1024.0
+            if (kb < 1024) return String.format("%.1f KB", kb)
+            val mb = kb / 1024.0
+            return String.format("%.1f MB", mb)
+        }
+
+        /**
+         * 格式化时间戳
+         */
+        private fun formatTimestamp(timestamp: Long): String {
+            val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
+            return sdf.format(Date(timestamp))
         }
     }
 
@@ -194,11 +384,9 @@ class PhotoListAdapter(
      * 保留旧方法以保持向后兼容
      */
     fun updatePhotos(newPhotos: MutableList<String>) {
-        // 将String列表转换为MediaItem列表
         mediaItems = newPhotos.map { path ->
             MediaItem(path, MediaType.PHOTO)
         }.toMutableList()
         notifyDataSetChanged()
     }
 }
-

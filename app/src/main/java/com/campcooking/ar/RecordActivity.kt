@@ -9,14 +9,12 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
 import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.campcooking.ar.adapter.PhotoListAdapter
 import com.campcooking.ar.adapter.StageListAdapter
 import com.campcooking.ar.config.RecordConfig
 import com.campcooking.ar.data.CookingStage
@@ -47,7 +45,6 @@ class RecordActivity : AppCompatActivity() {
     
     // 适配器
     private lateinit var stageListAdapter: StageListAdapter
-    private lateinit var photoListAdapter: PhotoListAdapter
     
     // 拍照相关
     private var currentPhotoUri: Uri? = null
@@ -186,19 +183,267 @@ class RecordActivity : AppCompatActivity() {
     }
     
     /**
-     * 设置照片列表
+     * 设置照片/视频列表（使用LinearLayout直接显示，无需滚动）
      */
     private fun setupPhotosList() {
-        photoListAdapter = PhotoListAdapter(
-            mediaItems = getCurrentStageRecord().mediaItems,
-            onDeleteClick = { position ->
-                showDeleteMediaDialog(position)
+        // 初始化时会通过updateCurrentStageUI()来刷新列表
+    }
+
+    /**
+     * 添加照片item到容器
+     */
+    private fun addMediaItemToContainer(
+        mediaItem: com.campcooking.ar.data.MediaItem,
+        container: android.widget.LinearLayout,
+        index: Int
+    ) {
+        // 动态创建item view
+        val itemView = layoutInflater.inflate(R.layout.item_photo, container, false)
+
+        // 获取各个view
+        val photoImageView = itemView.findViewById<android.widget.ImageView>(R.id.photoImageView)
+        val videoIconView = itemView.findViewById<android.widget.ImageView>(R.id.videoIconView)
+        val videoDurationView = itemView.findViewById<android.widget.TextView>(R.id.videoDurationView)
+        val mediaTypeView = itemView.findViewById<android.widget.TextView>(R.id.mediaTypeView)
+        val mediaInfoView = itemView.findViewById<android.widget.TextView>(R.id.mediaInfoView)
+        val mediaTimeView = itemView.findViewById<android.widget.TextView>(R.id.mediaTimeView)
+        val viewButton = itemView.findViewById<com.google.android.material.button.MaterialButton>(R.id.viewButton)
+        val deleteButton = itemView.findViewById<com.google.android.material.button.MaterialButton>(R.id.deleteButton)
+
+        val file = java.io.File(mediaItem.path)
+        if (!file.exists()) {
+            return
+        }
+
+        when (mediaItem.type) {
+            com.campcooking.ar.data.MediaType.PHOTO -> {
+                // 加载照片缩略图
+                loadPhotoThumbnail(file, photoImageView)
+                mediaTypeView.text = "📷 照片"
+                mediaTypeView.setTextColor(getColor(R.color.water_lake))
+                videoIconView.visibility = android.view.View.GONE
+                videoDurationView.visibility = android.view.View.GONE
+                viewButton.text = "查看"
             }
+            com.campcooking.ar.data.MediaType.VIDEO -> {
+                // 加载视频缩略图
+                loadVideoThumbnail(file, photoImageView, videoIconView, videoDurationView)
+                mediaTypeView.text = "🎥 视频"
+                mediaTypeView.setTextColor(getColor(R.color.fire_coral))
+                videoIconView.visibility = android.view.View.VISIBLE
+                videoDurationView.visibility = android.view.View.VISIBLE
+                viewButton.text = "播放"
+            }
+        }
+
+        // 设置文件信息
+        val fileSizeKB = file.length() / 1024
+        mediaInfoView.text = when {
+            fileSizeKB < 1024 -> "$fileSizeKB KB"
+            else -> "${fileSizeKB / 1024}.${(fileSizeKB % 1024) / 100} MB"
+        }
+
+        // 设置时间
+        val lastModified = java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
+            .format(java.util.Date(file.lastModified()))
+        mediaTimeView.text = lastModified
+
+        // 查看按钮
+        viewButton.setOnClickListener {
+            viewMedia(mediaItem)
+        }
+
+        // 删除按钮
+        deleteButton.setOnClickListener {
+            showDeleteMediaDialog(index, mediaItem.type == com.campcooking.ar.data.MediaType.PHOTO)
+        }
+
+        // 添加到容器
+        container.addView(itemView)
+    }
+
+    /**
+     * 加载照片缩略图（优化版本）
+     */
+    private fun loadPhotoThumbnail(file: java.io.File, imageView: android.widget.ImageView) {
+        try {
+            val options = android.graphics.BitmapFactory.Options().apply {
+                inJustDecodeBounds = true
+            }
+            android.graphics.BitmapFactory.decodeFile(file.absolutePath, options)
+
+            // 计算采样率
+            var inSampleSize = 1
+            val reqWidth = 200
+            val reqHeight = 200
+
+            if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+                val halfHeight = options.outHeight / 2
+                val halfWidth = options.outWidth / 2
+
+                while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                    inSampleSize *= 2
+                }
+            }
+
+            val decodeOptions = android.graphics.BitmapFactory.Options().apply {
+                inSampleSize = inSampleSize
+                inPreferredConfig = android.graphics.Bitmap.Config.RGB_565
+            }
+
+            val bitmap = android.graphics.BitmapFactory.decodeFile(file.absolutePath, decodeOptions)
+            imageView.setImageBitmap(bitmap)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            imageView.setImageResource(android.R.drawable.ic_menu_gallery)
+        }
+    }
+
+    /**
+     * 加载视频缩略图
+     */
+    private fun loadVideoThumbnail(
+        file: java.io.File,
+        imageView: android.widget.ImageView,
+        videoIconView: android.widget.ImageView,
+        durationView: android.widget.TextView
+    ) {
+        // 方法1: 使用ThumbnailUtils
+        var thumbnail = android.media.ThumbnailUtils.createVideoThumbnail(
+            file.absolutePath,
+            android.provider.MediaStore.Video.Thumbnails.MINI_KIND
         )
 
-        binding.photosRecyclerView.apply {
-            layoutManager = GridLayoutManager(this@RecordActivity, 4)
-            adapter = photoListAdapter
+        if (thumbnail == null) {
+            // 方法2: 使用MediaMetadataRetriever
+            try {
+                val retriever = android.media.MediaMetadataRetriever()
+                retriever.setDataSource(file.absolutePath)
+                val bitmap = retriever.frameAtTime
+                if (bitmap != null) {
+                    thumbnail = android.media.ThumbnailUtils.extractThumbnail(bitmap, 200, 200)
+                }
+                retriever.release()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        if (thumbnail != null) {
+            imageView.setImageBitmap(thumbnail)
+        } else {
+            // 使用默认灰色渐变背景
+            imageView.setImageDrawable(null)
+            imageView.setBackgroundColor(android.graphics.Color.parseColor("#E0E0E0"))
+        }
+
+        // 提取视频时长
+        try {
+            val retriever = android.media.MediaMetadataRetriever()
+            retriever.setDataSource(file.absolutePath)
+            val time = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
+            retriever.release()
+
+            val durationMs = time?.toLongOrNull() ?: 0L
+            val seconds = (durationMs / 1000).toInt()
+            val minutes = seconds / 60
+            val secs = seconds % 60
+            durationView.text = String.format("%02d:%02d", minutes, secs)
+        } catch (e: Exception) {
+            durationView.text = "00:00"
+        }
+    }
+
+    /**
+     * 查看/播放媒体
+     */
+    private fun viewMedia(mediaItem: com.campcooking.ar.data.MediaItem) {
+        when (mediaItem.type) {
+            com.campcooking.ar.data.MediaType.PHOTO -> {
+                // 查看照片大图
+                viewPhoto(mediaItem.path)
+            }
+            com.campcooking.ar.data.MediaType.VIDEO -> {
+                // 播放视频
+                playVideo(mediaItem.path)
+            }
+        }
+    }
+
+    /**
+     * 查看照片大图
+     */
+    private fun viewPhoto(photoPath: String) {
+        try {
+            val file = File(photoPath)
+            if (!file.exists()) {
+                Toast.makeText(this, "❌ 照片文件不存在", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // 使用FileProvider获取URI
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "image/*")
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "❌ 未找到图片查看应用", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "❌ 查看照片失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * 播放视频
+     */
+    private fun playVideo(videoPath: String) {
+        try {
+            val file = File(videoPath)
+            if (!file.exists()) {
+                Toast.makeText(this, "❌ 视频文件不存在", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // 检查文件大小
+            val fileSizeKB = file.length() / 1024
+            if (fileSizeKB < 10) {
+                Toast.makeText(this, "⚠️ 视频文件过小(${fileSizeKB}KB)，可能录制失败", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // 使用FileProvider获取URI
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "video/mp4")
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "❌ 未找到视频播放应用", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "❌ 播放视频失败: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -266,8 +511,8 @@ class RecordActivity : AppCompatActivity() {
         // 更新标签
         setupTags()
 
-        // 更新照片列表
-        photoListAdapter.updatePhotos(stageRecord.photos)
+        // 更新照片和视频列表（直接显示，无需滚动）
+        refreshMediaLists()
 
         // 更新节点列表
         stageListAdapter.notifyDataSetChanged()
@@ -280,7 +525,55 @@ class RecordActivity : AppCompatActivity() {
     }
 
     /**
-     * 更新进度UI
+     * 刷新照片和视频列表（清空容器后重新添加）
+     */
+    private fun refreshMediaLists() {
+        val stageRecord = getCurrentStageRecord()
+
+        // 清空容器
+        binding.photosContainer.removeAllViews()
+        binding.videosContainer.removeAllViews()
+
+        // 分别添加照片和视频
+        stageRecord.mediaItems.forEachIndexed { index, mediaItem ->
+            when (mediaItem.type) {
+                com.campcooking.ar.data.MediaType.PHOTO -> {
+                    addMediaItemToContainer(mediaItem, binding.photosContainer, index)
+                }
+                com.campcooking.ar.data.MediaType.VIDEO -> {
+                    addMediaItemToContainer(mediaItem, binding.videosContainer, index)
+                }
+            }
+        }
+
+        // 如果容器为空，显示提示
+        if (binding.photosContainer.childCount == 0) {
+            val emptyView = layoutInflater.inflate(android.R.layout.simple_list_item_1, binding.photosContainer, false)
+            (emptyView as android.widget.TextView).apply {
+                text = "暂无照片，点击上方\"拍照\"按钮添加"
+                textSize = 13f
+                setTextColor(getColor(R.color.subtitle_color))
+                gravity = android.view.Gravity.CENTER
+                setPadding(16, 32, 16, 32)
+            }
+            binding.photosContainer.addView(emptyView)
+        }
+
+        if (binding.videosContainer.childCount == 0) {
+            val emptyView = layoutInflater.inflate(android.R.layout.simple_list_item_1, binding.videosContainer, false)
+            (emptyView as android.widget.TextView).apply {
+                text = "暂无视频，点击上方\"录像\"按钮添加"
+                textSize = 13f
+                setTextColor(getColor(R.color.subtitle_color))
+                gravity = android.view.Gravity.CENTER
+                setPadding(16, 32, 16, 32)
+            }
+            binding.videosContainer.addView(emptyView)
+        }
+    }
+
+    /**
+     * 更新进度UI（大数字徽章版）
      */
     private fun updateProgressUI() {
         val stageRecord = getCurrentStageRecord()
@@ -289,34 +582,66 @@ class RecordActivity : AppCompatActivity() {
         val photoCount = stageRecord.mediaItems.count { it.type == com.campcooking.ar.data.MediaType.PHOTO }
         val videoCount = stageRecord.mediaItems.count { it.type == com.campcooking.ar.data.MediaType.VIDEO }
 
-        // 更新进度文本
+        // 更新大数字显示
         binding.photoProgressText.text = "${photoCount}/${RecordConfig.MIN_PHOTOS_REQUIRED}"
         binding.videoProgressText.text = "${videoCount}/${RecordConfig.MIN_VIDEOS_REQUIRED}"
 
-        // 更新进度提示
-        binding.progressHintText.text = RecordConfig.getProgressHint(photoCount, videoCount)
+        // 更新状态指示
+        val photoMeets = photoCount >= RecordConfig.MIN_PHOTOS_REQUIRED
+        val videoMeets = videoCount >= RecordConfig.MIN_VIDEOS_REQUIRED
 
-        // 计算总进度（照片占75%，视频占25%）
-        val photoProgress = (photoCount.toFloat() / RecordConfig.MIN_PHOTOS_REQUIRED).coerceAtMost(1f)
-        val videoProgress = (videoCount.toFloat() / RecordConfig.MIN_VIDEOS_REQUIRED).coerceAtMost(1f)
-        val totalProgress = ((photoProgress * 0.75 + videoProgress * 0.25) * 100).toInt()
+        // 照片状态
+        when {
+            photoMeets -> {
+                binding.photoProgressStatusText.text = "✅ 已达标"
+                binding.photoProgressStatusText.setTextColor(getColor(R.color.nature_green))
+                binding.photoProgressText.setTextColor(getColor(R.color.nature_green))
+            }
+            photoCount == 0 -> {
+                binding.photoProgressStatusText.text = "📌 未开始"
+                binding.photoProgressStatusText.setTextColor(getColor(R.color.subtitle_color))
+                binding.photoProgressText.setTextColor(getColor(R.color.water_lake))
+            }
+            else -> {
+                val remaining = RecordConfig.MIN_PHOTOS_REQUIRED - photoCount
+                binding.photoProgressStatusText.text = "📌 还需${remaining}张"
+                binding.photoProgressStatusText.setTextColor(getColor(R.color.fire_orange))
+                binding.photoProgressText.setTextColor(getColor(R.color.water_lake))
+            }
+        }
 
-        binding.progressBar.progress = totalProgress
+        // 视频状态
+        when {
+            videoMeets -> {
+                binding.videoProgressStatusText.text = "✅ 已达标"
+                binding.videoProgressStatusText.setTextColor(getColor(R.color.nature_green))
+                binding.videoProgressText.setTextColor(getColor(R.color.nature_green))
+            }
+            videoCount == 0 -> {
+                binding.videoProgressStatusText.text = "📌 未开始"
+                binding.videoProgressStatusText.setTextColor(getColor(R.color.subtitle_color))
+                binding.videoProgressText.setTextColor(getColor(R.color.fire_coral))
+            }
+            else -> {
+                val remaining = RecordConfig.MIN_VIDEOS_REQUIRED - videoCount
+                binding.videoProgressStatusText.text = "📌 还需${remaining}段"
+                binding.videoProgressStatusText.setTextColor(getColor(R.color.fire_orange))
+                binding.videoProgressText.setTextColor(getColor(R.color.fire_coral))
+            }
+        }
 
-        // 更新进度文本颜色（达标时变绿）
-        binding.photoProgressText.setTextColor(
-            getColor(
-                if (photoCount >= RecordConfig.MIN_PHOTOS_REQUIRED) R.color.nature_green
-                else R.color.water_lake
-            )
-        )
+        // 更新进度提示（各模块内的提示文字）
+        binding.photoProgressHintText.text = when {
+            photoMeets -> "🎉 太棒了！照片数量已达标"
+            photoCount == 0 -> "还没有拍照，点击上方按钮拍照记录"
+            else -> "继续加油！还需要${RecordConfig.MIN_PHOTOS_REQUIRED - photoCount}张照片"
+        }
 
-        binding.videoProgressText.setTextColor(
-            getColor(
-                if (videoCount >= RecordConfig.MIN_VIDEOS_REQUIRED) R.color.nature_green
-                else R.color.fire_coral
-            )
-        )
+        binding.videoProgressHintText.text = when {
+            videoMeets -> "🎉 太棒了！视频数量已达标"
+            videoCount == 0 -> "还没有录像，点击上方按钮录像记录"
+            else -> "继续加油！还需要${RecordConfig.MIN_VIDEOS_REQUIRED - videoCount}段视频"
+        }
     }
     
     /**
@@ -633,12 +958,14 @@ class RecordActivity : AppCompatActivity() {
     
     /**
      * 显示删除媒体对话框
+     * @param position 在mediaItems列表中的索引
+     * @param isPhoto true表示照片，false表示视频
      */
-    private fun showDeleteMediaDialog(position: Int) {
+    private fun showDeleteMediaDialog(position: Int, isPhoto: Boolean) {
         val stageRecord = getCurrentStageRecord()
         val mediaItem = stageRecord.mediaItems[position]
-        val mediaTypeText = if (mediaItem.type == com.campcooking.ar.data.MediaType.PHOTO) "照片" else "视频"
-        val mediaEmoji = if (mediaItem.type == com.campcooking.ar.data.MediaType.PHOTO) "📷" else "🎥"
+        val mediaTypeText = if (isPhoto) "照片" else "视频"
+        val mediaEmoji = if (isPhoto) "📷" else "🎥"
 
         AlertDialog.Builder(this)
             .setTitle("${mediaEmoji} 删除${mediaTypeText}")
@@ -657,13 +984,13 @@ class RecordActivity : AppCompatActivity() {
                     // 从列表中移除
                     stageRecord.mediaItems.removeAt(position)
                     // 同时从photos列表中删除（保持兼容）
-                    if (mediaItem.type == com.campcooking.ar.data.MediaType.PHOTO) {
+                    if (isPhoto) {
                         stageRecord.photos.remove(mediaItem.path)
                     }
 
-                    // 更新UI
-                    photoListAdapter.updateMediaItems(stageRecord.mediaItems)
+                    // 刷新UI
                     saveRecord()
+                    refreshMediaLists()  // 刷新列表显示
                     updateProgressUI()
                     updateButtonStates()
 
@@ -768,10 +1095,9 @@ class RecordActivity : AppCompatActivity() {
                 )
                 stageRecord.mediaItems.add(photoItem)
                 stageRecord.photos.add(path) // 保持向后兼容
-                photoListAdapter.updateMediaItems(stageRecord.mediaItems)
-                saveRecord()
 
-                // 更新进度UI
+                saveRecord()
+                refreshMediaLists()  // 刷新列表显示
                 updateProgressUI()
 
                 // 显示鼓励消息
@@ -794,10 +1120,9 @@ class RecordActivity : AppCompatActivity() {
                     type = com.campcooking.ar.data.MediaType.VIDEO
                 )
                 stageRecord.mediaItems.add(videoItem)
-                photoListAdapter.updateMediaItems(stageRecord.mediaItems)
-                saveRecord()
 
-                // 更新进度UI
+                saveRecord()
+                refreshMediaLists()  // 刷新列表显示
                 updateProgressUI()
 
                 // 显示鼓励消息

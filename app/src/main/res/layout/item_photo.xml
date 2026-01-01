@@ -1,93 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 照片列表项 -->
+<!-- 照片/视频列表项 - 优化版 -->
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="120dp"
-    android:layout_height="120dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp">
 
-    <FrameLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
 
-        <!-- 照片/视频缩略图 -->
-        <ImageView
-            android:id="@+id/photoImageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:contentDescription="野炊照片" />
-
-        <!-- 视频标识背景（增强可见性） -->
-        <View
-            android:id="@+id/videoIconBackground"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:background="@android:drawable/ic_menu_gallery"
-            android:backgroundTint="#80000000"
-            android:visibility="gone" />
-
-        <!-- 视频标识图标 -->
-        <ImageView
-            android:id="@+id/videoIconView"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:src="@android:drawable/ic_media_play"
-            android:contentDescription="视频"
-            android:visibility="gone"
-            app:tint="@android:color/white" />
-
-        <!-- 视频标签 -->
-        <TextView
-            android:id="@+id/videoLabelView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="8dp"
-            android:text="视频"
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:background="#CC000000"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"
-            android:visibility="gone" />
-
-        <!-- 删除按钮（更明显的设计） -->
+        <!-- 缩略图容器 -->
         <FrameLayout
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="top|end"
-            android:layout_margin="4dp">
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginEnd="12dp">
 
-            <!-- 半透明背景 -->
-            <View
+            <!-- 照片/视频缩略图 -->
+            <ImageView
+                android:id="@+id/photoImageView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@android:drawable/ic_menu_gallery"
-                android:backgroundTint="#CC000000" />
+                android:scaleType="centerCrop"
+                android:background="#F5F5F5"
+                android:contentDescription="媒体缩略图" />
 
-            <!-- 删除图标 -->
-            <ImageButton
-                android:id="@+id/deletePhotoButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@android:drawable/ic_menu_delete"
-                android:background="@android:color/transparent"
-                android:contentDescription="删除照片"
+            <!-- 视频标识（居中播放图标） -->
+            <ImageView
+                android:id="@+id/videoIconView"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_media_play"
+                android:contentDescription="视频"
+                android:visibility="gone"
                 app:tint="@android:color/white"
-                app:srcCompat="@android:drawable/ic_menu_delete" />
+                android:background="@android:drawable/ic_menu_gallery"
+                android:backgroundTint="#80000000" />
+
+            <!-- 视频时长标签 -->
+            <TextView
+                android:id="@+id/videoDurationView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="4dp"
+                android:text="00:00"
+                android:textColor="@android:color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:background="#CC000000"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:visibility="gone" />
 
         </FrameLayout>
 
-    </FrameLayout>
+        <!-- 信息区域 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
+
+            <!-- 类型标识 -->
+            <TextView
+                android:id="@+id/mediaTypeView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="📷 照片"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="4dp" />
+
+            <!-- 文件信息 -->
+            <TextView
+                android:id="@+id/mediaInfoView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2.3 MB"
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="4dp" />
+
+            <!-- 创建时间 -->
+            <TextView
+                android:id="@+id/mediaTimeView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2025-01-02 14:30"
+                android:textSize="11sp"
+                android:textColor="@color/subtitle_color"
+                android:layout_marginBottom="8dp" />
+
+            <!-- 操作按钮区域 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <!-- 查看/播放按钮 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/viewButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="查看"
+                    android:textSize="13sp"
+                    android:textColor="@color/water_lake"
+                    app:icon="@android:drawable/ic_menu_view"
+                    app:iconTint="@color/water_lake"
+                    android:minHeight="36dp"
+                    android:layout_marginEnd="8dp" />
+
+                <!-- 删除按钮 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/deleteButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="删除"
+                    android:textSize="13sp"
+                    android:textColor="@color/error"
+                    app:icon="@android:drawable/ic_menu_delete"
+                    app:iconTint="@color/error"
+                    android:minHeight="36dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
 
 </androidx.cardview.widget.CardView>
 

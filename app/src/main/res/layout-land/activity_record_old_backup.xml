@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 过程记录页 - 学生端 - 横屏布局 - 重新设计版 -->
+<!-- 过程记录页 - 学生端 - 横屏布局 -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -117,8 +117,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="2.5"
-            android:layout_margin="16dp"
-            android:fillViewport="false">
+            android:layout_margin="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -131,13 +130,13 @@
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <!-- 阶段标题 -->
                         <LinearLayout
@@ -145,15 +144,15 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="12dp">
 
                             <TextView
                                 android:id="@+id/stageEmojiText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="🔥"
-                                android:textSize="32sp"
-                                android:layout_marginEnd="8dp" />
+                                android:textSize="36sp"
+                                android:layout_marginEnd="12dp" />
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -166,7 +165,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="生火阶段"
-                                    android:textSize="20sp"
+                                    android:textSize="24sp"
                                     android:textStyle="bold"
                                     android:textColor="@color/text_primary" />
 
@@ -175,8 +174,9 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:text="搭建灶台并点燃柴火"
-                                    android:textSize="14sp"
-                                    android:textColor="@color/subtitle_color" />
+                                    android:textSize="16sp"
+                                    android:textColor="@color/subtitle_color"
+                                    android:layout_marginTop="4dp" />
 
                             </LinearLayout>
 
@@ -186,10 +186,10 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="进行中..."
-                                android:textSize="16sp"
+                                android:textSize="18sp"
                                 android:textColor="@color/fire_orange"
                                 android:textStyle="bold"
-                                android:padding="6dp"
+                                android:padding="8dp"
                                 android:background="@drawable/category_tag_bg" />
 
                         </LinearLayout>
@@ -200,257 +200,216 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="💡 注意安全，柴火要摆放整齐，留出通风口！"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
                             android:textColor="@color/nature_green"
-                            android:padding="8dp"
-                            android:background="@drawable/spinner_background" />
+                            android:padding="12dp"
+                            android:background="@drawable/spinner_background"
+                            android:layout_marginBottom="16dp" />
 
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
 
-                <!-- 进度显示（大数字徽章版） -->
+                <!-- 进度提示卡片 -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    android:layout_marginBottom="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center"
-                        android:padding="16dp">
-
-                        <!-- 照片进度徽章 -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:background="@drawable/category_tag_bg"
-                            android:padding="16dp"
-                            android:layout_marginEnd="8dp">
-
-                            <!-- 标题 -->
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📷 照片"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:layout_marginBottom="8dp" />
-
-                            <!-- 大数字徽章 -->
-                            <TextView
-                                android:id="@+id/photoProgressText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0/3"
-                                android:textSize="32sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/water_lake"
-                                android:layout_marginBottom="8dp" />
-
-                            <!-- 状态指示 -->
-                            <TextView
-                                android:id="@+id/photoProgressStatusText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📌 进行中"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/subtitle_color" />
-
-                        </LinearLayout>
-
-                        <!-- 视频进度徽章 -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:background="@drawable/category_tag_bg"
-                            android:padding="16dp"
-                            android:layout_marginStart="8dp">
-
-                            <!-- 标题 -->
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="🎥 视频"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary"
-                                android:layout_marginBottom="8dp" />
-
-                            <!-- 大数字徽章 -->
-                            <TextView
-                                android:id="@+id/videoProgressText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0/1"
-                                android:textSize="32sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/fire_coral"
-                                android:layout_marginBottom="8dp" />
-
-                            <!-- 状态指示 -->
-                            <TextView
-                                android:id="@+id/videoProgressStatusText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📌 进行中"
-                                android:textSize="14sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/subtitle_color" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-                <!-- 拍照记录模块 -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
-                        <!-- 标题栏 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊 本环节记录进度"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- 进度统计 -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
+                            android:layout_marginBottom="12dp">
 
-                            <TextView
+                            <!-- 照片进度 -->
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="📷 拍照记录"
-                                android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary" />
+                                android:orientation="vertical"
+                                android:gravity="center">
 
-                            <!-- 拍照按钮 -->
+                                <TextView
+                                    android:id="@+id/photoProgressText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0/3"
+                                    android:textSize="28sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/water_lake" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="照片"
+                                    android:textSize="14sp"
+                                    android:textColor="@color/text_secondary" />
+
+                            </LinearLayout>
+
+                            <!-- 分隔线 -->
+                            <View
+                                android:layout_width="1dp"
+                                android:layout_height="40dp"
+                                android:background="@color/subtitle_color"
+                                android:layout_marginStart="16dp"
+                                android:layout_marginEnd="16dp" />
+
+                            <!-- 视频进度 -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:gravity="center">
+
+                                <TextView
+                                    android:id="@+id/videoProgressText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0/1"
+                                    android:textSize="28sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/fire_coral" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="视频"
+                                    android:textSize="14sp"
+                                    android:textColor="@color/text_secondary" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <!-- 进度条 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:id="@+id/progressHintText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="💡 提示：至少需要3张照片和1段视频才能完成本环节哦"
+                                android:textSize="14sp"
+                                android:textColor="@color/subtitle_color"
+                                android:layout_marginBottom="8dp" />
+
+                            <ProgressBar
+                                android:id="@+id/progressBar"
+                                style="?android:attr/progressBarStyleHorizontal"
+                                android:layout_width="match_parent"
+                                android:layout_height="8dp"
+                                android:progress="0"
+                                android:max="100"
+                                android:progressTint="@color/nature_green"
+                                android:progressBackgroundTint="#E0E0E0" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- 拍照记录卡片 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp"
+                    android:layout_marginBottom="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📷 拍照录像记录"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- 拍照和录像按钮行 - 2025现代配色 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="12dp">
+
+                            <!-- 拍照按钮 - 湖水蓝 -->
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/takePhotoButton"
                                 style="@style/Widget.Material3.Button.ElevatedButton"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📸 拍照"
-                                android:textSize="14sp"
-                                android:textColor="@android:color/black"
-                                android:padding="8dp"
-                                app:icon="@android:drawable/ic_menu_camera"
-                                app:iconSize="20dp"
-                                app:iconTint="@android:color/black"
-                                app:backgroundTint="@color/water_lake" />
-
-                        </LinearLayout>
-
-                        <!-- 提示文字 -->
-                        <TextView
-                            android:id="@+id/photoProgressHintText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="需要至少3张照片"
-                            android:textSize="12sp"
-                            android:textColor="@color/subtitle_color"
-                            android:layout_marginBottom="8dp" />
-
-                        <!-- 照片列表容器（直接显示所有照片，无需滚动） -->
-                        <LinearLayout
-                            android:id="@+id/photosContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="4dp" />
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-                <!-- 录像记录模块 -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp"
-                    android:layout_marginBottom="12dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <!-- 标题栏 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
-
-                            <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="🎥 录像记录"
+                                android:text="📸 拍照"
                                 android:textSize="16sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary" />
+                                android:textColor="@android:color/black"
+                                android:padding="12dp"
+                                app:icon="@android:drawable/ic_menu_camera"
+                                app:iconSize="28dp"
+                                app:iconTint="@android:color/black"
+                                app:backgroundTint="@color/water_lake"
+                                android:layout_marginEnd="6dp" />
 
-                            <!-- 录像按钮 -->
+                            <!-- 录像按钮 - 珊瑚色 -->
                             <com.google.android.material.button.MaterialButton
                                 android:id="@+id/takeVideoButton"
                                 style="@style/Widget.Material3.Button.ElevatedButton"
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
                                 android:text="🎥 录像"
-                                android:textSize="14sp"
+                                android:textSize="16sp"
                                 android:textColor="@android:color/black"
-                                android:padding="8dp"
+                                android:padding="12dp"
                                 app:icon="@android:drawable/ic_menu_upload_you_tube"
-                                app:iconSize="20dp"
+                                app:iconSize="28dp"
                                 app:iconTint="@android:color/black"
-                                app:backgroundTint="@color/fire_coral" />
+                                app:backgroundTint="@color/fire_coral"
+                                android:layout_marginStart="6dp" />
 
                         </LinearLayout>
 
-                        <!-- 提示文字 -->
-                        <TextView
-                            android:id="@+id/videoProgressHintText"
+                        <!-- 照片/视频列表 -->
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/photosRecyclerView"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="需要至少1段视频"
-                            android:textSize="12sp"
-                            android:textColor="@color/subtitle_color"
-                            android:layout_marginBottom="8dp" />
-
-                        <!-- 视频列表容器（直接显示所有视频，无需滚动） -->
-                        <LinearLayout
-                            android:id="@+id/videosContainer"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="4dp" />
+                            android:layout_height="300dp"
+                            android:layout_marginTop="8dp"
+                            android:clipToPadding="false"
+                            android:padding="4dp"
+                            tools:listitem="@layout/item_photo" />
 
                     </LinearLayout>
 
@@ -462,19 +421,19 @@
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    android:layout_marginBottom="12dp">
+                    android:layout_marginBottom="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="⭐ 我们的表现"
-                            android:textSize="16sp"
+                            android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="@color/text_primary"
                             android:layout_marginBottom="12dp" />
@@ -502,7 +461,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="未评价"
-                                android:textSize="14sp"
+                                android:textSize="16sp"
                                 android:textColor="@color/fire_orange"
                                 android:textStyle="bold"
                                 android:layout_marginStart="16dp" />
@@ -514,7 +473,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="👍 做得好的地方（可多选）"
-                            android:textSize="14sp"
+                            android:textSize="16sp"
                             android:textColor="@color/text_primary"
                             android:layout_marginTop="8dp"
                             android:layout_marginBottom="8dp" />
@@ -531,7 +490,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="💪 需要改进的地方"
-                            android:textSize="14sp"
+                            android:textSize="16sp"
                             android:textColor="@color/text_primary"
                             android:layout_marginTop="8dp"
                             android:layout_marginBottom="8dp" />
@@ -588,3 +547,4 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
