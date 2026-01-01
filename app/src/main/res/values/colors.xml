@@ -1,36 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  野炊AR应用 - 2025现代配色方案（大地自然风格）
+
+  基于 Material Design 3 和 2025流行色趋势设计
+  参考资源：
+  - Pantone Color of the Year 2025: Mocha Mousse
+  - Material Design 3 官方文档
+  - 2025 Pinterest Palette
+-->
 <resources>
-    <!-- 封面页颜色 -->
-    <color name="splash_background">#F5F5DC</color>
-    <color name="title_color">#8B4513</color>
-    <color name="subtitle_color">#556B2F</color>
-    <color name="hint_color">#A0522D</color>
-    <color name="version_color">#808080</color>
-    
-    <!-- 主界面颜色 -->
-    <color name="main_background">#FAFAF8</color>
-    <color name="text_primary">#333333</color>
-    <color name="text_secondary">#666666</color>
-    
-    <!-- Material Design 基础颜色 -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- ==================================================== -->
+    <!-- 封面页颜色 - 温暖自然风格 -->
+    <!-- ==================================================== -->
+    <color name="splash_background">#FAF7F2</color>      <!-- 温暖米白 -->
+    <color name="title_color">#6B4F2C</color>             <!-- 深棕标题 -->
+    <color name="subtitle_color">#7BA67D</color>          <!-- 深绿副标题 -->
+    <color name="hint_color">#8B6F47</color>             <!-- 温暖棕提示 -->
+    <color name="version_color">#9D9D9D</color>          <!-- 灰色版本号 -->
+
+    <!-- ==================================================== -->
+    <!-- 主界面颜色 - 柔和舒适 -->
+    <!-- ==================================================== -->
+    <color name="main_background">#FAF7F2</color>         <!-- 温暖米白背景 -->
+    <color name="text_primary">#2D2D2D</color>           <!-- 深灰主要文字 -->
+    <color name="text_secondary">#5D5D5D</color>         <!-- 中灰次要文字 -->
+
+    <!-- ==================================================== -->
+    <!-- Material Design 3 基础颜色 -->
+    <!-- ==================================================== -->
+    <color name="purple_200">#D4A574</color>             <!-- 沙色紫（替代） -->
+    <color name="purple_500">#8B6F47</color>             <!-- 主色棕 -->
+    <color name="purple_700">#6B4F2C</color>             <!-- 深棕 -->
+    <color name="teal_200">#9BC59D</color>               <!-- 鼠尾草绿 -->
+    <color name="teal_700">#7BA67D</color>               <!-- 深绿 -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
-    <!-- 野炊主题颜色 -->
-    <color name="fire_red">#FF4500</color>
-    <color name="fire_orange">#FF8C00</color>
-    <color name="fire_yellow">#FFD700</color>
-    <color name="nature_green">#228B22</color>
-    <color name="wood_brown">#8B4513</color>
-    
-    <!-- 视频页颜色 -->
-    <color name="video_item_selected">#FFEBE0</color>
+
+    <!-- ==================================================== -->
+    <!-- 野炊主题颜色 - 2025大地自然风格 -->
+    <!-- ==================================================== -->
+    <!-- 主色系 - 基于 Pantone 2025 Mocha Mousse -->
+    <color name="fire_red">#FF6B35</color>               <!-- 温暖橙红（火焰） -->
+    <color name="fire_orange">#8B6F47</color>            <!-- 温暖棕（主操作） -->
+    <color name="fire_yellow">#FFD54F</color>            <!-- 阳光金（明亮） -->
+    <color name="fire_coral">#FF8C61</color>             <!-- 珊瑚色（活力） -->
+
+    <!-- 自然色系 -->
+    <color name="nature_green">#9BC59D</color>           <!-- 鼠尾草绿（成功） -->
+    <color name="nature_forest">#2E7D32</color>          <!-- 森林绿（深绿） -->
+    <color name="nature_sage">#A8C69A</color>            <!-- 浅鼠尾草绿 -->
+
+    <!-- 大地色系 -->
+    <color name="wood_brown">#A67C52</color>             <!-- 陶土棕 -->
+    <color name="earth_sand">#D4A574</color>             <!-- 沙色 -->
+    <color name="earth_clay">#8B6F47</color>             <!-- 摩卡棕 -->
+
+    <!-- 水色系 -->
+    <color name="water_lake">#4FC3F7</color>             <!-- 湖水蓝 -->
+    <color name="water_sky">#64B5F6</color>              <!-- 天空蓝 -->
+
+    <!-- ==================================================== -->
+    <!-- 视频页颜色 - 柔和风格 -->
+    <!-- ==================================================== -->
+    <color name="video_item_selected">#FFF3E0</color>   <!-- 浅橙选择 -->
     <color name="button_text_color">#FFFFFF</color>
-    <color name="button_background_color">#FF8C00</color>
+    <color name="button_background_color">#8B6F47</color> <!-- 主按钮背景 -->
+
+    <!-- ==================================================== -->
+    <!-- 功能色 - 柔和版本 -->
+    <!-- ==================================================== -->
+    <color name="success">#9BC59D</color>                <!-- 成功 - 鼠尾草绿 -->
+    <color name="warning">#F4A460</color>                <!-- 警告 - 沙棕 -->
+    <color name="error">#E57373</color>                  <!-- 错误 - 柔和红 -->
+    <color name="info">#64B5F6</color>                   <!-- 信息 - 天蓝 -->
+
+    <!-- ==================================================== -->
+    <!-- 卡片和表面颜色 -->
+    <!-- ==================================================== -->
+    <color name="surface">#FFFFFF</color>                <!-- 白色表面 -->
+    <color name="surface_variant">#F5F0E8</color>        <!-- 浅米表面 -->
+    <color name="background">#FAF7F2</color>             <!-- 主背景 -->
+
 </resources>
 

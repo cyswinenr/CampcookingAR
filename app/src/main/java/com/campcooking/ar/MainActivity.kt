@@ -413,7 +413,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("teamName", teamInfo.getTeamName())
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        finish()
+        // 不调用 finish()，保留 MainActivity 在返回栈中
     }
     
     override fun onBackPressed() {

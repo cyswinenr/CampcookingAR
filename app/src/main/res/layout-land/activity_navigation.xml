@@ -21,6 +21,21 @@
         android:paddingEnd="40dp"
         app:layout_constraintTop_toTopOf="parent">
 
+        <!-- 返回按钮 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/backButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="返回"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:icon="@android:drawable/ic_menu_revert"
+            app:iconTint="@android:color/white"
+            app:iconPadding="8dp"
+            android:layout_marginEnd="20dp" />
+
         <TextView
             android:id="@+id/teamNameText"
             android:layout_width="0dp"

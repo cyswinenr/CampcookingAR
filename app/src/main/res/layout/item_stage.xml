@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 流程节点列表项 -->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:background="?android:attr/selectableItemBackground">
+
+        <!-- 状态图标 -->
+        <TextView
+            android:id="@+id/stageStatusIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:text="○"
+            android:textSize="24sp"
+            android:gravity="center"
+            android:layout_marginEnd="12dp" />
+
+        <!-- 阶段信息 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/stageEmojiText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔥"
+                    android:textSize="18sp"
+                    android:layout_marginEnd="6dp" />
+
+                <TextView
+                    android:id="@+id/stageNameText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="生火"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/stageDurationText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="进行中..."
+                android:textSize="13sp"
+                android:textColor="@color/subtitle_color"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+        <!-- 评分显示 -->
+        <TextView
+            android:id="@+id/stageRatingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⭐⭐⭐⭐⭐"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
+

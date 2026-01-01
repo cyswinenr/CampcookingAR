@@ -42,6 +42,11 @@ class NavigationActivity : AppCompatActivity() {
      * 设置点击事件
      */
     private fun setupListeners() {
+        // 返回按钮点击
+        binding.backButton.setOnClickListener {
+            finish()  // 返回到团队信息输入页面
+        }
+        
         // 微课视频区域点击
         binding.videoSection.setOnClickListener {
             val intent = Intent(this, VideoActivity::class.java)
@@ -51,14 +56,16 @@ class NavigationActivity : AppCompatActivity() {
         
         // 过程记录区域点击
         binding.recordSection.setOnClickListener {
-            Toast.makeText(this, "进入过程记录", Toast.LENGTH_SHORT).show()
-            // TODO: 跳转到过程记录页面
+            val intent = Intent(this, RecordActivity::class.java)
+            intent.putExtra("teamName", binding.teamNameText.text.toString())
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
     }
     
     override fun onBackPressed() {
-        // 返回键直接退出
-        finishAffinity()
+        // 返回到团队信息输入页面
+        finish()
     }
 }
 

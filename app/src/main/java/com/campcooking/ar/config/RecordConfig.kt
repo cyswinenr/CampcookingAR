@@ -1,0 +1,172 @@
+package com.campcooking.ar.config
+
+import com.campcooking.ar.data.CookingStage
+
+/**
+ * 过程记录的标签配置
+ * 从教育角度设计，以正向鼓励为主
+ */
+object RecordConfig {
+
+    // ==================== 进度要求配置 ====================
+    const val MIN_PHOTOS_REQUIRED = 3          // 最少照片数量
+    const val MIN_VIDEOS_REQUIRED = 1          // 最少视频数量
+
+    /**
+     * 各阶段的评价标签
+     */
+    val stageTagsMap = mapOf(
+        CookingStage.PREPARATION to TagGroup(
+            positive = listOf("准备充分", "分工明确", "工具齐全", "检查仔细"),
+            problems = listOf("准备不足", "工具缺失", "分工不清")
+        ),
+        
+        CookingStage.FIRE_MAKING to TagGroup(
+            positive = listOf("速度很快", "柴火摆放好", "通风良好", "安全操作", "火势稳定"),
+            problems = listOf("多次点火", "柴火潮湿", "烟雾太大", "火势不稳")
+        ),
+        
+        CookingStage.COOKING_RICE to TagGroup(
+            positive = listOf("水量正确", "火候控制好", "及时翻动", "软硬适中"),
+            problems = listOf("煮糊了", "夹生", "水放多了", "水放少了")
+        ),
+        
+        CookingStage.COOKING_DISHES to TagGroup(
+            positive = listOf("刀工整齐", "调味恰当", "火候适中", "色香味好", "摆盘美观"),
+            problems = listOf("炒糊了", "太咸/太淡", "不熟", "火候不对")
+        ),
+        
+        CookingStage.COMPLETED to TagGroup(
+            positive = listOf("收拾干净", "分类整理", "节约食材", "团队配合好"),
+            problems = listOf("收拾不及时", "场地脏乱", "浪费食材")
+        )
+    )
+    
+    /**
+     * 团队协作标签（适用于所有阶段）
+     */
+    val teamworkTags = listOf(
+        "分工明确",
+        "互相帮助",
+        "沟通顺畅",
+        "效率很高",
+        "全员参与"
+    )
+    
+    /**
+     * 评分等级说明
+     */
+    val ratingDescriptions = mapOf(
+        5 to RatingLevel("非常好", "我们做得很棒！", "⭐⭐⭐⭐⭐"),
+        4 to RatingLevel("很好", "表现不错！", "⭐⭐⭐⭐"),
+        3 to RatingLevel("还行", "还可以，继续努力", "⭐⭐⭐"),
+        2 to RatingLevel("需努力", "下次要更认真", "⭐⭐"),
+        1 to RatingLevel("待改进", "需要多练习", "⭐")
+    )
+    
+    /**
+     * 温馨提示语
+     */
+    val stageHints = mapOf(
+        CookingStage.PREPARATION to "检查食材和工具，做好分工哦！",
+        CookingStage.FIRE_MAKING to "注意安全，柴火要摆放整齐，留出通风口！",
+        CookingStage.COOKING_RICE to "水量很重要，记得观察火候及时调整！",
+        CookingStage.COOKING_DISHES to "掌握好火候，注意翻炒，让菜品色香味俱全！",
+        CookingStage.COMPLETED to "记得清理场地，收拾工具，爱护环境！"
+    )
+
+    // ==================== 智能提示语配置 ====================
+    /**
+     * 根据进度显示不同的提示语
+     */
+    fun getProgressHint(photoCount: Int, videoCount: Int): String {
+        val photoTarget = MIN_PHOTOS_REQUIRED
+        val videoTarget = MIN_VIDEOS_REQUIRED
+
+        return when {
+            // 还没开始
+            photoCount == 0 && videoCount == 0 ->
+                "💡 提示：开始记录吧！至少需要${photoTarget}张照片和${videoTarget}段视频哦"
+
+            // 有照片但没视频
+            photoCount > 0 && videoCount == 0 ->
+                when {
+                    photoCount < photoTarget -> "📸 已有${photoCount}张照片，还需要${photoTarget - photoCount}张，别忘了拍视频哦"
+                    else -> "✅ 照片已达标！🎥 还需要1段视频就能完成本环节了"
+                }
+
+            // 有视频但没照片
+            photoCount == 0 && videoCount > 0 ->
+                "🎥 视频已录制！📸 还需要${photoTarget}张照片才能完成本环节哦"
+
+            // 两者都有但未达标
+            photoCount < photoTarget && videoCount < videoTarget ->
+                "📸 还需要${photoTarget - photoCount}张照片 • 🎥 还需要${videoTarget - videoCount}段视频"
+
+            // 照片达标但视频未达标
+            photoCount >= photoTarget && videoCount < videoTarget ->
+                "✅ 照片已完成！🎥 还需要${videoTarget - videoCount}段视频就能完成本环节了"
+
+            // 视频达标但照片未达标
+            photoCount < photoTarget && videoCount >= videoTarget ->
+                "🎥 视频已完成！📸 还需要${photoTarget - photoCount}张照片就能完成本环节了"
+
+            // 全部达标
+            else -> "🎉 太棒了！本环节记录要求已全部完成，可以进行自我评价了！"
+        }
+    }
+
+    /**
+     * 鼓励反馈信息
+     */
+    fun getEncouragementMessage(photoCount: Int, videoCount: Int): String? {
+        val photoTarget = MIN_PHOTOS_REQUIRED
+        val videoTarget = MIN_VIDEOS_REQUIRED
+
+        return when {
+            // 达成全部目标
+            photoCount >= photoTarget && videoCount >= videoTarget ->
+                "🎉 恭喜！你已经完成了所有记录要求！表现得真棒！"
+
+            // 达成照片目标
+            photoCount >= photoTarget && videoCount == 0 ->
+                "✨ 照片目标已达成！再拍一段视频就完美了！"
+
+            // 达成视频目标
+            videoCount >= videoTarget && photoCount == 0 ->
+                "✨ 视频已录制完成！继续拍照吧，还差${photoTarget}张！"
+
+            // 照片过半
+            photoCount >= photoTarget / 2 && photoCount < photoTarget && videoCount == 0 ->
+                "💪 照片已完成一半！加油，还差${photoTarget - photoCount}张！"
+
+            // 第一张照片
+            photoCount == 1 && videoCount == 0 ->
+                "👍 很好！第一张照片已记录，继续保持！"
+
+            // 第一段视频
+            videoCount == 1 && photoCount == 0 ->
+                "🎬 视频录制成功！现在开始拍照记录吧！"
+
+            else -> null
+        }
+    }
+}
+
+/**
+ * 标签组
+ */
+data class TagGroup(
+    val positive: List<String>,     // 正面标签（优点）
+    val problems: List<String>      // 问题标签
+)
+
+/**
+ * 评分等级
+ */
+data class RatingLevel(
+    val title: String,              // 等级名称
+    val description: String,        // 描述语
+    val stars: String               // 星级显示
+)
+

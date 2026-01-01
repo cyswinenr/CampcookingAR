@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 照片列表项 -->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="120dp"
+    android:layout_height="120dp"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- 照片/视频缩略图 -->
+        <ImageView
+            android:id="@+id/photoImageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="野炊照片" />
+
+        <!-- 视频标识背景（增强可见性） -->
+        <View
+            android:id="@+id/videoIconBackground"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:background="@android:drawable/ic_menu_gallery"
+            android:backgroundTint="#80000000"
+            android:visibility="gone" />
+
+        <!-- 视频标识图标 -->
+        <ImageView
+            android:id="@+id/videoIconView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="视频"
+            android:visibility="gone"
+            app:tint="@android:color/white" />
+
+        <!-- 视频标签 -->
+        <TextView
+            android:id="@+id/videoLabelView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="8dp"
+            android:text="视频"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:background="#CC000000"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:visibility="gone" />
+
+        <!-- 删除按钮（更明显的设计） -->
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="4dp">
+
+            <!-- 半透明背景 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:drawable/ic_menu_gallery"
+                android:backgroundTint="#CC000000" />
+
+            <!-- 删除图标 -->
+            <ImageButton
+                android:id="@+id/deletePhotoButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@android:drawable/ic_menu_delete"
+                android:background="@android:color/transparent"
+                android:contentDescription="删除照片"
+                app:tint="@android:color/white"
+                app:srcCompat="@android:drawable/ic_menu_delete" />
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+</androidx.cardview.widget.CardView>
+

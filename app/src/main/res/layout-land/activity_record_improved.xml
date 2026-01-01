@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 过程记录页 - 学生端 - 横屏布局 - 2025改进版 -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_background"
+    tools:context=".RecordActivity">
+
+    <!-- 渐变顶部栏 - Material Design 3风格 -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:background="@color/fire_orange"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <!-- 返回按钮 - 更大的触控区域 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backButton"
+                style="@style/Widget.Material3.Button.IconButton.Filled"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:contentDescription="返回"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconSize="24dp"
+                app:iconTint="@android:color/white"
+                android:layout_marginEnd="12dp" />
+
+            <!-- 团队信息区域 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="16dp">
+
+                <TextView
+                    android:id="@+id/teamNameText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="高一3班-2号炉-第1小组"
+                    android:textColor="@android:color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/totalTimeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="总用时: 0分钟"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:alpha="0.9" />
+            </LinearLayout>
+
+            <!-- 生成报告按钮 - 更突出的样式 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/generateReportButton"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="生成报告"
+                android:textSize="15sp"
+                android:paddingHorizontal="20dp"
+                app:icon="@android:drawable/ic_menu_save"
+                app:iconSize="20dp"
+                app:backgroundTint="@color/nature_green"
+                app:cornerRadius="24dp" />
+
+        </LinearLayout>
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <!-- 主内容区 - 使用更清晰的布局 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 左侧：流程进度列表 - 优化视觉层次 -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 标题区域 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="📋 烹饪流程"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
+
+                    <!-- 整体进度指示 -->
+                    <TextView
+                        android:id="@+id/progressText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0/5 完成"
+                        android:textSize="14sp"
+                        android:textColor="@color/fire_orange"
+                        android:textStyle="bold"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
+                        android:background="@drawable/category_tag_bg" />
+                </LinearLayout>
+
+                <!-- 流程节点列表 -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/stagesRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:clipToPadding="false"
+                    tools:listitem="@layout/item_stage" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- 右侧：当前节点详情 - 分组更清晰 -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2.2"
+            android:scrollbars="vertical"
+            android:fillViewport="false">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 当前阶段卡片 - 简化更聚焦 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@android:color/white"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <!-- 阶段标题行 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
+
+                            <TextView
+                                android:id="@+id/stageEmojiText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🔥"
+                                android:textSize="40sp"
+                                android:layout_marginEnd="12dp" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/stageNameText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="生火阶段"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_primary" />
+
+                                <TextView
+                                    android:id="@+id/stageDescText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="搭建灶台并点燃柴火"
+                                    android:textSize="15sp"
+                                    android:textColor="@color/subtitle_color"
+                                    android:layout_marginTop="2dp" />
+                            </LinearLayout>
+
+                            <!-- 计时器卡片 -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:gravity="center"
+                                android:padding="10dp"
+                                android:background="@drawable/spinner_background">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="⏱"
+                                    android:textSize="18sp" />
+
+                                <TextView
+                                    android:id="@+id/stageDurationText"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="进行中"
+                                    android:textSize="13sp"
+                                    android:textColor="@color/fire_orange"
+                                    android:textStyle="bold"
+                                    android:layout_marginTop="2dp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- 温馨提示 - 更醒目 -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#E8F5E9"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <TextView
+                                android:id="@+id/stageHintText"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="💡 注意安全，柴火要摆放整齐，留出通风口！"
+                                android:textSize="15sp"
+                                android:textColor="#2E7D32"
+                                android:padding="12dp" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 拍照录像卡片 - 优化按钮布局 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@android:color/white"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📸 记录精彩瞬间"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- 拍照录像按钮 - 2025现代配色 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp"
+                            android:gravity="center">
+
+                            <!-- 拍照按钮 - 湖水蓝（清新） -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/takePhotoButton"
+                                style="@style/Widget.Material3.Button.ElevatedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="56dp"
+                                android:layout_weight="1"
+                                android:text="📷 拍照"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/black"
+                                app:icon="@android:drawable/ic_menu_camera"
+                                app:iconSize="24dp"
+                                app:iconPadding="8dp"
+                                app:iconTint="@android:color/black"
+                                app:cornerRadius="16dp"
+                                app:backgroundTint="@color/water_lake"
+                                android:layout_marginEnd="8dp" />
+
+                            <!-- 录像按钮 - 珊瑚色（温暖） -->
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/takeVideoButton"
+                                style="@style/Widget.Material3.Button.ElevatedButton"
+                                android:layout_width="0dp"
+                                android:layout_height="56dp"
+                                android:layout_weight="1"
+                                android:text="🎥 录像"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@android:color/black"
+                                app:icon="@android:drawable/ic_menu_upload_you_tube"
+                                app:iconSize="24dp"
+                                app:iconPadding="8dp"
+                                app:iconTint="@android:color/black"
+                                app:cornerRadius="16dp"
+                                app:backgroundTint="@color/fire_coral"
+                                android:layout_marginStart="8dp" />
+                        </LinearLayout>
+
+                        <!-- 媒体网格标题 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="8dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="已记录"
+                                android:textSize="14sp"
+                                android:textColor="@color/subtitle_color"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/mediaCountText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0 个"
+                                android:textSize="13sp"
+                                android:textColor="@color/subtitle_color" />
+                        </LinearLayout>
+
+                        <!-- 照片/视频网格 -->
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/photosRecyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:clipToPadding="false"
+                            tools:listitem="@layout/item_photo" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 自我评价卡片 - 更清晰的结构 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@android:color/white"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⭐ 自我评价"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="16dp" />
+
+                        <!-- 星级评分卡片 -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="#FFF8E1"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:layout_marginBottom="16dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="16dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:layout_marginBottom="8dp">
+
+                                    <RatingBar
+                                        android:id="@+id/selfRatingBar"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:numStars="5"
+                                        android:stepSize="1"
+                                        android:rating="0"
+                                        android:isIndicator="false"
+                                        style="@style/Widget.AppCompat.RatingBar"
+                                        android:layout_marginEnd="12dp" />
+
+                                    <TextView
+                                        android:id="@+id/ratingDescText"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="未评价"
+                                        android:textSize="15sp"
+                                        android:textColor="@color/fire_orange"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- 标签选择区域 -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="👍 做得好的地方"
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp" />
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/positiveTagsChipGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:chipSpacing="8dp"
+                            app:singleSelection="false"
+                            android:layout_marginBottom="12dp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="💪 需要改进的地方"
+                            android:textSize="15sp"
+                            android:textColor="@color/text_primary"
+                            android:textStyle="bold"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="8dp" />
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/problemTagsChipGroup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:chipSpacing="8dp"
+                            app:singleSelection="false" />
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 操作按钮区 - 固定在底部 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:padding="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/completeStageButton"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:text="✓ 完成本环节"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="16dp"
+                        app:backgroundTint="@color/nature_green"
+                        android:layout_marginEnd="8dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/nextStageButton"
+                        style="@style/Widget.Material3.Button.ElevatedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:text="下一步 →"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="16dp"
+                        app:backgroundTint="@color/fire_yellow"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
