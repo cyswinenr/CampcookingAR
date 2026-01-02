@@ -53,6 +53,22 @@
             android:textColor="@android:color/white"
             android:textSize="24sp" />
 
+        <!-- 服务器设置按钮 - 放在顶部栏最右侧 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/serverSettingsButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="12dp"
+            app:icon="@android:drawable/ic_menu_preferences"
+            app:iconSize="28dp"
+            app:iconTint="@android:color/white"
+            app:backgroundTint="#60FFFFFF"
+            app:cornerRadius="28dp"
+            app:strokeColor="@android:color/white"
+            app:strokeWidth="2dp"
+            app:elevation="2dp"
+            android:contentDescription="服务器设置" />
+
     </LinearLayout>
 
     <!-- 内容区域 - 5个按钮排列 -->

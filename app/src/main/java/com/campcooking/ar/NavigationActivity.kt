@@ -91,39 +91,58 @@ class NavigationActivity : AppCompatActivity() {
     
     /**
      * 设置服务器设置按钮
+     * 使用多种方法确保按钮能被找到，兼容竖屏和横屏布局
      */
     private fun setupServerSettingsButton() {
-        // 先尝试使用 ViewBinding
-        var button = binding.serverSettingsButton
+        var button: com.google.android.material.button.MaterialButton? = null
         
-        // 如果 ViewBinding 找不到，尝试通过 findViewById 查找
+        // 方法1: 尝试使用 ViewBinding
+        try {
+            button = binding.serverSettingsButton
+            if (button != null) {
+                android.util.Log.d("NavigationActivity", "通过 ViewBinding 找到服务器设置按钮")
+            }
+        } catch (e: Exception) {
+            android.util.Log.d("NavigationActivity", "ViewBinding 查找失败: ${e.message}")
+        }
+        
+        // 方法2: 通过 findViewById 在根视图查找
         if (button == null) {
             button = findViewById(R.id.serverSettingsButton)
             if (button != null) {
-                android.util.Log.d("NavigationActivity", "通过 findViewById 找到服务器设置按钮")
+                android.util.Log.d("NavigationActivity", "通过 findViewById(root) 找到服务器设置按钮")
             }
         }
         
-        // 如果还是找不到，尝试通过 topBar 查找
+        // 方法3: 通过 binding.root 查找
+        if (button == null) {
+            button = binding.root.findViewById(R.id.serverSettingsButton)
+            if (button != null) {
+                android.util.Log.d("NavigationActivity", "通过 binding.root.findViewById 找到服务器设置按钮")
+            }
+        }
+        
+        // 方法4: 通过 topBar 查找（横屏布局中按钮在 topBar 内）
         if (button == null) {
             val topBar = binding.topBar
             if (topBar != null) {
                 button = topBar.findViewById(R.id.serverSettingsButton)
                 if (button != null) {
-                    android.util.Log.d("NavigationActivity", "通过 topBar 找到服务器设置按钮")
+                    android.util.Log.d("NavigationActivity", "通过 topBar.findViewById 找到服务器设置按钮")
                 }
             }
         }
         
+        // 设置按钮
         if (button != null) {
-            // 确保按钮可见
             button.visibility = View.VISIBLE
             button.setOnClickListener {
                 showServerSettingsDialog()
             }
-            android.util.Log.d("NavigationActivity", "服务器设置按钮已成功设置")
+            android.util.Log.d("NavigationActivity", "✅ 服务器设置按钮已成功设置")
         } else {
-            android.util.Log.e("NavigationActivity", "服务器设置按钮未找到！请检查布局文件。")
+            android.util.Log.e("NavigationActivity", "❌ 所有方法都失败：服务器设置按钮未找到！")
+            android.util.Log.e("NavigationActivity", "请检查布局文件 layout/activity_navigation.xml 和 layout-land/activity_navigation.xml")
         }
     }
     

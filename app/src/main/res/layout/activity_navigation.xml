@@ -68,22 +68,6 @@
 
         </LinearLayout>
 
-        <!-- 服务器设置按钮 - 放在顶部栏最右侧，确保可见 -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/serverSettingsButton"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_marginStart="8dp"
-            app:icon="@android:drawable/ic_menu_preferences"
-            app:iconSize="28dp"
-            app:iconTint="@android:color/white"
-            app:backgroundTint="#60FFFFFF"
-            app:cornerRadius="28dp"
-            app:strokeColor="@android:color/white"
-            app:strokeWidth="2dp"
-            app:elevation="2dp"
-            android:contentDescription="服务器设置" />
-
     </LinearLayout>
 
     <!-- 内容区域 - 5个按钮排列 -->
@@ -372,6 +356,24 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+<!-- 服务器设置按钮 - 右上角浮动按钮，确保可见 -->
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/serverSettingsButton"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:layout_gravity="top|end"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="8dp"
+    app:icon="@android:drawable/ic_menu_preferences"
+    app:iconSize="28dp"
+    app:iconTint="@android:color/white"
+    app:backgroundTint="#60FFFFFF"
+    app:cornerRadius="28dp"
+    app:strokeColor="@android:color/white"
+    app:strokeWidth="2dp"
+    app:elevation="8dp"
+    android:contentDescription="服务器设置" />
 
 </FrameLayout>
 
