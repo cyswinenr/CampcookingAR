@@ -43,7 +43,8 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
         
         <!-- 导航页 Activity -->
         <activity
@@ -62,7 +63,7 @@
             android:name=".RecordActivity"
             android:exported="false"
             android:screenOrientation="landscape"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustPan|stateHidden" />
         
         <!-- FileProvider配置（用于拍照） -->
         <provider

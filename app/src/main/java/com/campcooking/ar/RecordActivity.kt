@@ -10,6 +10,7 @@ import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.widget.ScrollView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.appcompat.app.AlertDialog
@@ -505,6 +506,15 @@ class RecordActivity : AppCompatActivity() {
             }
         })
 
+        // 输入框焦点监听：adjustPan 模式下系统会自动处理滚动
+        binding.otherCommentInput.setOnFocusChangeListener { _, hasFocus ->
+            android.util.Log.d("RecordActivity", "otherCommentInput focus changed: $hasFocus")
+        }
+
+        binding.problemOtherInput.setOnFocusChangeListener { _, hasFocus ->
+            android.util.Log.d("RecordActivity", "problemOtherInput focus changed: $hasFocus")
+        }
+
         // 完成本环节按钮
         binding.completeStageButton.setOnClickListener {
             completeCurrentStage()
@@ -605,6 +615,63 @@ class RecordActivity : AppCompatActivity() {
             }
             binding.videosContainer.addView(emptyView)
         }
+    }
+
+    /**
+     * 滚动到指定视图，确保其在可见区域内
+     * 使用更可靠的滚动算法
+     */
+    private fun scrollToViewSmoothly(view: View) {
+        try {
+            android.util.Log.d("RecordActivity", "scrollToViewSmoothly called for view: ${view.id}")
+
+            // 找到父ScrollView
+            var parent = view.parent
+            var depth = 0
+            while (parent != null && parent !is ScrollView && depth < 10) {
+                parent = parent.parent
+                depth++
+            }
+
+            if (parent is ScrollView) {
+                android.util.Log.d("RecordActivity", "Found ScrollView at depth: $depth")
+
+                // 获取输入框在屏幕上的位置
+                val viewLocation = IntArray(2)
+                view.getLocationOnScreen(viewLocation)
+
+                // 获取ScrollView在屏幕上的位置
+                val scrollViewLocation = IntArray(2)
+                parent.getLocationOnScreen(scrollViewLocation)
+
+                // 计算相对位置
+                val viewTopRelativeToScrollView = viewLocation[1] - scrollViewLocation[1] + parent.scrollY
+                val viewHeight = view.height
+                val scrollViewHeight = parent.height
+
+                android.util.Log.d("RecordActivity", "viewTopRelativeToScrollView: $viewTopRelativeToScrollView, scrollViewHeight: $scrollViewHeight")
+
+                // 计算目标滚动位置：将输入框滚动到可见区域的上半部分
+                val targetScrollY = (viewTopRelativeToScrollView - scrollViewHeight / 4).coerceAtLeast(0)
+
+                android.util.Log.d("RecordActivity", "Scrolling to: $targetScrollY, current scrollY: ${parent.scrollY}")
+
+                // 平滑滚动到目标位置
+                parent.smoothScrollTo(0, targetScrollY)
+            } else {
+                android.util.Log.e("RecordActivity", "ScrollView not found! Parent at depth 10: $parent")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("RecordActivity", "Error in scrollToViewSmoothly", e)
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * 滚动到指定视图，确保其在可见区域内
+     */
+    private fun scrollToView(view: View) {
+        scrollToViewSmoothly(view)
     }
 
     /**

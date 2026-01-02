@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.ScrollView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -139,6 +140,15 @@ class MainActivity : AppCompatActivity() {
         binding.resetButton.setOnClickListener {
             showResetDialog()
         }
+
+        // 输入框焦点监听：adjustPan 模式下系统会自动处理滚动
+        binding.schoolInput.setOnFocusChangeListener { _, hasFocus ->
+            android.util.Log.d("MainActivity", "schoolInput focus changed: $hasFocus")
+        }
+
+        binding.memberCountInput.setOnFocusChangeListener { _, hasFocus ->
+            android.util.Log.d("MainActivity", "memberCountInput focus changed: $hasFocus")
+        }
     }
     
     /**
@@ -202,7 +212,51 @@ class MainActivity : AppCompatActivity() {
         binding.memberNamesHint.visibility = View.VISIBLE
         binding.memberNamesContainer.addView(binding.memberNamesHint)
     }
-    
+
+    /**
+     * 滚动到指定视图，确保其在可见区域内
+     * 使用更可靠的滚动算法
+     */
+    private fun scrollToViewSmoothly(view: View) {
+        try {
+            // 找到父ScrollView
+            var parent = view.parent
+            while (parent != null && parent !is ScrollView) {
+                parent = parent.parent
+            }
+
+            if (parent is ScrollView) {
+                // 获取输入框在屏幕上的位置
+                val viewLocation = IntArray(2)
+                view.getLocationOnScreen(viewLocation)
+
+                // 获取ScrollView在屏幕上的位置
+                val scrollViewLocation = IntArray(2)
+                parent.getLocationOnScreen(scrollViewLocation)
+
+                // 计算相对位置
+                val viewTopRelativeToScrollView = viewLocation[1] - scrollViewLocation[1] + parent.scrollY
+                val viewHeight = view.height
+                val scrollViewHeight = parent.height
+
+                // 计算目标滚动位置：将输入框滚动到可见区域的上半部分
+                val targetScrollY = (viewTopRelativeToScrollView - scrollViewHeight / 3).coerceAtLeast(0)
+
+                // 平滑滚动到目标位置
+                parent.smoothScrollTo(0, targetScrollY)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * 滚动到指定视图，确保其在可见区域内
+     */
+    private fun scrollToView(view: View) {
+        scrollToViewSmoothly(view)
+    }
+
     /**
      * 验证并保存信息
      */
