@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>野炊教学数据管理系统 - 教师端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+
+        .stat-card .label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .students-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .students-panel h2 {
+            margin-bottom: 16px;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .student-item {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .student-item:hover {
+            border-color: #667eea;
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+
+        .student-item.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .student-item .team-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .student-item .team-info {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .student-item .badges {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge.process {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge.summary {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge.stages {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .detail-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .detail-panel.empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .detail-header {
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        .detail-header h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .detail-section {
+            margin-bottom: 32px;
+        }
+
+        .detail-section h3 {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-item {
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .info-item .label {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .info-item .value {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .stages-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stage-item {
+            padding: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .stage-item.completed {
+            border-color: #4CAF50;
+            background: #f1f8f4;
+        }
+
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .stage-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stage-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .stage-status.completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .stage-status.pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .media-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .media-item .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏕️ 野炊教学数据管理系统</h1>
+            <div class="status">
+                <div class="status-indicator"></div>
+                <span id="serverStatus">运行中</span>
+                <button class="refresh-btn" onclick="loadData()">刷新</button>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="label">学生总数</div>
+                <div class="number" id="totalStudents">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">有过程记录</div>
+                <div class="number" id="withProcess">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">有课后总结</div>
+                <div class="number" id="withSummary">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">完成度</div>
+                <div class="number" id="completionRate">0%</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="students-panel">
+                <h2>学生列表</h2>
+                <input type="text" class="search-box" id="searchBox" placeholder="搜索学生..." oninput="filterStudents()">
+                <div id="studentsList" class="loading">加载中...</div>
+            </div>
+
+            <div class="detail-panel empty" id="detailPanel">
+                请选择左侧的学生查看详细信息
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let allStudents = [];
+        let currentStudentId = null;
+
+        // 页面加载时获取数据
+        window.onload = function() {
+            loadData();
+            // 每30秒自动刷新
+            setInterval(loadData, 30000);
+        };
+
+        // 加载所有数据
+        async function loadData() {
+            try {
+                // 加载学生列表
+                const studentsResponse = await fetch(`${API_BASE}/api/students`);
+                const studentsData = await studentsResponse.json();
+                
+                if (studentsData.status === 'success') {
+                    allStudents = studentsData.students;
+                    renderStudentsList();
+                    updateStats();
+                }
+
+                // 加载统计数据
+                const statsResponse = await fetch(`${API_BASE}/api/statistics`);
+                const statsData = await statsResponse.json();
+                
+                if (statsData.status === 'success') {
+                    updateStatsFromAPI(statsData.statistics);
+                }
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('studentsList').innerHTML = 
+                    '<div class="error">加载失败，请检查网络连接</div>';
+            }
+        }
+
+        // 渲染学生列表
+        function renderStudentsList() {
+            const container = document.getElementById('studentsList');
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            const filtered = allStudents.filter(s => 
+                s.teamName.toLowerCase().includes(searchTerm) ||
+                s.school.toLowerCase().includes(searchTerm) ||
+                s.memberNames.toLowerCase().includes(searchTerm)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="loading">暂无学生数据</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(student => `
+                <div class="student-item ${currentStudentId === student.id ? 'active' : ''}" 
+                     onclick="loadStudentDetail('${student.id}')">
+                    <div class="team-name">${escapeHtml(student.teamName)}</div>
+                    <div class="team-info">${escapeHtml(student.school)} - ${escapeHtml(student.grade)}年级 ${escapeHtml(student.className)}</div>
+                    <div class="team-info">成员: ${escapeHtml(student.memberNames)}</div>
+                    <div class="badges">
+                        ${student.hasProcessRecord ? '<span class="badge process">过程记录</span>' : ''}
+                        ${student.hasSummary ? '<span class="badge summary">课后总结</span>' : ''}
+                        <span class="badge stages">完成 ${student.completedStages}/${student.totalStages} 阶段</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 加载学生详细信息
+        async function loadStudentDetail(studentId) {
+            currentStudentId = studentId;
+            const panel = document.getElementById('detailPanel');
+            panel.innerHTML = '<div class="loading">加载中...</div>';
+            panel.classList.remove('empty');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/student/${encodeURIComponent(studentId)}`);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    renderStudentDetail(data.data);
+                    // 更新列表中的选中状态
+                    renderStudentsList();
+                } else {
+                    panel.innerHTML = `<div class="error">${escapeHtml(data.message)}</div>`;
+                }
+            } catch (error) {
+                console.error('加载学生详情失败:', error);
+                panel.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
+            }
+        }
+
+        // 渲染学生详细信息
+        function renderStudentDetail(data) {
+            const panel = document.getElementById('detailPanel');
+            const teamInfo = data.teamInfo || {};
+            const processRecord = data.processRecord || {};
+            const summaryData = data.summaryData || {};
+
+            let html = `
+                <div class="detail-header">
+                    <h2>${escapeHtml(teamInfo.school || '')} - ${escapeHtml(teamInfo.grade || '')}年级 ${escapeHtml(teamInfo.className || '')} - 炉号${escapeHtml(teamInfo.stoveNumber || '')}</h2>
+                    <div class="team-info">成员: ${escapeHtml(teamInfo.memberNames || '')}</div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>📋 团队信息</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">学校</div>
+                            <div class="value">${escapeHtml(teamInfo.school || '-')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">年级</div>
+                            <div class="value">${escapeHtml(teamInfo.grade || '-')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">班级</div>
+                            <div class="value">${escapeHtml(teamInfo.className || '-')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">炉号</div>
+                            <div class="value">${escapeHtml(teamInfo.stoveNumber || '-')}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">成员数量</div>
+                            <div class="value">${teamInfo.memberCount || 0} 人</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">成员姓名</div>
+                            <div class="value">${escapeHtml(teamInfo.memberNames || '-')}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // 过程记录
+            if (processRecord.stages && Object.keys(processRecord.stages).length > 0) {
+                html += '<div class="detail-section"><h3>📝 过程记录</h3><div class="stages-list">';
+                
+                const stageNames = {
+                    'PREPARATION': '准备阶段',
+                    'FIRE_STARTING': '生火阶段',
+                    'COOKING': '烹饪阶段',
+                    'EATING': '用餐阶段',
+                    'CLEANUP': '清理阶段',
+                    'REFLECTION': '反思阶段'
+                };
+
+                for (const [stageKey, stage] of Object.entries(processRecord.stages)) {
+                    const stageName = stageNames[stageKey] || stageKey;
+                    const isCompleted = stage.isCompleted || false;
+                    
+                    html += `
+                        <div class="stage-item ${isCompleted ? 'completed' : ''}">
+                            <div class="stage-header">
+                                <span class="stage-name">${escapeHtml(stageName)}</span>
+                                <span class="stage-status ${isCompleted ? 'completed' : 'pending'}">
+                                    ${isCompleted ? '已完成' : '未完成'}
+                                </span>
+                            </div>
+                            ${stage.notes ? `<div style="margin-bottom: 8px;"><strong>做得好的地方:</strong> ${escapeHtml(stage.notes)}</div>` : ''}
+                            ${stage.problemNotes ? `<div style="margin-bottom: 8px;"><strong>需要改进:</strong> ${escapeHtml(stage.problemNotes)}</div>` : ''}
+                            ${stage.selfRating ? `<div style="margin-bottom: 8px;"><strong>自评:</strong> ${'⭐'.repeat(stage.selfRating)}</div>` : ''}
+                            ${stage.mediaItems && stage.mediaItems.length > 0 ? renderMediaItems(stage.mediaItems, currentStudentId) : ''}
+                        </div>
+                    `;
+                }
+                
+                html += '</div></div>';
+            }
+
+            // 课后总结
+            if (summaryData.answer1 || summaryData.answer2 || summaryData.answer3) {
+                html += '<div class="detail-section"><h3>📚 课后总结</h3>';
+                
+                if (summaryData.answer1) {
+                    html += `<div style="margin-bottom: 16px;"><strong>问题1:</strong> ${escapeHtml(summaryData.answer1)}</div>`;
+                    if (summaryData.photos1 && summaryData.photos1.length > 0) {
+                        html += renderMediaItems(summaryData.photos1.map(p => ({path: p, type: 'PHOTO'})), currentStudentId);
+                    }
+                }
+                
+                if (summaryData.answer2) {
+                    html += `<div style="margin-bottom: 16px;"><strong>问题2:</strong> ${escapeHtml(summaryData.answer2)}</div>`;
+                    if (summaryData.photos2 && summaryData.photos2.length > 0) {
+                        html += renderMediaItems(summaryData.photos2.map(p => ({path: p, type: 'PHOTO'})), currentStudentId);
+                    }
+                }
+                
+                if (summaryData.answer3) {
+                    html += `<div style="margin-bottom: 16px;"><strong>问题3:</strong> ${escapeHtml(summaryData.answer3)}</div>`;
+                    if (summaryData.photos3 && summaryData.photos3.length > 0) {
+                        html += renderMediaItems(summaryData.photos3.map(p => ({path: p, type: 'PHOTO'})), currentStudentId);
+                    }
+                }
+                
+                html += '</div>';
+            }
+
+            panel.innerHTML = html;
+        }
+
+        // 渲染媒体文件
+        function renderMediaItems(mediaItems, studentId) {
+            if (!mediaItems || mediaItems.length === 0) return '';
+            
+            return `
+                <div class="media-grid">
+                    ${mediaItems.map(item => {
+                        const mediaUrl = `${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}`;
+                        if (item.type === 'VIDEO') {
+                            return `
+                                <div class="media-item" onclick="window.open('${mediaUrl}', '_blank')">
+                                    <video src="${mediaUrl}" preload="metadata"></video>
+                                    <div class="play-icon">▶</div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="media-item" onclick="window.open('${mediaUrl}', '_blank')">
+                                    <img src="${mediaUrl}" alt="照片" loading="lazy">
+                                </div>
+                            `;
+                        }
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            const total = allStudents.length;
+            const withProcess = allStudents.filter(s => s.hasProcessRecord).length;
+            const withSummary = allStudents.filter(s => s.hasSummary).length;
+            
+            document.getElementById('totalStudents').textContent = total;
+            document.getElementById('withProcess').textContent = withProcess;
+            document.getElementById('withSummary').textContent = withSummary;
+        }
+
+        // 从API更新统计数据
+        function updateStatsFromAPI(stats) {
+            if (stats.averageCompletion !== undefined) {
+                document.getElementById('completionRate').textContent = 
+                    Math.round(stats.averageCompletion) + '%';
+            }
+        }
+
+        // 过滤学生
+        function filterStudents() {
+            renderStudentsList();
+        }
+
+        // HTML转义
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
+

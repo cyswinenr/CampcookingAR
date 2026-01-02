@@ -5,7 +5,7 @@
 运行在笔记本上，接收学生端提交的数据，并提供教师端API接口
 """
 
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template_string
 from flask_cors import CORS
 import json
 import os
@@ -286,101 +286,33 @@ def get_statistics():
 
 @app.route('/', methods=['GET'])
 def index():
-    """Web管理界面（简单版本）"""
+    """Web管理界面"""
     try:
-        student_count = storage.get_student_count()
-        server_ip = get_local_ip()
-        
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>教师端数据管理</title>
-            <style>
-                body {{
-                    font-family: Arial, sans-serif;
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 20px;
-                    background-color: #f5f5f5;
-                }}
-                .header {{
-                    background-color: #4CAF50;
-                    color: white;
-                    padding: 20px;
-                    border-radius: 5px;
-                    margin-bottom: 20px;
-                }}
-                .info {{
-                    background-color: white;
-                    padding: 15px;
-                    border-radius: 5px;
-                    margin-bottom: 20px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }}
-                .students-list {{
-                    background-color: white;
-                    padding: 15px;
-                    border-radius: 5px;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                }}
-                .student-item {{
-                    padding: 10px;
-                    border-bottom: 1px solid #eee;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }}
-                .student-item:last-child {{
-                    border-bottom: none;
-                }}
-                button {{
-                    background-color: #4CAF50;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 4px;
-                    cursor: pointer;
-                }}
-                button:hover {{
-                    background-color: #45a049;
-                }}
-                .status {{
-                    display: inline-block;
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 12px;
-                }}
-                .status.running {{
-                    background-color: #4CAF50;
-                    color: white;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="header">
+        # 读取HTML模板文件
+        template_path = os.path.join(os.path.dirname(__file__), 'templates', 'index.html')
+        if os.path.exists(template_path):
+            with open(template_path, 'r', encoding='utf-8') as f:
+                html = f.read()
+            return html, 200
+        else:
+            # 如果模板文件不存在，返回简单版本
+            student_count = storage.get_student_count()
+            server_ip = get_local_ip()
+            return f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>教师端数据管理</title>
+            </head>
+            <body>
                 <h1>🏕️ 野炊教学数据管理系统</h1>
-            </div>
-            
-            <div class="info">
-                <h2>服务器信息</h2>
-                <p><strong>状态:</strong> <span class="status running">运行中</span></p>
-                <p><strong>服务器地址:</strong> http://{server_ip}:{Config.PORT}</p>
-                <p><strong>已接收学生数据:</strong> {student_count} 组</p>
-                <p><strong>当前时间:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-            </div>
-            
-            <div class="students-list">
-                <h2>学生列表</h2>
-                <p>使用教师端APP查看详细数据和进行评价</p>
-                <p>API接口文档请查看 README.md</p>
-            </div>
-        </body>
-        </html>
-        """
-        return html, 200
+                <p>服务器地址: http://{server_ip}:{Config.PORT}</p>
+                <p>已接收学生数据: {student_count} 组</p>
+                <p>请访问 /api/students 查看学生列表</p>
+            </body>
+            </html>
+            """, 200
         
     except Exception as e:
         logger.error(f"生成首页失败: {str(e)}")

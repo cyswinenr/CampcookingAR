@@ -69,6 +69,21 @@
                     android:alpha="0.9" />
             </LinearLayout>
 
+            <!-- 保存发送按钮 - 右上角 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/saveAndSendButton"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="保存发送"
+                android:textSize="15sp"
+                android:paddingHorizontal="20dp"
+                app:icon="@android:drawable/ic_menu_upload"
+                app:iconSize="20dp"
+                app:backgroundTint="@color/fire_orange"
+                app:cornerRadius="24dp"
+                android:layout_marginEnd="12dp" />
+
             <!-- 生成报告按钮 - 更突出的样式 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/generateReportButton"

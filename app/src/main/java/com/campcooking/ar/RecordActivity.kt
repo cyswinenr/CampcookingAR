@@ -25,6 +25,7 @@ import com.campcooking.ar.data.ProcessRecord
 import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityRecordBinding
 import com.campcooking.ar.utils.ProcessRecordManager
+import com.campcooking.ar.utils.DataSubmitManager
 import com.google.android.material.chip.Chip
 import java.io.File
 import java.text.SimpleDateFormat
@@ -45,6 +46,7 @@ class RecordActivity : AppCompatActivity() {
     private lateinit var binding: ActivityRecordBinding
     private lateinit var processRecord: ProcessRecord
     private lateinit var processRecordManager: ProcessRecordManager
+    private lateinit var dataSubmitManager: DataSubmitManager
     
     // 适配器
     private lateinit var stageListAdapter: StageListAdapter
@@ -84,6 +86,7 @@ class RecordActivity : AppCompatActivity() {
 
         // 初始化数据管理器
         processRecordManager = ProcessRecordManager(this)
+        dataSubmitManager = DataSubmitManager(this)
 
         // 获取团队信息
         val teamName = intent.getStringExtra("teamName") ?: "野炊小组"
@@ -462,6 +465,16 @@ class RecordActivity : AppCompatActivity() {
         // 返回按钮
         binding.backButton.setOnClickListener {
             onBackPressed()
+        }
+        
+        // 保存发送按钮 - 使用多种方法确保能找到按钮
+        var saveAndSendButton = binding.saveAndSendButton
+        if (saveAndSendButton == null) {
+            // 如果ViewBinding找不到，使用findViewById
+            saveAndSendButton = findViewById(R.id.saveAndSendButton)
+        }
+        saveAndSendButton?.setOnClickListener {
+            saveAndSendData()
         }
         
         // 生成报告按钮
@@ -1258,6 +1271,31 @@ class RecordActivity : AppCompatActivity() {
      */
     private fun saveRecord() {
         processRecordManager.saveProcessRecord(processRecord)
+    }
+    
+    /**
+     * 保存并发送数据到服务器
+     */
+    private fun saveAndSendData() {
+        // 先保存到本地
+        saveRecord()
+        
+        // 显示发送中提示
+        Toast.makeText(this, "正在保存并发送数据...", Toast.LENGTH_SHORT).show()
+        
+        // 发送数据到服务器
+        dataSubmitManager.submitAllData(
+            onSuccess = {
+                runOnUiThread {
+                    Toast.makeText(this, "✅ 数据已保存并发送到服务器", Toast.LENGTH_LONG).show()
+                }
+            },
+            onError = { errorMsg ->
+                runOnUiThread {
+                    Toast.makeText(this, "⚠️ 保存成功，但发送失败: $errorMsg", Toast.LENGTH_LONG).show()
+                }
+            }
+        )
     }
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

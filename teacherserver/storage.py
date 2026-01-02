@@ -224,13 +224,32 @@ class DataStorage:
     def get_media_file_path(self, student_id: str, filename: str) -> Optional[str]:
         """获取媒体文件路径"""
         try:
-            # 媒体文件可能存储在不同的位置
-            # 这里简化处理，实际应该根据文件路径查找
-            file_path = os.path.join(self.media_dir, student_id, filename)
+            # 处理不同的路径格式
+            # 1. 如果filename是完整路径，提取文件名
+            if os.path.sep in filename:
+                filename = os.path.basename(filename)
             
+            # 2. 尝试在媒体目录中查找
+            file_path = os.path.join(self.media_dir, student_id, filename)
             if os.path.exists(file_path):
                 return file_path
             
+            # 3. 尝试在媒体目录根目录查找
+            file_path = os.path.join(self.media_dir, filename)
+            if os.path.exists(file_path):
+                return file_path
+            
+            # 4. 尝试在学生数据目录中查找
+            student_dir = os.path.join(self.data_dir, student_id)
+            file_path = os.path.join(student_dir, filename)
+            if os.path.exists(file_path):
+                return file_path
+            
+            # 5. 如果filename是完整路径且文件存在
+            if os.path.exists(filename):
+                return filename
+            
+            logger.warning(f"媒体文件未找到: {student_id}/{filename}")
             return None
             
         except Exception as e:
