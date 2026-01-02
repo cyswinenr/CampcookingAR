@@ -37,6 +37,7 @@ class NavigationActivity : AppCompatActivity() {
         binding.teamNameText.text = teamName
         
         setupListeners()
+        setupServerSettingsButton()
     }
     
     /**
@@ -86,6 +87,95 @@ class NavigationActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
+    }
+    
+    /**
+     * 设置服务器设置按钮
+     */
+    private fun setupServerSettingsButton() {
+        // 先尝试使用 ViewBinding
+        var button = binding.serverSettingsButton
+        
+        // 如果 ViewBinding 找不到，尝试通过 findViewById 查找
+        if (button == null) {
+            button = findViewById(R.id.serverSettingsButton)
+            if (button != null) {
+                android.util.Log.d("NavigationActivity", "通过 findViewById 找到服务器设置按钮")
+            }
+        }
+        
+        // 如果还是找不到，尝试通过 topBar 查找
+        if (button == null) {
+            val topBar = binding.topBar
+            if (topBar != null) {
+                button = topBar.findViewById(R.id.serverSettingsButton)
+                if (button != null) {
+                    android.util.Log.d("NavigationActivity", "通过 topBar 找到服务器设置按钮")
+                }
+            }
+        }
+        
+        if (button != null) {
+            // 确保按钮可见
+            button.visibility = View.VISIBLE
+            button.setOnClickListener {
+                showServerSettingsDialog()
+            }
+            android.util.Log.d("NavigationActivity", "服务器设置按钮已成功设置")
+        } else {
+            android.util.Log.e("NavigationActivity", "服务器设置按钮未找到！请检查布局文件。")
+        }
+    }
+    
+    /**
+     * 显示服务器设置对话框
+     */
+    private fun showServerSettingsDialog() {
+        val serverConfig = com.campcooking.ar.utils.ServerConfigManager(this)
+        val currentIp = serverConfig.getServerIp()
+        val currentPort = serverConfig.getServerPort()
+        
+        // 创建对话框视图
+        val dialogView = layoutInflater.inflate(R.layout.dialog_server_settings, null)
+        val ipInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverIpInput)
+        val portInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverPortInput)
+        
+        // 设置当前值
+        ipInput?.setText(currentIp)
+        portInput?.setText(currentPort.toString())
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("服务器设置")
+            .setView(dialogView)
+            .setPositiveButton("保存") { _, _ ->
+                val newIp = ipInput?.text?.toString()?.trim() ?: ""
+                val newPortStr = portInput?.text?.toString()?.trim() ?: ""
+                
+                // 验证IP地址
+                if (!serverConfig.isValidIp(newIp)) {
+                    Toast.makeText(this, "IP地址格式不正确", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // 验证端口
+                val newPort = try {
+                    newPortStr.toInt()
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(this, "端口号必须是数字", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (!serverConfig.isValidPort(newPort)) {
+                    Toast.makeText(this, "端口号必须在1-65535之间", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // 保存配置
+                serverConfig.saveServerConfig(newIp, newPort)
+                Toast.makeText(this, "✅ 服务器设置已保存\n地址: http://$newIp:$newPort\n所有页面将使用新地址", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
     
     override fun onBackPressed() {

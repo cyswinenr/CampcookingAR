@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 主界面 - 竖屏布局，信息采集表单（重新设计） -->
-<ScrollView
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/main_background"
-    android:fillViewport="true"
     tools:context=".MainActivity">
+
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -224,3 +228,20 @@
     </LinearLayout>
 
 </ScrollView>
+
+<!-- 服务器设置按钮 - 右上角 -->
+<com.google.android.material.button.MaterialButton
+    android:id="@+id/serverSettingsButton"
+    android:layout_width="56dp"
+    android:layout_height="56dp"
+    android:layout_gravity="top|end"
+    android:layout_margin="16dp"
+    app:icon="@android:drawable/ic_menu_preferences"
+    app:iconSize="24dp"
+    app:iconTint="@color/text_primary"
+    app:backgroundTint="@android:color/white"
+    app:cornerRadius="28dp"
+    app:elevation="4dp"
+    android:contentDescription="服务器设置" />
+
+</FrameLayout>

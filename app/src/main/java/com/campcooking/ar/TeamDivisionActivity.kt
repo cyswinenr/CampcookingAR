@@ -18,6 +18,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.campcooking.ar.databinding.ActivityTeamDivisionBinding
+import com.campcooking.ar.utils.DataSubmitManager
 import com.campcooking.ar.utils.TeamInfoManager
 import com.google.android.material.button.MaterialButton
 
@@ -29,6 +30,7 @@ class TeamDivisionActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityTeamDivisionBinding
     private lateinit var teamInfoManager: TeamInfoManager
+    private lateinit var dataSubmitManager: DataSubmitManager
     
     // 存储各小组的人员
     private val groupLeader = mutableListOf<String>()  // 项目组长（1人）
@@ -57,6 +59,7 @@ class TeamDivisionActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         teamInfoManager = TeamInfoManager(this)
+        dataSubmitManager = DataSubmitManager(this)
         
         // 获取团队信息
         val teamName = intent.getStringExtra("teamName") ?: "野炊小组"
@@ -67,6 +70,7 @@ class TeamDivisionActivity : AppCompatActivity() {
         setupListeners()
         loadSavedDivision()
         setupDutyTextStyles()
+        setupServerSettingsButton()
     }
     
     /**
@@ -615,6 +619,8 @@ class TeamDivisionActivity : AppCompatActivity() {
         binding.saveButton.setOnClickListener {
             saveDivision()
             Toast.makeText(this, "分工信息已保存", Toast.LENGTH_SHORT).show()
+            // 发送数据到服务器
+            submitDataToServer()
         }
         
         // 开始野炊按钮
@@ -627,6 +633,9 @@ class TeamDivisionActivity : AppCompatActivity() {
             
             // 保存分工信息
             saveDivision()
+            
+            // 发送数据到服务器
+            submitDataToServer()
             
             // 跳转到导航页面（微视频，过程评价）
             val teamName = intent.getStringExtra("teamName") ?: binding.teamNameText.text.toString()
@@ -688,6 +697,90 @@ class TeamDivisionActivity : AppCompatActivity() {
         }
         
         displayMembers()
+    }
+    
+    /**
+     * 提交数据到服务器
+     */
+    private fun submitDataToServer() {
+        val teamInfo = teamInfoManager.loadTeamInfo()
+        if (teamInfo == null || !teamInfo.isValid()) {
+            return
+        }
+        
+        // 提交完整数据（包含团队信息和当前已有的过程记录、总结等）
+        dataSubmitManager.submitAllData(
+            onSuccess = {
+                runOnUiThread {
+                    Toast.makeText(this, "✅ 数据已发送到服务器", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onError = { error ->
+                runOnUiThread {
+                    Toast.makeText(this, "⚠️ 发送失败: $error", Toast.LENGTH_LONG).show()
+                }
+            }
+        )
+    }
+    
+    /**
+     * 设置服务器设置按钮
+     */
+    private fun setupServerSettingsButton() {
+        binding.serverSettingsButton.setOnClickListener {
+            showServerSettingsDialog()
+        }
+    }
+    
+    /**
+     * 显示服务器设置对话框
+     */
+    private fun showServerSettingsDialog() {
+        val serverConfig = com.campcooking.ar.utils.ServerConfigManager(this)
+        val currentIp = serverConfig.getServerIp()
+        val currentPort = serverConfig.getServerPort()
+        
+        // 创建对话框视图
+        val dialogView = layoutInflater.inflate(R.layout.dialog_server_settings, null)
+        val ipInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverIpInput)
+        val portInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverPortInput)
+        
+        // 设置当前值
+        ipInput?.setText(currentIp)
+        portInput?.setText(currentPort.toString())
+        
+        AlertDialog.Builder(this)
+            .setTitle("服务器设置")
+            .setView(dialogView)
+            .setPositiveButton("保存") { _, _ ->
+                val newIp = ipInput?.text?.toString()?.trim() ?: ""
+                val newPortStr = portInput?.text?.toString()?.trim() ?: ""
+                
+                // 验证IP地址
+                if (!serverConfig.isValidIp(newIp)) {
+                    Toast.makeText(this, "IP地址格式不正确", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // 验证端口
+                val newPort = try {
+                    newPortStr.toInt()
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(this, "端口号必须是数字", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (!serverConfig.isValidPort(newPort)) {
+                    Toast.makeText(this, "端口号必须在1-65535之间", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // 保存配置
+                serverConfig.saveServerConfig(newIp, newPort)
+                Toast.makeText(this, "✅ 服务器设置已保存\n地址: http://$newIp:$newPort", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
     
     override fun onBackPressed() {

@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityMainBinding
+import com.campcooking.ar.utils.DataSubmitManager
 import com.campcooking.ar.utils.TeamInfoManager
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val teamInfo = TeamInfo()
     private lateinit var teamInfoManager: TeamInfoManager
+    private lateinit var dataSubmitManager: DataSubmitManager
     
     // 存储动态生成的姓名输入框
     private val memberNameInputs = mutableListOf<TextInputEditText>()
@@ -51,9 +53,11 @@ class MainActivity : AppCompatActivity() {
         
         // 初始化数据管理器
         teamInfoManager = TeamInfoManager(this)
+        dataSubmitManager = DataSubmitManager(this)
         
         setupSpinners()
         setupListeners()
+        setupServerSettingsButton()
         
         // 加载保存的数据
         loadSavedData()
@@ -124,12 +128,16 @@ class MainActivity : AppCompatActivity() {
         binding.saveButton.setOnClickListener {
             collectCurrentInfo()
             saveTeamInfo()
+            // 发送团队信息到服务器
+            submitTeamInfoToServer()
         }
         
         // 开始按钮点击事件
         binding.startButton.setOnClickListener {
             if (validateAndSaveInfo()) {
                 saveTeamInfo()
+                // 发送团队信息到服务器
+                submitTeamInfoToServer()
                 showConfirmDialog()
             }
         }
@@ -511,6 +519,30 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
+     * 提交团队信息到服务器
+     */
+    private fun submitTeamInfoToServer() {
+        // 确保团队信息有效
+        if (!teamInfo.isValid()) {
+            return
+        }
+        
+        dataSubmitManager.submitTeamInfo(
+            teamInfo = teamInfo,
+            onSuccess = {
+                runOnUiThread {
+                    Toast.makeText(this, "✅ 团队信息已发送到服务器", Toast.LENGTH_SHORT).show()
+                }
+            },
+            onError = { error ->
+                runOnUiThread {
+                    Toast.makeText(this, "⚠️ 发送失败: $error", Toast.LENGTH_LONG).show()
+                }
+            }
+        )
+    }
+    
+    /**
      * 进行团队分工
      */
     private fun startCooking() {
@@ -526,6 +558,66 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         // 不调用 finish()，保留 MainActivity 在返回栈中
+    }
+    
+    /**
+     * 设置服务器设置按钮
+     */
+    private fun setupServerSettingsButton() {
+        binding.serverSettingsButton?.setOnClickListener {
+            showServerSettingsDialog()
+        }
+    }
+    
+    /**
+     * 显示服务器设置对话框
+     */
+    private fun showServerSettingsDialog() {
+        val serverConfig = com.campcooking.ar.utils.ServerConfigManager(this)
+        val currentIp = serverConfig.getServerIp()
+        val currentPort = serverConfig.getServerPort()
+        
+        // 创建对话框视图
+        val dialogView = layoutInflater.inflate(R.layout.dialog_server_settings, null)
+        val ipInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverIpInput)
+        val portInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverPortInput)
+        
+        // 设置当前值
+        ipInput?.setText(currentIp)
+        portInput?.setText(currentPort.toString())
+        
+        AlertDialog.Builder(this)
+            .setTitle("服务器设置")
+            .setView(dialogView)
+            .setPositiveButton("保存") { _, _ ->
+                val newIp = ipInput?.text?.toString()?.trim() ?: ""
+                val newPortStr = portInput?.text?.toString()?.trim() ?: ""
+                
+                // 验证IP地址
+                if (!serverConfig.isValidIp(newIp)) {
+                    Toast.makeText(this, "IP地址格式不正确", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // 验证端口
+                val newPort = try {
+                    newPortStr.toInt()
+                } catch (e: NumberFormatException) {
+                    Toast.makeText(this, "端口号必须是数字", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (!serverConfig.isValidPort(newPort)) {
+                    Toast.makeText(this, "端口号必须在1-65535之间", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // 保存配置
+                serverConfig.saveServerConfig(newIp, newPort)
+                Toast.makeText(this, "✅ 服务器设置已保存\n地址: http://$newIp:$newPort", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("取消", null)
+            .show()
     }
     
     override fun onBackPressed() {
