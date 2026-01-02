@@ -61,7 +61,8 @@
         <activity
             android:name=".RecordActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustResize" />
         
         <!-- FileProvider配置（用于拍照） -->
         <provider

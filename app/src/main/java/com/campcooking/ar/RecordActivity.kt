@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -480,7 +482,29 @@ class RecordActivity : AppCompatActivity() {
         binding.selfRatingBar.setOnRatingBarChangeListener { _, rating, _ ->
             onRatingChanged(rating.toInt())
         }
-        
+
+        // 其它备注输入监听（做得好的地方的其它）
+        binding.otherCommentInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val stageRecord = getCurrentStageRecord()
+                stageRecord.notes = s?.toString() ?: ""
+                saveRecord()
+            }
+        })
+
+        // 需要改进的其它输入监听
+        binding.problemOtherInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val stageRecord = getCurrentStageRecord()
+                stageRecord.problemNotes = s?.toString() ?: ""
+                saveRecord()
+            }
+        })
+
         // 完成本环节按钮
         binding.completeStageButton.setOnClickListener {
             completeCurrentStage()
@@ -512,6 +536,12 @@ class RecordActivity : AppCompatActivity() {
         // 更新评分
         binding.selfRatingBar.rating = stageRecord.selfRating.toFloat()
         updateRatingDescription(stageRecord.selfRating)
+
+        // 更新其它备注输入框（做得好的地方的其它）
+        binding.otherCommentInput.setText(stageRecord.notes)
+
+        // 更新需要改进的其它输入框
+        binding.problemOtherInput.setText(stageRecord.problemNotes)
 
         // 更新标签
         setupTags()

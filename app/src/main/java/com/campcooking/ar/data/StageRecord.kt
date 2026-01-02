@@ -11,7 +11,8 @@ data class StageRecord(
     val mediaItems: MutableList<MediaItem> = mutableListOf(),  // 媒体项列表（照片+视频）
     var selfRating: Int = 0,               // 自我评分 (1-5星)
     val selectedTags: MutableList<String> = mutableListOf(),  // 选择的标签
-    var notes: String = "",                 // 可选备注
+    var notes: String = "",                 // 可选备注（做得好的地方的其它）
+    var problemNotes: String = "",          // 需要改进的地方的其它
     var isCompleted: Boolean = false        // 是否完成
 ) {
     /**
