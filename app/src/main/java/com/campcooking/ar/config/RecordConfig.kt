@@ -36,9 +36,14 @@ object RecordConfig {
             problems = listOf("炒糊了", "太咸/太淡", "不熟", "火候不对")
         ),
         
+        CookingStage.CLEANING to TagGroup(
+            positive = listOf("收拾干净", "分类整理", "工具归位", "场地整洁", "垃圾分类"),
+            problems = listOf("收拾不及时", "场地脏乱", "工具散乱", "垃圾未清理")
+        ),
+        
         CookingStage.COMPLETED to TagGroup(
-            positive = listOf("收拾干净", "分类整理", "节约食材", "团队配合好"),
-            problems = listOf("收拾不及时", "场地脏乱", "浪费食材")
+            positive = listOf("整体表现好", "团队配合好", "流程顺畅", "完成度高", "表现优秀"),
+            problems = listOf("配合不足", "流程混乱", "完成度低")
         )
     )
     
@@ -72,7 +77,8 @@ object RecordConfig {
         CookingStage.FIRE_MAKING to "注意安全，柴火要摆放整齐，留出通风口！",
         CookingStage.COOKING_RICE to "水量很重要，记得观察火候及时调整！",
         CookingStage.COOKING_DISHES to "掌握好火候，注意翻炒，让菜品色香味俱全！",
-        CookingStage.COMPLETED to "记得清理场地，收拾工具，爱护环境！"
+        CookingStage.CLEANING to "记得清理场地，收拾工具，做好垃圾分类，爱护环境！",
+        CookingStage.COMPLETED to "回顾整个野炊过程，总结整体表现，给自己一个评价吧！"
     )
 
     // ==================== 智能提示语配置 ====================
