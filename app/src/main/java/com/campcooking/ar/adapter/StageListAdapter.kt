@@ -31,43 +31,43 @@ class StageListAdapter(
             binding.stageNameText.text = stage.displayName
 
             // 设置状态图标和颜色
+            // 深绿色：#00332E
+            val deepGreen = android.graphics.Color.parseColor("#00332E")
+            
             when {
                 isCompleted -> {
                     binding.stageStatusIcon.text = "✓"
                     binding.stageStatusIcon.setTextColor(
                         ContextCompat.getColor(itemView.context, R.color.nature_green)
                     )
-                    binding.stageNameText.setTextColor(
-                        ContextCompat.getColor(itemView.context, R.color.nature_green)
-                    )
+                    binding.stageNameText.setTextColor(deepGreen)
                 }
                 isCurrent -> {
                     binding.stageStatusIcon.text = "▶"
                     binding.stageStatusIcon.setTextColor(
                         ContextCompat.getColor(itemView.context, R.color.fire_orange)
                     )
-                    binding.stageNameText.setTextColor(
-                        ContextCompat.getColor(itemView.context, R.color.fire_orange)
-                    )
+                    binding.stageNameText.setTextColor(deepGreen)
                 }
                 else -> {
                     binding.stageStatusIcon.text = "○"
                     binding.stageStatusIcon.setTextColor(
                         ContextCompat.getColor(itemView.context, R.color.subtitle_color)
                     )
-                    binding.stageNameText.setTextColor(
-                        ContextCompat.getColor(itemView.context, R.color.subtitle_color)
-                    )
+                    binding.stageNameText.setTextColor(deepGreen)
                 }
             }
 
-            // 设置用时
+            // 设置用时（深绿色）
             binding.stageDurationText.text = stageRecord?.getDurationText() ?: "未开始"
+            binding.stageDurationText.setTextColor(deepGreen)
 
             // 设置评分（如果已完成）
             if (isCompleted && stageRecord != null && stageRecord.selfRating > 0) {
                 val stars = "⭐".repeat(stageRecord.selfRating)
                 binding.stageRatingText.text = stars
+                // 设置亮黄色 #FFD700（金色）
+                binding.stageRatingText.setTextColor(android.graphics.Color.parseColor("#FFD700"))
                 binding.stageRatingText.visibility = android.view.View.VISIBLE
             } else {
                 binding.stageRatingText.visibility = android.view.View.GONE

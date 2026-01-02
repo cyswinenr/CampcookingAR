@@ -515,15 +515,15 @@ class RecordActivity : AppCompatActivity() {
             android.util.Log.d("RecordActivity", "problemOtherInput focus changed: $hasFocus")
         }
 
-        // 完成本环节按钮
-        binding.completeStageButton.setOnClickListener {
-            completeCurrentStage()
-        }
+        // 完成本环节按钮 - 已删除
+        // binding.completeStageButton.setOnClickListener {
+        //     completeCurrentStage()
+        // }
         
-        // 下一步按钮
-        binding.nextStageButton.setOnClickListener {
-            moveToNextStage()
-        }
+        // 下一步按钮 - 已删除
+        // binding.nextStageButton.setOnClickListener {
+        //     moveToNextStage()
+        // }
     }
     
     /**
@@ -684,13 +684,18 @@ class RecordActivity : AppCompatActivity() {
         val photoCount = stageRecord.mediaItems.count { it.type == com.campcooking.ar.data.MediaType.PHOTO }
         val videoCount = stageRecord.mediaItems.count { it.type == com.campcooking.ar.data.MediaType.VIDEO }
 
+        // 成果展示阶段使用特殊要求
+        val isShowcase = processRecord.currentStage == com.campcooking.ar.data.CookingStage.SHOWCASE
+        val photoTarget = if (isShowcase) RecordConfig.SHOWCASE_GROUP_PHOTO_REQUIRED + RecordConfig.SHOWCASE_DISH_PHOTO_REQUIRED else RecordConfig.MIN_PHOTOS_REQUIRED
+        val videoTarget = if (isShowcase) RecordConfig.SHOWCASE_SPEECH_VIDEO_REQUIRED else RecordConfig.MIN_VIDEOS_REQUIRED
+
         // 更新大数字显示
-        binding.photoProgressText.text = "${photoCount}/${RecordConfig.MIN_PHOTOS_REQUIRED}"
-        binding.videoProgressText.text = "${videoCount}/${RecordConfig.MIN_VIDEOS_REQUIRED}"
+        binding.photoProgressText.text = "${photoCount}/${photoTarget}"
+        binding.videoProgressText.text = "${videoCount}/${videoTarget}"
 
         // 更新状态指示
-        val photoMeets = photoCount >= RecordConfig.MIN_PHOTOS_REQUIRED
-        val videoMeets = videoCount >= RecordConfig.MIN_VIDEOS_REQUIRED
+        val photoMeets = photoCount >= photoTarget
+        val videoMeets = videoCount >= videoTarget
 
         // 照片状态
         when {
@@ -705,7 +710,7 @@ class RecordActivity : AppCompatActivity() {
                 binding.photoProgressText.setTextColor(getColor(R.color.water_lake))
             }
             else -> {
-                val remaining = RecordConfig.MIN_PHOTOS_REQUIRED - photoCount
+                val remaining = photoTarget - photoCount
                 binding.photoProgressStatusText.text = "📌 还需${remaining}张"
                 binding.photoProgressStatusText.setTextColor(getColor(R.color.fire_orange))
                 binding.photoProgressText.setTextColor(getColor(R.color.water_lake))
@@ -725,7 +730,7 @@ class RecordActivity : AppCompatActivity() {
                 binding.videoProgressText.setTextColor(getColor(R.color.fire_coral))
             }
             else -> {
-                val remaining = RecordConfig.MIN_VIDEOS_REQUIRED - videoCount
+                val remaining = videoTarget - videoCount
                 binding.videoProgressStatusText.text = "📌 还需${remaining}段"
                 binding.videoProgressStatusText.setTextColor(getColor(R.color.fire_orange))
                 binding.videoProgressText.setTextColor(getColor(R.color.fire_coral))
@@ -733,16 +738,32 @@ class RecordActivity : AppCompatActivity() {
         }
 
         // 更新进度提示（各模块内的提示文字）
-        binding.photoProgressHintText.text = when {
-            photoMeets -> "🎉 太棒了！照片数量已达标"
-            photoCount == 0 -> "还没有拍照，点击上方按钮拍照记录"
-            else -> "继续加油！还需要${RecordConfig.MIN_PHOTOS_REQUIRED - photoCount}张照片"
-        }
+        // 成果展示阶段使用特殊提示
+        if (processRecord.currentStage == com.campcooking.ar.data.CookingStage.SHOWCASE) {
+            // 成果展示阶段：需要小组合照、菜品合照和语言表述视频
+            binding.photoProgressHintText.text = when {
+                photoCount >= 2 -> "✅ 小组合照和菜品合照已完成！"
+                photoCount == 1 -> "📸 已拍1张（小组合照或菜品合照），还需要1张"
+                else -> "📸 请拍摄：1张小组合照 + 1张菜品合照"
+            }
+            
+            binding.videoProgressHintText.text = when {
+                videoMeets -> "✅ 语言表述视频已录制！"
+                else -> "🎤 请录制1段语言表述视频，介绍你们的成果"
+            }
+        } else {
+            // 其他阶段使用常规提示
+            binding.photoProgressHintText.text = when {
+                photoMeets -> "🎉 太棒了！照片数量已达标"
+                photoCount == 0 -> "还没有拍照，点击上方按钮拍照记录"
+                else -> "继续加油！还需要${RecordConfig.MIN_PHOTOS_REQUIRED - photoCount}张照片"
+            }
 
-        binding.videoProgressHintText.text = when {
-            videoMeets -> "🎉 太棒了！视频数量已达标"
-            videoCount == 0 -> "还没有录像，点击上方按钮录像记录"
-            else -> "继续加油！还需要${RecordConfig.MIN_VIDEOS_REQUIRED - videoCount}段视频"
+            binding.videoProgressHintText.text = when {
+                videoMeets -> "🎉 太棒了！视频数量已达标"
+                videoCount == 0 -> "还没有录像，点击上方按钮录像记录"
+                else -> "继续加油！还需要${RecordConfig.MIN_VIDEOS_REQUIRED - videoCount}段视频"
+            }
         }
     }
     
@@ -1185,20 +1206,25 @@ class RecordActivity : AppCompatActivity() {
         // 检查是否满足最低要求
         val photoCount = stageRecord.mediaItems.count { it.type == com.campcooking.ar.data.MediaType.PHOTO }
         val videoCount = stageRecord.mediaItems.count { it.type == com.campcooking.ar.data.MediaType.VIDEO }
-        val meetsRequirements = photoCount >= RecordConfig.MIN_PHOTOS_REQUIRED && videoCount >= RecordConfig.MIN_VIDEOS_REQUIRED
+        
+        // 成果展示阶段使用特殊要求：2张照片（小组合照+菜品合照）+ 1段视频（语言表述）
+        val isShowcase = processRecord.currentStage == com.campcooking.ar.data.CookingStage.SHOWCASE
+        val photoTarget = if (isShowcase) RecordConfig.SHOWCASE_GROUP_PHOTO_REQUIRED + RecordConfig.SHOWCASE_DISH_PHOTO_REQUIRED else RecordConfig.MIN_PHOTOS_REQUIRED
+        val videoTarget = if (isShowcase) RecordConfig.SHOWCASE_SPEECH_VIDEO_REQUIRED else RecordConfig.MIN_VIDEOS_REQUIRED
+        val meetsRequirements = photoCount >= photoTarget && videoCount >= videoTarget
 
-        // 完成按钮：如果已完成或未满足要求，则禁用
-        binding.completeStageButton.isEnabled = !stageRecord.isCompleted && meetsRequirements
-        if (stageRecord.isCompleted) {
-            binding.completeStageButton.text = "✓ 已完成"
-        } else if (meetsRequirements) {
-            binding.completeStageButton.text = "✓ 完成本环节"
-        } else {
-            binding.completeStageButton.text = "完成本环节（未达标）"
-        }
+        // 完成按钮 - 已删除
+        // binding.completeStageButton.isEnabled = !stageRecord.isCompleted && meetsRequirements
+        // if (stageRecord.isCompleted) {
+        //     binding.completeStageButton.text = "✓ 已完成"
+        // } else if (meetsRequirements) {
+        //     binding.completeStageButton.text = "✓ 完成本环节"
+        // } else {
+        //     binding.completeStageButton.text = "完成本环节（未达标）"
+        // }
 
-        // 下一步按钮
-        binding.nextStageButton.visibility = if (isLastStage) View.GONE else View.VISIBLE
+        // 下一步按钮 - 已删除
+        // binding.nextStageButton.visibility = if (isLastStage) View.GONE else View.VISIBLE
     }
     
     /**

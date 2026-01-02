@@ -53,9 +53,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="生火"
-                    android:textSize="16sp"
+                    android:textSize="21sp"
                     android:textStyle="bold"
-                    android:textColor="@color/text_primary" />
+                    android:textColor="#00332E" />
 
             </LinearLayout>
 
@@ -64,8 +64,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="进行中..."
-                android:textSize="13sp"
-                android:textColor="@color/subtitle_color"
+                android:textSize="17sp"
+                android:textColor="#00332E"
                 android:layout_marginTop="4dp" />
 
         </LinearLayout>
@@ -77,6 +77,7 @@
             android:layout_height="wrap_content"
             android:text="⭐⭐⭐⭐⭐"
             android:textSize="14sp"
+            android:textColor="#FFD700"
             android:visibility="gone" />
 
     </LinearLayout>

@@ -7,8 +7,11 @@ import android.os.Looper
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.AnimationUtils
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.databinding.ActivitySplashBinding
+import com.campcooking.ar.utils.DataCleaner
 
 /**
  * 野炊教学应用封面页
@@ -45,6 +48,42 @@ class SplashActivity : AppCompatActivity() {
         // 点击"进入应用"按钮进入主页
         binding.enterButton.setOnClickListener {
             navigateToMain()
+        }
+        
+        // 点击垃圾桶图标清理数据
+        binding.clearDataButton.setOnClickListener {
+            showClearDataDialog()
+        }
+    }
+    
+    /**
+     * 显示清理数据确认对话框
+     */
+    private fun showClearDataDialog() {
+        val cleaner = DataCleaner(this)
+        val dataSummary = cleaner.getDataSummary()
+        
+        AlertDialog.Builder(this)
+            .setTitle("🗑️ 清理所有数据")
+            .setMessage("确定要清理所有应用数据吗？\n\n$dataSummary\n\n⚠️ 此操作无法恢复！")
+            .setPositiveButton("确定清理") { _, _ ->
+                clearAllData()
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    /**
+     * 执行清理所有数据
+     */
+    private fun clearAllData() {
+        val cleaner = DataCleaner(this)
+        val success = cleaner.clearAllData()
+        
+        if (success) {
+            Toast.makeText(this, "✅ 所有数据已清理完成，应用已复原", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this, "❌ 清理数据时出错，请重试", Toast.LENGTH_SHORT).show()
         }
     }
     

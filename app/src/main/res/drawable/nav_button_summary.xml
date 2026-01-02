@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    
+    <!-- 高级渐变背景 - 温暖橙色系（适合总结反思） -->
+    <gradient
+        android:type="linear"
+        android:angle="135"
+        android:startColor="#FFB74D"
+        android:centerColor="#FF9800"
+        android:endColor="#F57C00" />
+    
+    <corners android:radius="28dp" />
+    
+</shape>
+

@@ -33,17 +33,23 @@ enum class CookingStage(
         description = "清洗切配并炒制菜品",
         order = 4
     ),
+    SHOWCASE(
+        displayName = "成果展示",
+        emoji = "🎉",
+        description = "展示成果和分享",
+        order = 5
+    ),
     CLEANING(
         displayName = "卫生清洁",
         emoji = "🧹",
         description = "清理和整理",
-        order = 5
+        order = 6
     ),
     COMPLETED(
         displayName = "整体表现",
         emoji = "✅",
         description = "用餐和收拾",
-        order = 6
+        order = 7
     );
     
     companion object {

@@ -11,6 +11,13 @@ object RecordConfig {
     // ==================== 进度要求配置 ====================
     const val MIN_PHOTOS_REQUIRED = 3          // 最少照片数量
     const val MIN_VIDEOS_REQUIRED = 1          // 最少视频数量
+    
+    /**
+     * 成果展示阶段的特殊要求
+     */
+    const val SHOWCASE_GROUP_PHOTO_REQUIRED = 1    // 需要1张小组合照
+    const val SHOWCASE_DISH_PHOTO_REQUIRED = 1     // 需要1张菜品合照
+    const val SHOWCASE_SPEECH_VIDEO_REQUIRED = 1   // 需要1段语言表述视频
 
     /**
      * 各阶段的评价标签
@@ -34,6 +41,11 @@ object RecordConfig {
         CookingStage.COOKING_DISHES to TagGroup(
             positive = listOf("刀工整齐", "调味恰当", "火候适中", "色香味好", "摆盘美观"),
             problems = listOf("炒糊了", "太咸/太淡", "不熟", "火候不对")
+        ),
+        
+        CookingStage.SHOWCASE to TagGroup(
+            positive = listOf("展示精彩", "分享到位", "讲解清晰", "成果突出", "团队协作"),
+            problems = listOf("展示不足", "讲解不清", "准备不充分")
         ),
         
         CookingStage.CLEANING to TagGroup(
@@ -77,15 +89,55 @@ object RecordConfig {
         CookingStage.FIRE_MAKING to "注意安全，柴火要摆放整齐，留出通风口！",
         CookingStage.COOKING_RICE to "水量很重要，记得观察火候及时调整！",
         CookingStage.COOKING_DISHES to "掌握好火候，注意翻炒，让菜品色香味俱全！",
+        CookingStage.SHOWCASE to "📸 请拍摄小组合照、完成菜品合照，并录制语言表述视频，展示你们的成果！",
         CookingStage.CLEANING to "记得清理场地，收拾工具，做好垃圾分类，爱护环境！",
         CookingStage.COMPLETED to "回顾整个野炊过程，总结整体表现，给自己一个评价吧！"
     )
 
     // ==================== 智能提示语配置 ====================
     /**
+     * 获取成果展示阶段的特殊提示语
+     */
+    fun getShowcaseProgressHint(photoCount: Int, videoCount: Int): String {
+        val hasGroupPhoto = photoCount >= 1  // 假设至少1张照片可以是小组合照
+        val hasDishPhoto = photoCount >= 2   // 假设至少2张照片包含菜品合照
+        val hasSpeechVideo = videoCount >= 1 // 至少1段视频是语言表述
+        
+        return when {
+            !hasGroupPhoto && !hasDishPhoto && !hasSpeechVideo ->
+                "📸 请拍摄：1张小组合照 + 1张菜品合照 + 1段语言表述视频"
+            
+            hasGroupPhoto && !hasDishPhoto && !hasSpeechVideo ->
+                "✅ 小组合照已拍！还需要：1张菜品合照 + 1段语言表述视频"
+            
+            hasGroupPhoto && hasDishPhoto && !hasSpeechVideo ->
+                "✅ 小组合照和菜品合照已拍！还需要：1段语言表述视频"
+            
+            hasGroupPhoto && !hasDishPhoto && hasSpeechVideo ->
+                "✅ 小组合照和语言表述已录！还需要：1张菜品合照"
+            
+            !hasGroupPhoto && hasDishPhoto && hasSpeechVideo ->
+                "✅ 菜品合照和语言表述已完成！还需要：1张小组合照"
+            
+            !hasGroupPhoto && hasDishPhoto && !hasSpeechVideo ->
+                "✅ 菜品合照已拍！还需要：1张小组合照 + 1段语言表述视频"
+            
+            !hasGroupPhoto && !hasDishPhoto && hasSpeechVideo ->
+                "✅ 语言表述已录！还需要：1张小组合照 + 1张菜品合照"
+            
+            else -> "🎉 太棒了！小组合照、菜品合照和语言表述都已完成！可以进行自我评价了！"
+        }
+    }
+    
+    /**
      * 根据进度显示不同的提示语
      */
-    fun getProgressHint(photoCount: Int, videoCount: Int): String {
+    fun getProgressHint(photoCount: Int, videoCount: Int, stage: CookingStage? = null): String {
+        // 成果展示阶段使用特殊提示语
+        if (stage == CookingStage.SHOWCASE) {
+            return getShowcaseProgressHint(photoCount, videoCount)
+        }
+        
         val photoTarget = MIN_PHOTOS_REQUIRED
         val videoTarget = MIN_VIDEOS_REQUIRED
 

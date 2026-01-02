@@ -135,7 +135,7 @@
                         android:id="@+id/progressText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0/6 完成"
+                        android:text="0/7 完成"
                         android:textSize="14sp"
                         android:textColor="@color/fire_orange"
                         android:textStyle="bold"
@@ -490,41 +490,6 @@
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
-                <!-- 操作按钮区 - 固定在底部 -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center"
-                    android:padding="8dp">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/completeStageButton"
-                        style="@style/Widget.Material3.Button.ElevatedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="56dp"
-                        android:layout_weight="1"
-                        android:text="✓ 完成本环节"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="16dp"
-                        app:backgroundTint="@color/nature_green"
-                        android:layout_marginEnd="8dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/nextStageButton"
-                        style="@style/Widget.Material3.Button.ElevatedButton"
-                        android:layout_width="0dp"
-                        android:layout_height="56dp"
-                        android:layout_weight="1"
-                        android:text="下一步 →"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:cornerRadius="16dp"
-                        app:backgroundTint="@color/fire_yellow"
-                        android:layout_marginStart="8dp" />
-
-                </LinearLayout>
 
             </LinearLayout>
         </ScrollView>

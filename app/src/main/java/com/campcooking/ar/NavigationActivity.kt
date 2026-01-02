@@ -78,6 +78,14 @@ class NavigationActivity : AppCompatActivity() {
             startActivity(intent)
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
+        
+        // 课后总结区域点击
+        binding.summarySection.setOnClickListener {
+            val intent = Intent(this, SummaryActivity::class.java)
+            intent.putExtra("teamName", binding.teamNameText.text.toString())
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
     }
     
     override fun onBackPressed() {

@@ -33,12 +33,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 应用标题 - 左上角 -->
+    <!-- 清理数据按钮 - 左上角 -->
+    <ImageButton
+        android:id="@+id/clearDataButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_menu_delete"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="清理所有数据"
+        android:tint="#F44336"
+        android:padding="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 应用标题 - 左上角（在清理按钮右侧） -->
     <TextView
         android:id="@+id/appTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="40dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginBottom="40dp"
         android:text="@string/app_name"
         android:textColor="@color/title_color"
         android:textSize="56sp"
@@ -48,7 +65,7 @@
         android:shadowDx="3"
         android:shadowDy="3"
         android:shadowRadius="6"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/clearDataButton"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 副标题 - 标题下方 -->
