@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 
+        允许本地局域网使用HTTP（明文通信）
+        这是为了支持本地WiFi网络中的服务器连接
+    -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- 
+        针对特定域名的配置（可选，更安全）
+        如果需要更严格的配置，可以只允许特定IP段
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- 允许所有局域网IP地址 -->
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">192.168.1.0</domain>
+        <domain includeSubdomains="true">192.168.2.0</domain>
+        <domain includeSubdomains="true">192.168.3.0</domain>
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">172.16.0.0</domain>
+        <!-- 本地回环地址 -->
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+</network-security-config>
+
