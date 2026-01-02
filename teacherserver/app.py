@@ -83,7 +83,12 @@ def submit_student_data():
         # 保存学生数据
         student_id = storage.save_student_data(data_package)
         
-        logger.info(f"✅ 收到学生数据: {student_id}")
+        # 记录分工信息（如果有）
+        if data_package.teamDivision:
+            logger.info(f"✅ 收到学生数据: {student_id}, 包含分工信息")
+            logger.info(f"   分工详情: {data_package.teamDivision.to_dict()}")
+        else:
+            logger.info(f"✅ 收到学生数据: {student_id}, 无分工信息")
         
         return jsonify({
             'status': 'success',

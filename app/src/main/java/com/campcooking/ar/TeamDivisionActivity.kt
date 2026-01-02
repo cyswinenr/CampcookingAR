@@ -619,8 +619,10 @@ class TeamDivisionActivity : AppCompatActivity() {
         binding.saveButton.setOnClickListener {
             saveDivision()
             Toast.makeText(this, "分工信息已保存", Toast.LENGTH_SHORT).show()
-            // 发送数据到服务器
-            submitDataToServer()
+            // 延迟一下确保数据已保存，然后发送数据到服务器
+            binding.root.postDelayed({
+                submitDataToServer()
+            }, 200)
         }
         
         // 开始野炊按钮
@@ -634,8 +636,10 @@ class TeamDivisionActivity : AppCompatActivity() {
             // 保存分工信息
             saveDivision()
             
-            // 发送数据到服务器
-            submitDataToServer()
+            // 延迟一下确保数据已保存，然后发送数据到服务器
+            binding.root.postDelayed({
+                submitDataToServer()
+            }, 200)
             
             // 跳转到导航页面（微视频，过程评价）
             val teamName = intent.getStringExtra("teamName") ?: binding.teamNameText.text.toString()
@@ -659,13 +663,20 @@ class TeamDivisionActivity : AppCompatActivity() {
             "groupHealth" to groupHealth.joinToString("、")
         )
         
+        android.util.Log.d("TeamDivision", "保存分工信息: $division")
+        
         val prefs = getSharedPreferences("team_division_prefs", MODE_PRIVATE)
         prefs.edit().apply {
             division.forEach { (key, value) ->
                 putString(key, value)
+                android.util.Log.d("TeamDivision", "保存 $key = $value")
             }
-            apply()
+            commit() // 使用 commit() 确保同步保存
         }
+        
+        // 验证保存是否成功
+        val savedLeader = prefs.getString("groupLeader", "")
+        android.util.Log.d("TeamDivision", "验证保存结果 - groupLeader: $savedLeader")
     }
     
     /**

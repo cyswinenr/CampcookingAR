@@ -498,6 +498,9 @@
                 const data = await response.json();
 
                 if (data.status === 'success') {
+                    // 调试：输出完整数据
+                    console.log('学生完整数据:', data.data);
+                    console.log('团队分工数据:', data.data.teamDivision);
                     renderStudentDetail(data.data);
                     // 更新列表中的选中状态
                     renderStudentsList();
@@ -514,6 +517,7 @@
         function renderStudentDetail(data) {
             const panel = document.getElementById('detailPanel');
             const teamInfo = data.teamInfo || {};
+            const teamDivision = data.teamDivision || {};
             const processRecord = data.processRecord || {};
             const summaryData = data.summaryData || {};
 
@@ -553,6 +557,87 @@
                     </div>
                 </div>
             `;
+
+            // 团队分工信息
+            // 调试：输出分工数据
+            console.log('团队分工数据:', teamDivision);
+            console.log('团队分工数据类型:', typeof teamDivision);
+            console.log('团队分工数据键:', teamDivision ? Object.keys(teamDivision) : 'null');
+            
+            // 检查是否有分工数据
+            const hasDivision = teamDivision && 
+                typeof teamDivision === 'object' && 
+                (teamDivision.groupLeader || teamDivision.groupCooking || teamDivision.groupSoupRice || 
+                 teamDivision.groupFire || teamDivision.groupHealth);
+            
+            if (hasDivision) {
+                html += '<div class="detail-section"><h3>👥 团队分工</h3>';
+                html += '<div class="stages-list">';
+                
+                if (teamDivision.groupLeader) {
+                    html += `
+                        <div class="stage-item completed">
+                            <div class="stage-header">
+                                <span class="stage-name">项目组长</span>
+                            </div>
+                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupLeader)}</div>
+                        </div>
+                    `;
+                }
+                
+                if (teamDivision.groupCooking) {
+                    html += `
+                        <div class="stage-item completed">
+                            <div class="stage-header">
+                                <span class="stage-name">烹饪组</span>
+                            </div>
+                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupCooking)}</div>
+                        </div>
+                    `;
+                }
+                
+                if (teamDivision.groupSoupRice) {
+                    html += `
+                        <div class="stage-item completed">
+                            <div class="stage-header">
+                                <span class="stage-name">汤饭组</span>
+                            </div>
+                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupSoupRice)}</div>
+                        </div>
+                    `;
+                }
+                
+                if (teamDivision.groupFire) {
+                    html += `
+                        <div class="stage-item completed">
+                            <div class="stage-header">
+                                <span class="stage-name">生火组</span>
+                            </div>
+                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupFire)}</div>
+                        </div>
+                    `;
+                }
+                
+                if (teamDivision.groupHealth) {
+                    html += `
+                        <div class="stage-item completed">
+                            <div class="stage-header">
+                                <span class="stage-name">卫生组</span>
+                            </div>
+                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupHealth)}</div>
+                        </div>
+                    `;
+                }
+                
+                html += '</div></div>';
+            } else {
+                // 如果没有分工数据，显示提示
+                html += '<div class="detail-section"><h3>👥 团队分工</h3>';
+                html += '<div style="padding: 16px; background: #fff3cd; border-radius: 8px; color: #856404;">';
+                html += '<strong>提示：</strong>该组尚未提交分工信息。请在团队分工页面完成成员分配后重新提交数据。';
+                html += '</div></div>';
+                console.log('未找到团队分工数据，teamDivision:', teamDivision);
+            }
 
             // 过程记录
             if (processRecord.stages && Object.keys(processRecord.stages).length > 0) {

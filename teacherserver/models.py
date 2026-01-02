@@ -145,6 +145,36 @@ class SummaryData:
         }
 
 
+class TeamDivision:
+    """团队分工信息"""
+    
+    def __init__(self, data: Dict[str, Any]):
+        self.groupLeader: str = data.get('groupLeader', '')  # 项目组长
+        self.groupCooking: str = data.get('groupCooking', '')  # 烹饪组
+        self.groupSoupRice: str = data.get('groupSoupRice', '')  # 汤饭组
+        self.groupFire: str = data.get('groupFire', '')  # 生火组
+        self.groupHealth: str = data.get('groupHealth', '')  # 卫生组
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'groupLeader': self.groupLeader,
+            'groupCooking': self.groupCooking,
+            'groupSoupRice': self.groupSoupRice,
+            'groupFire': self.groupFire,
+            'groupHealth': self.groupHealth
+        }
+    
+    def is_empty(self) -> bool:
+        """检查是否为空"""
+        return not any([
+            self.groupLeader,
+            self.groupCooking,
+            self.groupSoupRice,
+            self.groupFire,
+            self.groupHealth
+        ])
+
+
 class StudentDataPackage:
     """学生数据包（完整数据）"""
     
@@ -153,6 +183,15 @@ class StudentDataPackage:
         """从字典创建数据包"""
         package = StudentDataPackage()
         package.teamInfo = TeamInfo(data.get('teamInfo', {}))
+        
+        # 处理团队分工
+        team_division_data = data.get('teamDivision')
+        if team_division_data:
+            team_division = TeamDivision(team_division_data)
+            package.teamDivision = team_division if not team_division.is_empty() else None
+        else:
+            package.teamDivision = None
+        
         package.processRecord = ProcessRecord(data.get('processRecord', {})) if data.get('processRecord') else None
         package.summaryData = SummaryData(data.get('summaryData', {})) if data.get('summaryData') else None
         package.exportTime = data.get('exportTime', 0)
@@ -160,6 +199,7 @@ class StudentDataPackage:
     
     def __init__(self):
         self.teamInfo: Optional[TeamInfo] = None
+        self.teamDivision: Optional[TeamDivision] = None
         self.processRecord: Optional[ProcessRecord] = None
         self.summaryData: Optional[SummaryData] = None
         self.exportTime: int = 0
@@ -167,6 +207,7 @@ class StudentDataPackage:
     def to_dict(self) -> Dict[str, Any]:
         return {
             'teamInfo': self.teamInfo.to_dict() if self.teamInfo else {},
+            'teamDivision': self.teamDivision.to_dict() if self.teamDivision else None,
             'processRecord': self.processRecord.to_dict() if self.processRecord else None,
             'summaryData': self.summaryData.to_dict() if self.summaryData else None,
             'exportTime': self.exportTime

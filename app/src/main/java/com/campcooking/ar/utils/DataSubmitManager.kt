@@ -122,6 +122,9 @@ class DataSubmitManager(private val context: Context) {
                 val processRecord = processRecordManager.loadProcessRecord()
                 val summaryData = summaryManager.loadSummary()
                 
+                // 获取团队分工数据
+                val teamDivision = loadTeamDivision()
+                
                 // 构建数据包
                 val dataPackage = mutableMapOf<String, Any?>(
                     "teamInfo" to mapOf(
@@ -134,6 +137,15 @@ class DataSubmitManager(private val context: Context) {
                     ),
                     "exportTime" to System.currentTimeMillis()
                 )
+                
+                // 添加团队分工
+                if (teamDivision != null && teamDivision.isNotEmpty()) {
+                    dataPackage["teamDivision"] = teamDivision
+                    Log.d(TAG, "✅ 包含团队分工数据: $teamDivision")
+                } else {
+                    dataPackage["teamDivision"] = null
+                    Log.w(TAG, "⚠️ 未找到团队分工数据")
+                }
                 
                 // 添加过程记录
                 if (processRecord != null) {
@@ -236,6 +248,37 @@ class DataSubmitManager(private val context: Context) {
             "currentStage" to processRecord.currentStage.name,
             "overallNotes" to processRecord.overallNotes
         )
+    }
+    
+    /**
+     * 加载团队分工数据
+     */
+    private fun loadTeamDivision(): Map<String, String>? {
+        try {
+            val prefs = context.getSharedPreferences("team_division_prefs", android.content.Context.MODE_PRIVATE)
+            val division = mutableMapOf<String, String>()
+            
+            val groupLeader = prefs.getString("groupLeader", "") ?: ""
+            val groupCooking = prefs.getString("groupCooking", "") ?: ""
+            val groupSoupRice = prefs.getString("groupSoupRice", "") ?: ""
+            val groupFire = prefs.getString("groupFire", "") ?: ""
+            val groupHealth = prefs.getString("groupHealth", "") ?: ""
+            
+            Log.d(TAG, "加载团队分工 - groupLeader: $groupLeader, groupCooking: $groupCooking, groupSoupRice: $groupSoupRice, groupFire: $groupFire, groupHealth: $groupHealth")
+            
+            if (groupLeader.isNotBlank()) division["groupLeader"] = groupLeader
+            if (groupCooking.isNotBlank()) division["groupCooking"] = groupCooking
+            if (groupSoupRice.isNotBlank()) division["groupSoupRice"] = groupSoupRice
+            if (groupFire.isNotBlank()) division["groupFire"] = groupFire
+            if (groupHealth.isNotBlank()) division["groupHealth"] = groupHealth
+            
+            val result = if (division.isNotEmpty()) division else null
+            Log.d(TAG, "团队分工数据: $result")
+            return result
+        } catch (e: Exception) {
+            Log.e(TAG, "加载团队分工失败: ${e.message}", e)
+            return null
+        }
     }
     
     /**
