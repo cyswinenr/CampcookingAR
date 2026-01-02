@@ -47,6 +47,22 @@ class NavigationActivity : AppCompatActivity() {
             finish()  // 返回到团队信息输入页面
         }
         
+        // 团队信息登记按钮点击
+        binding.teamInfoButton?.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+        
+        // 团队分工按钮点击
+        binding.teamDivisionButton?.setOnClickListener {
+            val intent = Intent(this, TeamDivisionActivity::class.java)
+            intent.putExtra("teamName", binding.teamNameText.text.toString())
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+        
         // 微课视频区域点击
         binding.videoSection.setOnClickListener {
             val intent = Intent(this, VideoActivity::class.java)

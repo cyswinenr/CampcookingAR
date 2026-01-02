@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 团队分工页面 - 横屏布局 -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_background"
+    android:fillViewport="true"
+    tools:context=".TeamDivisionActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 顶部标题栏 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="16dp"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconSize="24dp"
+                app:iconTint="@color/text_primary"
+                app:backgroundTint="@android:color/transparent"
+                app:cornerRadius="28dp" />
+
+            <TextView
+                android:id="@+id/teamNameText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="团队名称"
+                android:textColor="@color/title_color"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="团队分工"
+                android:textColor="@color/text_primary"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:layout_marginStart="16dp" />
+
+        </LinearLayout>
+
+        <!-- 主要内容区域 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <!-- 左侧：未分配成员列表 -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/members_list_background"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="待分配成员"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:fillViewport="true">
+
+                    <LinearLayout
+                        android:id="@+id/membersContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                </ScrollView>
+
+            </LinearLayout>
+
+            <!-- 右侧：五个小组 - 使用网格布局 -->
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:fillViewport="true"
+                android:scrollbars="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <!-- 项目组长 -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/groupLeaderContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:orientation="vertical">
+
+                            <!-- 标题行：组名 + 现代人数显示 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
+
+                                <!-- 组名标题 -->
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="项目组长"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <!-- 现代人数显示：进度条 + 数字 -->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:gravity="end"
+                                    android:layout_marginStart="16dp">
+
+                                    <!-- 人数数字显示 -->
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:background="@drawable/modern_count_badge"
+                                        android:paddingStart="16dp"
+                                        android:paddingEnd="16dp"
+                                        android:paddingTop="8dp"
+                                        android:paddingBottom="8dp"
+                                        android:layout_marginBottom="6dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="👥"
+                                            android:textSize="20sp"
+                                            android:layout_marginEnd="6dp" />
+
+                                        <TextView
+                                            android:id="@+id/groupLeaderCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="0/1"
+                                            android:textColor="@android:color/white"
+                                            android:textSize="24sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                    <!-- 进度条 -->
+                                    <FrameLayout
+                                        android:id="@+id/groupLeaderBadge"
+                                        android:layout_width="120dp"
+                                        android:layout_height="8dp"
+                                        android:background="@drawable/count_progress_background">
+
+                                        <View
+                                            android:id="@+id/groupLeaderProgress"
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:background="@drawable/count_progress_fill" />
+
+                                    </FrameLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+                            
+                            <!-- 已分配人数提示（隐藏，由进度条和数字显示） -->
+                            <TextView
+                                android:id="@+id/groupLeaderAssigned"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:visibility="gone" />
+
+                            <!-- 职责说明区域 -->
+                            <LinearLayout
+                                android:id="@+id/groupLeaderDutiesLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="具有较强的组织协调能力，负责组内分工协作。掌握全场进度，统筹&quot;分享环节&quot;的落实。"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="18sp"
+                                    android:lineSpacingExtra="4dp" />
+
+                            </LinearLayout>
+
+                            <!-- 成员卡片容器 - 横向流式布局 -->
+                            <!-- 成员卡片容器 - 横向排列 -->
+                            <LinearLayout
+                                android:id="@+id/groupLeaderMembersContainer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp" />
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- 烹饪组 -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/groupCookingContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:orientation="vertical">
+
+                            <!-- 标题行：组名 + 现代人数显示 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
+
+                                <!-- 组名标题 -->
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="烹饪组"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <!-- 现代人数显示：进度条 + 数字 -->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:gravity="end"
+                                    android:layout_marginStart="16dp">
+
+                                    <!-- 人数数字显示 -->
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:background="@drawable/modern_count_badge"
+                                        android:paddingStart="16dp"
+                                        android:paddingEnd="16dp"
+                                        android:paddingTop="8dp"
+                                        android:paddingBottom="8dp"
+                                        android:layout_marginBottom="6dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="👥"
+                                            android:textSize="20sp"
+                                            android:layout_marginEnd="6dp" />
+
+                                        <TextView
+                                            android:id="@+id/groupCookingCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="0/3"
+                                            android:textColor="@android:color/white"
+                                            android:textSize="24sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                    <!-- 进度条 -->
+                                    <FrameLayout
+                                        android:id="@+id/groupCookingBadge"
+                                        android:layout_width="120dp"
+                                        android:layout_height="8dp"
+                                        android:background="@drawable/count_progress_background">
+
+                                        <View
+                                            android:id="@+id/groupCookingProgress"
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:background="@drawable/count_progress_fill" />
+
+                                    </FrameLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+                            
+                            <!-- 已分配人数提示（隐藏） -->
+                            <TextView
+                                android:id="@+id/groupCookingAssigned"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:visibility="gone" />
+
+                            <!-- 职责说明区域 -->
+                            <LinearLayout
+                                android:id="@+id/groupCookingDutiesLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:id="@+id/groupCookingDutyText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="领取炊具，及时清点。1名主厨、2名副厨。"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="18sp"
+                                    android:lineSpacingExtra="4dp" />
+
+                            </LinearLayout>
+
+                            <!-- 成员卡片容器 - 横向排列 -->
+                            <LinearLayout
+                                android:id="@+id/groupCookingMembersContainer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp" />
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- 汤饭组 -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/groupSoupRiceContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:orientation="vertical">
+
+                            <!-- 标题行：组名 + 现代人数显示 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
+
+                                <!-- 组名标题 -->
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="汤饭组"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <!-- 现代人数显示：进度条 + 数字 -->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:gravity="end"
+                                    android:layout_marginStart="16dp">
+
+                                    <!-- 人数数字显示 -->
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:background="@drawable/modern_count_badge"
+                                        android:paddingStart="16dp"
+                                        android:paddingEnd="16dp"
+                                        android:paddingTop="8dp"
+                                        android:paddingBottom="8dp"
+                                        android:layout_marginBottom="6dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="👥"
+                                            android:textSize="20sp"
+                                            android:layout_marginEnd="6dp" />
+
+                                        <TextView
+                                            android:id="@+id/groupSoupRiceCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="0/2"
+                                            android:textColor="@android:color/white"
+                                            android:textSize="24sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                    <!-- 进度条 -->
+                                    <FrameLayout
+                                        android:id="@+id/groupSoupRiceBadge"
+                                        android:layout_width="120dp"
+                                        android:layout_height="8dp"
+                                        android:background="@drawable/count_progress_background">
+
+                                        <View
+                                            android:id="@+id/groupSoupRiceProgress"
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:background="@drawable/count_progress_fill" />
+
+                                    </FrameLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+                            
+                            <!-- 已分配人数提示（隐藏） -->
+                            <TextView
+                                android:id="@+id/groupSoupRiceAssigned"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:visibility="gone" />
+
+                            <!-- 职责说明区域 -->
+                            <LinearLayout
+                                android:id="@+id/groupSoupRiceDutiesLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:id="@+id/groupSoupRiceDutyText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="领取食材。1人负责煲汤；1人负责煲饭。"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="18sp"
+                                    android:lineSpacingExtra="4dp" />
+
+                            </LinearLayout>
+
+                            <!-- 成员卡片容器 - 横向排列 -->
+                            <LinearLayout
+                                android:id="@+id/groupSoupRiceMembersContainer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp" />
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- 生火组 -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/groupFireContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:orientation="vertical">
+
+                            <!-- 标题行：组名 + 现代人数显示 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
+
+                                <!-- 组名标题 -->
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="生火组"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <!-- 现代人数显示：进度条 + 数字 -->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:gravity="end"
+                                    android:layout_marginStart="16dp">
+
+                                    <!-- 人数数字显示 -->
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:background="@drawable/modern_count_badge"
+                                        android:paddingStart="16dp"
+                                        android:paddingEnd="16dp"
+                                        android:paddingTop="8dp"
+                                        android:paddingBottom="8dp"
+                                        android:layout_marginBottom="6dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="👥"
+                                            android:textSize="20sp"
+                                            android:layout_marginEnd="6dp" />
+
+                                        <TextView
+                                            android:id="@+id/groupFireCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="0/2"
+                                            android:textColor="@android:color/white"
+                                            android:textSize="24sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                    <!-- 进度条 -->
+                                    <FrameLayout
+                                        android:id="@+id/groupFireBadge"
+                                        android:layout_width="120dp"
+                                        android:layout_height="8dp"
+                                        android:background="@drawable/count_progress_background">
+
+                                        <View
+                                            android:id="@+id/groupFireProgress"
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:background="@drawable/count_progress_fill" />
+
+                                    </FrameLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+                            
+                            <!-- 已分配人数提示（隐藏） -->
+                            <TextView
+                                android:id="@+id/groupFireAssigned"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:visibility="gone" />
+
+                            <!-- 职责说明区域 -->
+                            <LinearLayout
+                                android:id="@+id/groupFireDutiesLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:id="@+id/groupFireDutyText"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="领取野炊用柴。负责&quot;起火&quot;与&quot;控火&quot;。"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="18sp"
+                                    android:lineSpacingExtra="4dp" />
+
+                            </LinearLayout>
+
+                            <!-- 成员卡片容器 - 横向排列 -->
+                            <LinearLayout
+                                android:id="@+id/groupFireMembersContainer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp" />
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- 卫生组 -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/groupHealthContainer"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="3dp"
+                        app:cardBackgroundColor="#FFFFFF">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:orientation="vertical">
+
+                            <!-- 标题行：组名 + 现代人数显示 -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
+
+                                <!-- 组名标题 -->
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="卫生组"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold" />
+
+                                <!-- 现代人数显示：进度条 + 数字 -->
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:gravity="end"
+                                    android:layout_marginStart="16dp">
+
+                                    <!-- 人数数字显示 -->
+                                    <LinearLayout
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        android:gravity="center_vertical"
+                                        android:background="@drawable/modern_count_badge"
+                                        android:paddingStart="16dp"
+                                        android:paddingEnd="16dp"
+                                        android:paddingTop="8dp"
+                                        android:paddingBottom="8dp"
+                                        android:layout_marginBottom="6dp">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="👥"
+                                            android:textSize="20sp"
+                                            android:layout_marginEnd="6dp" />
+
+                                        <TextView
+                                            android:id="@+id/groupHealthCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="0/2"
+                                            android:textColor="@android:color/white"
+                                            android:textSize="24sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                    <!-- 进度条 -->
+                                    <FrameLayout
+                                        android:id="@+id/groupHealthBadge"
+                                        android:layout_width="120dp"
+                                        android:layout_height="8dp"
+                                        android:background="@drawable/count_progress_background">
+
+                                        <View
+                                            android:id="@+id/groupHealthProgress"
+                                            android:layout_width="0dp"
+                                            android:layout_height="match_parent"
+                                            android:background="@drawable/count_progress_fill" />
+
+                                    </FrameLayout>
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+                            
+                            <!-- 已分配人数提示（隐藏） -->
+                            <TextView
+                                android:id="@+id/groupHealthAssigned"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:visibility="gone" />
+
+                            <!-- 职责说明区域 -->
+                            <LinearLayout
+                                android:id="@+id/groupHealthDutiesLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:layout_marginTop="4dp">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="负责前两次的卫生（含：炊具清洗、场地卫生、餐前卫生），课程用具管理及最终统筹全组共同开展第三次卫生清洁。"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="18sp"
+                                    android:lineSpacingExtra="4dp" />
+
+                            </LinearLayout>
+
+                            <!-- 成员卡片容器 - 横向排列 -->
+                            <LinearLayout
+                                android:id="@+id/groupHealthMembersContainer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="6dp" />
+
+                        </LinearLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+        </LinearLayout>
+
+        <!-- 底部：状态提示和按钮 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:id="@+id/validityText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/subtitle_color"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:layout_marginBottom="16dp"
+                android:minHeight="48dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/resetButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="重置"
+                    android:textSize="16sp"
+                    app:cornerRadius="28dp"
+                    app:strokeColor="@color/fire_orange"
+                    app:strokeWidth="2dp"
+                    app:backgroundTint="@android:color/transparent"
+                    app:icon="@android:drawable/ic_menu_revert" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/saveButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:text="保存"
+                    android:textSize="16sp"
+                    app:cornerRadius="28dp"
+                    app:backgroundTint="@color/nature_green"
+                    app:icon="@android:drawable/ic_menu_save" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/nextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="开始野炊"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    app:cornerRadius="28dp"
+                    app:backgroundTint="@color/fire_orange"
+                    app:icon="@android:drawable/ic_media_play" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
+

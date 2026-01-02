@@ -46,6 +46,12 @@
             android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustPan|stateHidden" />
         
+        <!-- 团队分工页 Activity -->
+        <activity
+            android:name=".TeamDivisionActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        
         <!-- 导航页 Activity -->
         <activity
             android:name=".NavigationActivity"

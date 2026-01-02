@@ -120,11 +120,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
-        // 保存按钮点击事件
+        // 保存按钮点击事件 - 保存当前已填写的信息，不强制验证
         binding.saveButton.setOnClickListener {
-            if (validateAndSaveInfo()) {
-                saveTeamInfo()
-            }
+            collectCurrentInfo()
+            saveTeamInfo()
         }
         
         // 开始按钮点击事件
@@ -260,6 +259,52 @@ class MainActivity : AppCompatActivity() {
         scrollToViewSmoothly(view)
     }
 
+    /**
+     * 收集当前已填写的信息（不验证，用于保存）
+     */
+    private fun collectCurrentInfo() {
+        // 收集学校
+        teamInfo.school = binding.schoolInput.text.toString().trim()
+        
+        // 收集年级
+        val gradePosition = binding.gradeSpinner.selectedItemPosition
+        teamInfo.grade = if (gradePosition > 0) {
+            binding.gradeSpinner.selectedItem.toString()
+        } else {
+            ""
+        }
+        
+        // 收集班级
+        val classPosition = binding.classSpinner.selectedItemPosition
+        teamInfo.className = if (classPosition > 0) {
+            binding.classSpinner.selectedItem.toString()
+        } else {
+            ""
+        }
+        
+        // 收集炉号
+        val stovePosition = binding.stoveSpinner.selectedItemPosition
+        teamInfo.stoveNumber = if (stovePosition > 0) {
+            binding.stoveSpinner.selectedItem.toString()
+        } else {
+            ""
+        }
+        
+        // 收集小组人数
+        val position = binding.memberCountSpinner.selectedItemPosition
+        teamInfo.memberCount = if (position > 0) position else 0
+        
+        // 收集人员姓名（收集所有已填写的，包括不完整的）
+        val names = mutableListOf<String>()
+        for (input in memberNameInputs) {
+            val name = input.text.toString().trim()
+            if (name.isNotBlank()) {
+                names.add(name)
+            }
+        }
+        teamInfo.memberNames = names.joinToString("、")
+    }
+    
     /**
      * 验证并保存信息
      */
@@ -433,21 +478,30 @@ class MainActivity : AppCompatActivity() {
                 binding.stoveSpinner.setSelection(stoveIndex)
             }
             
-            // 恢复小组人数
+            // 恢复小组人数和成员姓名
             if (savedInfo.memberCount > 0 && savedInfo.memberCount <= 12) {
                 // Spinner的position从0开始，0是"请选择人数"，1是"1人"，所以memberCount直接对应position
-                binding.memberCountSpinner.setSelection(savedInfo.memberCount)
+                binding.memberCountSpinner.setSelection(savedInfo.memberCount, false) // false表示不触发监听器
                 
-                // 恢复成员姓名
+                // 获取保存的成员姓名列表
                 val namesList = teamInfoManager.getMemberNamesList()
-                if (namesList.isNotEmpty()) {
+                
+                // 手动触发输入框生成（因为setSelection的第二个参数是false，不会触发监听器）
+                if (savedInfo.memberCount > 0) {
+                    generateMemberNameInputs(savedInfo.memberCount)
+                    
                     // 等待输入框生成后填充数据
                     binding.memberCountSpinner.post {
-                        namesList.forEachIndexed { index, name ->
-                            if (index < memberNameInputs.size) {
-                                memberNameInputs[index].setText(name)
+                        // 再次等待确保输入框已完全生成
+                        binding.memberCountSpinner.postDelayed({
+                            if (namesList.isNotEmpty() && namesList.size <= memberNameInputs.size) {
+                                namesList.forEachIndexed { index, name ->
+                                    if (index < memberNameInputs.size) {
+                                        memberNameInputs[index].setText(name)
+                                    }
+                                }
                             }
-                        }
+                        }, 150) // 延迟150ms确保输入框已生成
                     }
                 }
             }
@@ -457,17 +511,17 @@ class MainActivity : AppCompatActivity() {
     }
     
     /**
-     * 开始野炊
+     * 进行团队分工
      */
     private fun startCooking() {
         Toast.makeText(
             this,
-            "欢迎 ${teamInfo.getTeamName()}！准备开始野炊...",
+            "欢迎 ${teamInfo.getTeamName()}！开始进行团队分工...",
             Toast.LENGTH_SHORT
         ).show()
         
-        // 跳转到导航页面
-        val intent = Intent(this, NavigationActivity::class.java)
+        // 跳转到团队分工页面
+        val intent = Intent(this, TeamDivisionActivity::class.java)
         intent.putExtra("teamName", teamInfo.getTeamName())
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
