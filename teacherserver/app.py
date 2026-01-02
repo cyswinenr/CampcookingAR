@@ -110,7 +110,7 @@ def get_students():
     try:
         students = storage.get_all_students()
         
-        # 转换为API格式
+        # 转换为API格式（已经按炉号排序）
         result = []
         for student in students:
             result.append({
@@ -122,6 +122,7 @@ def get_students():
                 'stoveNumber': student['stoveNumber'],
                 'memberCount': student['memberCount'],
                 'memberNames': student['memberNames'],
+                'groupLeader': student.get('groupLeader', ''),  # 项目组长
                 'submitTime': student['submitTime'],
                 'hasProcessRecord': student['hasProcessRecord'],
                 'hasSummary': student['hasSummary'],

@@ -9,6 +9,7 @@ import os
 import json
 import shutil
 import zipfile
+import re
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
@@ -100,6 +101,23 @@ class DataStorage:
                             if s.get('isCompleted', False)
                         )
                     
+                    # 获取团队分工信息
+                    team_division = data.get('teamDivision')
+                    group_leader = ''
+                    if team_division and isinstance(team_division, dict):
+                        group_leader = team_division.get('groupLeader', '')
+                    
+                    # 提取炉号数字用于排序
+                    stove_number_str = team_info.get('stoveNumber', '')
+                    stove_number_int = 0
+                    try:
+                        # 尝试从字符串中提取数字，例如 "1号炉" -> 1
+                        match = re.search(r'(\d+)', stove_number_str)
+                        if match:
+                            stove_number_int = int(match.group(1))
+                    except:
+                        pass
+                    
                     students.append({
                         'id': student_id,
                         'teamName': f"{team_info.get('school', '')} {team_info.get('grade', '')}年级 {team_info.get('className', '')} 炉号{team_info.get('stoveNumber', '')}",
@@ -107,8 +125,10 @@ class DataStorage:
                         'grade': team_info.get('grade', ''),
                         'className': team_info.get('className', ''),
                         'stoveNumber': team_info.get('stoveNumber', ''),
+                        'stoveNumberInt': stove_number_int,  # 用于排序
                         'memberCount': team_info.get('memberCount', 0),
                         'memberNames': team_info.get('memberNames', ''),
+                        'groupLeader': group_leader,  # 项目组长
                         'submitTime': os.path.getmtime(latest_file),
                         'hasProcessRecord': process_record is not None,
                         'hasSummary': summary_data is not None,
@@ -120,8 +140,8 @@ class DataStorage:
                     logger.error(f"读取学生数据失败 {student_id}: {str(e)}")
                     continue
             
-            # 按提交时间排序
-            students.sort(key=lambda x: x['submitTime'], reverse=True)
+            # 按照炉号数字排序（1-20）
+            students.sort(key=lambda x: x['stoveNumberInt'])
             
         except Exception as e:
             logger.error(f"获取学生列表失败: {str(e)}", exc_info=True)

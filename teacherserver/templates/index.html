@@ -471,19 +471,27 @@
                 return;
             }
 
-            container.innerHTML = filtered.map(student => `
+            container.innerHTML = filtered.map(student => {
+                // 构建成员显示文本，如果有组长则显示组长
+                let memberText = escapeHtml(student.memberNames || '');
+                if (student.groupLeader && student.groupLeader.trim()) {
+                    memberText = `组长: ${escapeHtml(student.groupLeader)} | 成员: ${escapeHtml(student.memberNames || '')}`;
+                }
+                
+                return `
                 <div class="student-item ${currentStudentId === student.id ? 'active' : ''}" 
                      onclick="loadStudentDetail('${student.id}')">
                     <div class="team-name">${escapeHtml(student.teamName)}</div>
                     <div class="team-info">${escapeHtml(student.school)} - ${escapeHtml(student.grade)}年级 ${escapeHtml(student.className)}</div>
-                    <div class="team-info">成员: ${escapeHtml(student.memberNames)}</div>
+                    <div class="team-info">${memberText}</div>
                     <div class="badges">
                         ${student.hasProcessRecord ? '<span class="badge process">过程记录</span>' : ''}
                         ${student.hasSummary ? '<span class="badge summary">课后总结</span>' : ''}
                         <span class="badge stages">完成 ${student.completedStages}/${student.totalStages} 阶段</span>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         // 加载学生详细信息
