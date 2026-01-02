@@ -2,8 +2,6 @@ package com.campcooking.ar
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -17,15 +15,15 @@ import com.campcooking.ar.utils.TeamInfoManager
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
-/**
- * 主Activity - 团队信息采集页面（重新设计版本）
- * - 年级：下拉框（高一、高二）
- * - 班级：下拉框（1-25班）
- * - 炉号：纯数字
- * - 小组人数：1-15人
- * - 人员姓名：根据人数动态生成输入框
- * - 支持数据持久化保存
- */
+    /**
+     * 主Activity - 团队信息采集页面（重新设计版本）
+     * - 年级：下拉框（高一、高二）
+     * - 班级：下拉框（1-25班）
+     * - 炉号：纯数字
+     * - 小组人数：1-12人
+     * - 人员姓名：根据人数动态生成输入框
+     * - 支持数据持久化保存
+     */
 class MainActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivityMainBinding
@@ -91,35 +89,36 @@ class MainActivity : AppCompatActivity() {
         )
         stoveAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.stoveSpinner.adapter = stoveAdapter
+        
+        // 设置小组人数下拉框
+        val memberCountAdapter = ArrayAdapter.createFromResource(
+            this,
+            R.array.member_counts,
+            android.R.layout.simple_spinner_item
+        )
+        memberCountAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.memberCountSpinner.adapter = memberCountAdapter
     }
     
     /**
      * 设置监听器
      */
     private fun setupListeners() {
-        // 小组人数输入监听 - 动态生成姓名输入框
-        binding.memberCountInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val countText = s.toString().trim()
-                if (countText.isNotEmpty()) {
-                    val count = countText.toIntOrNull() ?: 0
-                    if (count in 1..15) {
-                        generateMemberNameInputs(count)
-                    } else if (count > 15) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            R.string.toast_member_count_invalid,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        binding.memberCountInput.setText("15")
-                    }
+        // 小组人数下拉框监听 - 动态生成姓名输入框
+        binding.memberCountSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position > 0) { // position 0 是"请选择人数"
+                    val count = position // position 1 = 1人, position 2 = 2人, ...
+                    generateMemberNameInputs(count)
                 } else {
                     clearMemberNameInputs()
                 }
             }
-        })
+            
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                clearMemberNameInputs()
+            }
+        }
         
         // 保存按钮点击事件
         binding.saveButton.setOnClickListener {
@@ -145,10 +144,14 @@ class MainActivity : AppCompatActivity() {
         binding.schoolInput.setOnFocusChangeListener { _, hasFocus ->
             android.util.Log.d("MainActivity", "schoolInput focus changed: $hasFocus")
         }
-
-        binding.memberCountInput.setOnFocusChangeListener { _, hasFocus ->
-            android.util.Log.d("MainActivity", "memberCountInput focus changed: $hasFocus")
-        }
+    }
+    
+    /**
+     * 获取选中的小组人数（从Spinner）
+     */
+    private fun getSelectedMemberCount(): Int {
+        val position = binding.memberCountSpinner.selectedItemPosition
+        return if (position > 0) position else 0 // position 1 = 1人, position 2 = 2人, ...
     }
     
     /**
@@ -297,10 +300,10 @@ class MainActivity : AppCompatActivity() {
         }
         
         // 验证小组人数
-        val countText = binding.memberCountInput.text.toString().trim()
-        teamInfo.memberCount = countText.toIntOrNull() ?: 0
-        if (teamInfo.memberCount !in 1..15) {
-            missingFields.add("小组人数（1-15人）")
+        val position = binding.memberCountSpinner.selectedItemPosition
+        teamInfo.memberCount = if (position > 0) position else 0
+        if (teamInfo.memberCount == 0) {
+            missingFields.add("小组人数（1-12人）")
         }
         
         // 验证人员姓名
@@ -373,7 +376,7 @@ class MainActivity : AppCompatActivity() {
         binding.gradeSpinner.setSelection(0)
         binding.classSpinner.setSelection(0)
         binding.stoveSpinner.setSelection(0)
-        binding.memberCountInput.text?.clear()
+        binding.memberCountSpinner.setSelection(0)
         
         // 清空姓名输入框
         clearMemberNameInputs()
@@ -431,14 +434,15 @@ class MainActivity : AppCompatActivity() {
             }
             
             // 恢复小组人数
-            if (savedInfo.memberCount > 0) {
-                binding.memberCountInput.setText(savedInfo.memberCount.toString())
+            if (savedInfo.memberCount > 0 && savedInfo.memberCount <= 12) {
+                // Spinner的position从0开始，0是"请选择人数"，1是"1人"，所以memberCount直接对应position
+                binding.memberCountSpinner.setSelection(savedInfo.memberCount)
                 
                 // 恢复成员姓名
                 val namesList = teamInfoManager.getMemberNamesList()
                 if (namesList.isNotEmpty()) {
                     // 等待输入框生成后填充数据
-                    binding.memberCountInput.post {
+                    binding.memberCountSpinner.post {
                         namesList.forEachIndexed { index, name ->
                             if (index < memberNameInputs.size) {
                                 memberNameInputs[index].setText(name)

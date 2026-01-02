@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">南粤风炊火</string>
+    <string name="app_name">南粤风炊</string>
     <string name="app_subtitle">野炊教学·户外烹饪指南</string>
     <string name="app_cover_desc">野炊教学应用封面</string>
     <string name="tap_to_continue">点击屏幕继续</string>
@@ -15,7 +15,7 @@
     <string name="label_grade">年级</string>
     <string name="label_class">班级</string>
     <string name="label_stove">炉号</string>
-    <string name="label_member_count">小组人数（1-15人）</string>
+    <string name="label_member_count">小组人数（1-12人）</string>
     <string name="label_member_names">人员姓名</string>
     <string name="hint_member_name">姓名（最多5字）</string>
     <string name="button_reset">重置</string>
@@ -31,7 +31,7 @@
     <string name="toast_input_incomplete">请填写完整信息</string>
     <string name="toast_info_saved">信息已保存</string>
     <string name="toast_reset_confirm">已重置</string>
-    <string name="toast_member_count_invalid">小组人数必须在1-15之间</string>
+    <string name="toast_member_count_invalid">小组人数必须在1-12之间</string>
     <string name="member_label">成员 %d</string>
     
     <!-- 导航页面 -->
@@ -107,6 +107,23 @@
         <item>18号炉</item>
         <item>19号炉</item>
         <item>20号炉</item>
+    </string-array>
+    
+    <!-- 小组人数选项 -->
+    <string-array name="member_counts">
+        <item>请选择人数</item>
+        <item>1人</item>
+        <item>2人</item>
+        <item>3人</item>
+        <item>4人</item>
+        <item>5人</item>
+        <item>6人</item>
+        <item>7人</item>
+        <item>8人</item>
+        <item>9人</item>
+        <item>10人</item>
+        <item>11人</item>
+        <item>12人</item>
     </string-array>
 </resources>
 

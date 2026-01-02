@@ -134,31 +134,24 @@
                 android:layout_marginBottom="20dp"
                 android:spinnerMode="dropdown" />
 
-            <!-- 小组人数（1-15） -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/memberCountInputLayout"
-                android:layout_width="match_parent"
+            <!-- 小组人数（1-12） -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:hint="@string/label_member_count"
-                app:boxBackgroundMode="outline"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:startIconDrawable="@android:drawable/ic_menu_agenda"
-                app:startIconTint="@color/fire_red"
-                app:suffixText="人">
+                android:text="@string/label_member_count"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp"
+                android:layout_marginStart="4dp" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/memberCountInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="number"
-                    android:textSize="20sp"
-                    android:padding="16dp"
-                    android:maxLength="2" />
-            </com.google.android.material.textfield.TextInputLayout>
+            <Spinner
+                android:id="@+id/memberCountSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:background="@drawable/spinner_background"
+                android:padding="16dp"
+                android:layout_marginBottom="20dp"
+                android:spinnerMode="dropdown" />
 
             </LinearLayout>
 

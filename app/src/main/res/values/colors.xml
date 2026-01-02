@@ -10,20 +10,20 @@
 -->
 <resources>
     <!-- ==================================================== -->
-    <!-- 封面页颜色 - 温暖自然风格 -->
+    <!-- 封面页颜色 - 清澈溪流主题 -->
     <!-- ==================================================== -->
-    <color name="splash_background">#FAF7F2</color>      <!-- 温暖米白 -->
-    <color name="title_color">#6B4F2C</color>             <!-- 深棕标题 -->
-    <color name="subtitle_color">#7BA67D</color>          <!-- 深绿副标题 -->
-    <color name="hint_color">#8B6F47</color>             <!-- 温暖棕提示 -->
-    <color name="version_color">#9D9D9D</color>          <!-- 灰色版本号 -->
+    <color name="splash_background">#E0F2F1</color>      <!-- 淡水色 -->
+    <color name="title_color">#00695C</color>             <!-- 青松石绿标题 -->
+    <color name="subtitle_color">#4DB6AC</color>          <!-- 浅青色副标题 -->
+    <color name="hint_color">#00695C</color>             <!-- 青松石绿提示 -->
+    <color name="version_color">#4DB6AC</color>          <!-- 浅青色版本号 -->
 
     <!-- ==================================================== -->
-    <!-- 主界面颜色 - 柔和舒适 -->
+    <!-- 主界面颜色 - 清澈溪流主题 -->
     <!-- ==================================================== -->
-    <color name="main_background">#FAF7F2</color>         <!-- 温暖米白背景 -->
-    <color name="text_primary">#2D2D2D</color>           <!-- 深灰主要文字 -->
-    <color name="text_secondary">#5D5D5D</color>         <!-- 中灰次要文字 -->
+    <color name="main_background">#E0F2F1</color>         <!-- 淡水色背景 -->
+    <color name="text_primary">#004D40</color>           <!-- 深青黑主要文字 -->
+    <color name="text_secondary">#00695C</color>         <!-- 青松石绿次要文字 -->
 
     <!-- ==================================================== -->
     <!-- Material Design 3 基础颜色 -->
@@ -37,57 +37,57 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- ==================================================== -->
-    <!-- 野炊主题颜色 - 2025大地自然风格 -->
+    <!-- 野炊主题颜色 - 清澈溪流主题 -->
     <!-- ==================================================== -->
-    <!-- 主色系 - 基于 Pantone 2025 Mocha Mousse -->
-    <color name="fire_red">#FF6B35</color>               <!-- 温暖橙红（火焰） -->
-    <color name="fire_orange">#8B6F47</color>            <!-- 温暖棕（主操作） -->
-    <color name="fire_yellow">#FFD54F</color>            <!-- 阳光金（明亮） -->
-    <color name="fire_coral">#FF8C61</color>             <!-- 珊瑚色（活力） -->
+    <!-- 主色系 - 清澈溪流配色 -->
+    <color name="fire_red">#F06292</color>               <!-- 珊瑚粉（注意/SOS按钮） -->
+    <color name="fire_orange">#00695C</color>            <!-- 青松石绿（主操作） -->
+    <color name="fire_yellow">#4DB6AC</color>            <!-- 浅青色（明亮） -->
+    <color name="fire_coral">#F06292</color>             <!-- 珊瑚粉（强调） -->
 
-    <!-- 自然色系 -->
-    <color name="nature_green">#9BC59D</color>           <!-- 鼠尾草绿（成功） -->
-    <color name="nature_forest">#2E7D32</color>          <!-- 森林绿（深绿） -->
-    <color name="nature_sage">#A8C69A</color>            <!-- 浅鼠尾草绿 -->
-    <color name="nature_green_alpha">#E8F5E9</color>    <!-- 浅绿色半透明背景 -->
-    <color name="nature_green_dark">#2E7D32</color>      <!-- 深绿色文字 -->
+    <!-- 自然色系 - 清澈溪流 -->
+    <color name="nature_green">#00695C</color>           <!-- 青松石绿（成功） -->
+    <color name="nature_forest">#004D40</color>          <!-- 深青黑（深色） -->
+    <color name="nature_sage">#4DB6AC</color>            <!-- 浅青色 -->
+    <color name="nature_green_alpha">#E0F2F1</color>    <!-- 淡水色半透明背景 -->
+    <color name="nature_green_dark">#004D40</color>      <!-- 深青黑文字 -->
 
     <!-- Material Design 3 标准色 -->
     <color name="material_green_500">#4CAF50</color>    <!-- MD3 绿色500 -->
     <color name="material_orange_500">#FF9800</color>   <!-- MD3 橙色500 -->
 
-    <!-- 大地色系 -->
-    <color name="wood_brown">#A67C52</color>             <!-- 陶土棕 -->
-    <color name="earth_sand">#D4A574</color>             <!-- 沙色 -->
-    <color name="earth_clay">#8B6F47</color>             <!-- 摩卡棕 -->
-    <color name="fire_orange_alpha">#FFF3E0</color>     <!-- 浅橙色半透明背景 -->
-    <color name="fire_orange_dark">#E65100</color>       <!-- 深橙色文字 -->
+    <!-- 大地色系 - 清澈溪流 -->
+    <color name="wood_brown">#00695C</color>             <!-- 青松石绿 -->
+    <color name="earth_sand">#4DB6AC</color>             <!-- 浅青色 -->
+    <color name="earth_clay">#00695C</color>             <!-- 青松石绿 -->
+    <color name="fire_orange_alpha">#E0F2F1</color>     <!-- 淡水色半透明背景 -->
+    <color name="fire_orange_dark">#004D40</color>       <!-- 深青黑文字 -->
 
     <!-- 水色系 -->
     <color name="water_lake">#4FC3F7</color>             <!-- 湖水蓝 -->
     <color name="water_sky">#64B5F6</color>              <!-- 天空蓝 -->
 
     <!-- ==================================================== -->
-    <!-- 视频页颜色 - 柔和风格 -->
+    <!-- 视频页颜色 - 清澈溪流风格 -->
     <!-- ==================================================== -->
-    <color name="video_item_selected">#FFF3E0</color>   <!-- 浅橙选择 -->
+    <color name="video_item_selected">#E0F2F1</color>   <!-- 淡水色选择 -->
     <color name="button_text_color">#FFFFFF</color>
-    <color name="button_background_color">#8B6F47</color> <!-- 主按钮背景 -->
+    <color name="button_background_color">#00695C</color> <!-- 青松石绿主按钮背景 -->
 
     <!-- ==================================================== -->
-    <!-- 功能色 - 柔和版本 -->
+    <!-- 功能色 - 清澈溪流版本 -->
     <!-- ==================================================== -->
-    <color name="success">#9BC59D</color>                <!-- 成功 - 鼠尾草绿 -->
-    <color name="warning">#F4A460</color>                <!-- 警告 - 沙棕 -->
-    <color name="error">#E57373</color>                  <!-- 错误 - 柔和红 -->
-    <color name="info">#64B5F6</color>                   <!-- 信息 - 天蓝 -->
+    <color name="success">#00695C</color>                <!-- 成功 - 青松石绿 -->
+    <color name="warning">#4DB6AC</color>                <!-- 警告 - 浅青色 -->
+    <color name="error">#F06292</color>                  <!-- 错误 - 珊瑚粉 -->
+    <color name="info">#4DB6AC</color>                   <!-- 信息 - 浅青色 -->
 
     <!-- ==================================================== -->
-    <!-- 卡片和表面颜色 -->
+    <!-- 卡片和表面颜色 - 清澈溪流 -->
     <!-- ==================================================== -->
     <color name="surface">#FFFFFF</color>                <!-- 白色表面 -->
-    <color name="surface_variant">#F5F0E8</color>        <!-- 浅米表面 -->
-    <color name="background">#FAF7F2</color>             <!-- 主背景 -->
+    <color name="surface_variant">#E0F2F1</color>        <!-- 淡水色表面 -->
+    <color name="background">#E0F2F1</color>             <!-- 淡水色主背景 -->
 
 </resources>
 
