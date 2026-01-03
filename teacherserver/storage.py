@@ -14,8 +14,9 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
 
-from models import StudentDataPackage, TeacherEvaluation, TeamInfo
+from models import StudentDataPackage, TeacherEvaluation, TeamInfo, Team, TeamDivision, ProcessRecord, StageRecord, SummaryData
 from config import Config
+from db_manager import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ class DataStorage:
         self.media_dir = media_dir
         self.evaluation_dir = Config.EVALUATION_DIR
         self.export_dir = Config.EXPORT_DIR
+        self.db_manager = DatabaseManager()
         
         # 确保目录存在
         os.makedirs(self.data_dir, exist_ok=True)
@@ -36,27 +38,42 @@ class DataStorage:
         os.makedirs(self.export_dir, exist_ok=True)
     
     def save_student_data(self, data_package: StudentDataPackage) -> str:
-        """保存学生数据"""
+        """保存学生数据到数据库"""
         try:
-            # 生成学生ID
+            # 生成学生ID（team_id）
             student_id = data_package.teamInfo.get_student_id()
             
-            # 创建学生数据目录
-            student_dir = os.path.join(self.data_dir, student_id)
-            os.makedirs(student_dir, exist_ok=True)
+            # 1. 保存团队信息
+            team = Team({'teamInfo': data_package.teamInfo.to_dict()})
+            self.db_manager.save_team(team)
             
-            # 保存JSON数据
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            json_file = os.path.join(student_dir, f'data_{timestamp}.json')
+            # 2. 保存团队分工（如果有）
+            if data_package.teamDivision and not data_package.teamDivision.is_empty():
+                # 确保team_id已设置
+                data_package.teamDivision.team_id = student_id
+                self.db_manager.save_team_division(student_id, data_package.teamDivision)
             
-            with open(json_file, 'w', encoding='utf-8') as f:
-                json.dump(data_package.to_dict(), f, ensure_ascii=False, indent=2)
+            # 3. 保存过程记录和阶段记录（如果有）
+            if data_package.processRecord:
+                # 提取阶段记录
+                stages = []
+                # 从原始数据中提取stages（如果存在）
+                if hasattr(data_package, '_raw_data') and data_package._raw_data:
+                    process_data = data_package._raw_data.get('processRecord')
+                    if process_data and 'stages' in process_data:
+                        stages_dict = process_data.get('stages', {})
+                        for stage_name, stage_data in stages_dict.items():
+                            stage = StageRecord(stage_data)
+                            stages.append(stage)
+                
+                # 保存过程记录和阶段记录
+                self.db_manager.save_process_record(student_id, data_package.processRecord, stages)
             
-            # 保存最新数据（覆盖）
-            latest_file = os.path.join(student_dir, 'latest.json')
-            shutil.copy(json_file, latest_file)
+            # 4. 保存课后总结（如果有）
+            if data_package.summaryData:
+                self.db_manager.save_summary_data(student_id, data_package.summaryData)
             
-            logger.info(f"保存学生数据: {student_id} -> {json_file}")
+            logger.info(f"保存学生数据到数据库: {student_id}")
             
             return student_id
             
@@ -65,50 +82,40 @@ class DataStorage:
             raise
     
     def get_all_students(self) -> List[Dict[str, Any]]:
-        """获取所有学生列表"""
+        """获取所有学生列表（从数据库读取）"""
         students = []
         
         try:
-            if not os.path.exists(self.data_dir):
-                return students
+            # 从数据库获取所有团队
+            teams = self.db_manager.get_all_teams()
             
-            for student_id in os.listdir(self.data_dir):
-                student_dir = os.path.join(self.data_dir, student_id)
-                if not os.path.isdir(student_dir):
-                    continue
-                
-                # 读取最新数据
-                latest_file = os.path.join(student_dir, 'latest.json')
-                if not os.path.exists(latest_file):
-                    continue
+            for team in teams:
+                student_id = team.team_id
                 
                 try:
-                    with open(latest_file, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
+                    # 获取团队分工信息
+                    team_division = self.db_manager.get_team_division(student_id)
+                    group_leader = ''
+                    if team_division:
+                        group_leader = team_division.group_leader
                     
-                    team_info = data.get('teamInfo', {})
-                    process_record = data.get('processRecord')
-                    summary_data = data.get('summaryData')
-                    
-                    # 计算完成阶段数
+                    # 获取过程记录和阶段记录
+                    process_result = self.db_manager.get_process_record(student_id)
                     completed_stages = 0
                     total_stages = 0
-                    if process_record:
-                        stages = process_record.get('stages', {})
+                    has_process_record = False
+                    if process_result:
+                        process_record, stages = process_result
+                        has_process_record = True
                         total_stages = len(stages)
-                        completed_stages = sum(
-                            1 for s in stages.values() 
-                            if s.get('isCompleted', False)
-                        )
+                        completed_stages = sum(1 for s in stages if s.is_completed)
                     
-                    # 获取团队分工信息
-                    team_division = data.get('teamDivision')
-                    group_leader = ''
-                    if team_division and isinstance(team_division, dict):
-                        group_leader = team_division.get('groupLeader', '')
+                    # 检查是否有课后总结
+                    summary_data = self.db_manager.get_summary_data(student_id)
+                    has_summary = summary_data is not None
                     
                     # 提取炉号数字用于排序
-                    stove_number_str = team_info.get('stoveNumber', '')
+                    stove_number_str = team.stove_number
                     stove_number_int = 0
                     try:
                         # 尝试从字符串中提取数字，例如 "1号炉" -> 1
@@ -120,18 +127,18 @@ class DataStorage:
                     
                     students.append({
                         'id': student_id,
-                        'teamName': f"{team_info.get('school', '')} {team_info.get('grade', '')}年级 {team_info.get('className', '')} 炉号{team_info.get('stoveNumber', '')}",
-                        'school': team_info.get('school', ''),
-                        'grade': team_info.get('grade', ''),
-                        'className': team_info.get('className', ''),
-                        'stoveNumber': team_info.get('stoveNumber', ''),
+                        'teamName': team.get_display_name(),
+                        'school': team.school,
+                        'grade': team.grade,
+                        'className': team.class_name,
+                        'stoveNumber': team.stove_number,
                         'stoveNumberInt': stove_number_int,  # 用于排序
-                        'memberCount': team_info.get('memberCount', 0),
-                        'memberNames': team_info.get('memberNames', ''),
+                        'memberCount': team.member_count,
+                        'memberNames': team.member_names,
                         'groupLeader': group_leader,  # 项目组长
-                        'submitTime': os.path.getmtime(latest_file),
-                        'hasProcessRecord': process_record is not None,
-                        'hasSummary': summary_data is not None,
+                        'submitTime': team.updated_at / 1000.0,  # 转换为秒（兼容旧格式）
+                        'hasProcessRecord': has_process_record,
+                        'hasSummary': has_summary,
                         'completedStages': completed_stages,
                         'totalStages': total_stages
                     })
@@ -149,21 +156,83 @@ class DataStorage:
         return students
     
     def get_student_data(self, student_id: str) -> Optional[Dict[str, Any]]:
-        """获取指定学生的详细数据"""
+        """获取指定学生的详细数据（从数据库读取）"""
         try:
-            student_dir = os.path.join(self.data_dir, student_id)
-            latest_file = os.path.join(student_dir, 'latest.json')
-            
-            if not os.path.exists(latest_file):
+            # 获取团队信息
+            team = self.db_manager.get_team(student_id)
+            if not team:
                 return None
             
-            with open(latest_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            # 组装数据
+            data = {
+                'teamInfo': team.to_android_dict()
+            }
+            
+            # 获取团队分工
+            team_division = self.db_manager.get_team_division(student_id)
+            if team_division and not team_division.is_empty():
+                data['teamDivision'] = team_division.to_android_dict()
+            else:
+                data['teamDivision'] = None
+            
+            # 获取过程记录和阶段记录
+            try:
+                process_result = self.db_manager.get_process_record(student_id)
+                if process_result:
+                    process_record, stages = process_result
+                    # 组装过程记录（Android格式）
+                    try:
+                        process_dict = process_record.to_android_dict()
+                        # 添加阶段记录
+                        stages_dict = {}
+                        for stage in stages:
+                            try:
+                                stages_dict[stage.stage_name] = stage.to_android_dict()
+                            except Exception as e:
+                                logger.error(f"转换阶段记录失败 {stage.stage_name}: {str(e)}", exc_info=True)
+                                # 使用默认值
+                                stages_dict[stage.stage_name] = {
+                                    'stage': stage.stage_name if hasattr(stage, 'stage_name') else '',
+                                    'startTime': getattr(stage, 'start_time', 0),
+                                    'endTime': getattr(stage, 'end_time', None),
+                                    'selfRating': getattr(stage, 'self_rating', 0),
+                                    'notes': getattr(stage, 'notes', ''),
+                                    'problemNotes': getattr(stage, 'problem_notes', ''),
+                                    'isCompleted': getattr(stage, 'is_completed', False),
+                                    'selectedTags': getattr(stage, 'selected_tags', [])
+                                }
+                        process_dict['stages'] = stages_dict
+                        data['processRecord'] = process_dict
+                    except Exception as e:
+                        logger.error(f"转换过程记录失败: {str(e)}", exc_info=True)
+                        # 使用默认值
+                        data['processRecord'] = {
+                            'startTime': getattr(process_record, 'start_time', 0),
+                            'endTime': getattr(process_record, 'end_time', None),
+                            'currentStage': getattr(process_record, 'current_stage', 'PREPARATION'),
+                            'overallNotes': getattr(process_record, 'overall_notes', ''),
+                            'stages': {}
+                        }
+                else:
+                    data['processRecord'] = None
+            except Exception as e:
+                logger.error(f"获取过程记录失败: {str(e)}", exc_info=True)
+                data['processRecord'] = None
+            
+            # 获取课后总结
+            summary_data = self.db_manager.get_summary_data(student_id)
+            if summary_data:
+                data['summaryData'] = summary_data.to_android_dict()
+            else:
+                data['summaryData'] = None
             
             # 获取评价数据
             evaluation = self.get_student_evaluation(student_id)
             if evaluation:
-                data['teacherEvaluation'] = evaluation
+                data['teacherEvaluation'] = evaluation.to_android_dict()
+            
+            # 添加exportTime（使用updated_at）
+            data['exportTime'] = team.updated_at
             
             return data
             
@@ -172,70 +241,42 @@ class DataStorage:
             return None
     
     def student_exists(self, student_id: str) -> bool:
-        """检查学生是否存在"""
-        student_dir = os.path.join(self.data_dir, student_id)
-        latest_file = os.path.join(student_dir, 'latest.json')
-        return os.path.exists(latest_file)
+        """检查学生是否存在（从数据库检查）"""
+        team = self.db_manager.get_team(student_id)
+        return team is not None
     
     def get_student_count(self) -> int:
-        """获取学生数量"""
+        """获取学生数量（从数据库）"""
         try:
-            if not os.path.exists(self.data_dir):
-                return 0
-            
-            count = 0
-            for item in os.listdir(self.data_dir):
-                item_path = os.path.join(self.data_dir, item)
-                if os.path.isdir(item_path):
-                    latest_file = os.path.join(item_path, 'latest.json')
-                    if os.path.exists(latest_file):
-                        count += 1
-            
-            return count
-            
+            teams = self.db_manager.get_all_teams()
+            return len(teams)
         except Exception as e:
             logger.error(f"获取学生数量失败: {str(e)}")
             return 0
     
     def save_student_evaluation(self, student_id: str, evaluation: TeacherEvaluation):
-        """保存教师评价"""
+        """保存教师评价（到数据库）"""
         try:
             # 确保学生存在
             if not self.student_exists(student_id):
                 raise ValueError(f"学生 {student_id} 不存在")
             
-            # 评价文件路径
-            eval_file = os.path.join(self.evaluation_dir, f'{student_id}.json')
+            # 保存到数据库
+            self.db_manager.save_teacher_evaluation(student_id, evaluation)
             
-            # 读取现有评价（如果有）
-            evaluations = {}
-            if os.path.exists(eval_file):
-                with open(eval_file, 'r', encoding='utf-8') as f:
-                    evaluations = json.load(f)
-            
-            # 更新或添加评价
-            evaluations[evaluation.stage] = evaluation.to_dict()
-            
-            # 保存
-            with open(eval_file, 'w', encoding='utf-8') as f:
-                json.dump(evaluations, f, ensure_ascii=False, indent=2)
-            
-            logger.info(f"保存评价: {student_id} - {evaluation.stage}")
+            logger.info(f"保存评价到数据库: {student_id} - {evaluation.stage_name}")
             
         except Exception as e:
             logger.error(f"保存评价失败: {str(e)}", exc_info=True)
             raise
     
     def get_student_evaluation(self, student_id: str) -> Optional[Dict[str, Any]]:
-        """获取学生评价"""
+        """获取学生评价（从数据库）"""
         try:
-            eval_file = os.path.join(self.evaluation_dir, f'{student_id}.json')
-            
-            if not os.path.exists(eval_file):
-                return None
-            
-            with open(eval_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
+            evaluation = self.db_manager.get_teacher_evaluation(student_id)
+            if evaluation:
+                return evaluation.to_android_dict()
+            return None
                 
         except Exception as e:
             logger.error(f"获取评价失败: {str(e)}")
@@ -308,29 +349,17 @@ class DataStorage:
             return None
     
     def get_statistics(self) -> Dict[str, Any]:
-        """获取统计数据"""
+        """获取统计数据（从数据库）"""
         try:
-            students = self.get_all_students()
-            
-            total_students = len(students)
-            students_with_process = sum(1 for s in students if s['hasProcessRecord'])
-            students_with_summary = sum(1 for s in students if s['hasSummary'])
-            
-            # 计算平均完成度
-            total_completed = sum(s['completedStages'] for s in students)
-            total_stages = sum(s['totalStages'] for s in students)
-            avg_completion = (total_completed / total_stages * 100) if total_stages > 0 else 0
-            
-            return {
-                'totalStudents': total_students,
-                'studentsWithProcess': students_with_process,
-                'studentsWithSummary': students_with_summary,
-                'averageCompletion': round(avg_completion, 2),
-                'totalCompletedStages': total_completed,
-                'totalStages': total_stages
-            }
-            
+            return self.db_manager.get_statistics()
         except Exception as e:
             logger.error(f"获取统计失败: {str(e)}", exc_info=True)
-            return {}
+            return {
+                'totalStudents': 0,
+                'studentsWithProcess': 0,
+                'studentsWithSummary': 0,
+                'averageCompletion': 0,
+                'totalCompletedStages': 0,
+                'totalStages': 0
+            }
 

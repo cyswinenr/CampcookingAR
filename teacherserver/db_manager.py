@@ -1,0 +1,542 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+数据库操作管理模块
+封装所有数据库CRUD操作
+"""
+
+import sqlite3
+import json
+import logging
+from typing import Dict, List, Optional, Any, Tuple
+from datetime import datetime
+
+from models import (
+    Team, TeamDivision, ProcessRecord, StageRecord,
+    SummaryData, TeacherEvaluation, STAGE_ORDER
+)
+from config import Config
+
+logger = logging.getLogger(__name__)
+
+
+class DatabaseManager:
+    """数据库管理器（线程安全）"""
+    
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or Config.DATABASE_PATH
+    
+    def _get_connection(self) -> sqlite3.Connection:
+        """获取数据库连接（每次请求创建新连接，线程安全）"""
+        import threading
+        # 为每个线程创建独立的连接
+        thread_id = threading.current_thread().ident
+        if not hasattr(self, '_thread_connections'):
+            self._thread_connections = {}
+        
+        if thread_id not in self._thread_connections:
+            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn.row_factory = sqlite3.Row  # 返回字典格式的行
+            # 启用外键约束
+            conn.execute("PRAGMA foreign_keys = ON")
+            self._thread_connections[thread_id] = conn
+        
+        return self._thread_connections[thread_id]
+    
+    def close(self):
+        """关闭数据库连接"""
+        if hasattr(self, '_thread_connections'):
+            import threading
+            thread_id = threading.current_thread().ident
+            if thread_id in self._thread_connections:
+                self._thread_connections[thread_id].close()
+                del self._thread_connections[thread_id]
+    
+    def _execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:
+        """执行SQL语句"""
+        conn = self._get_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql, params)
+        conn.commit()
+        return cursor
+    
+    def _fetch_one(self, sql: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
+        """执行查询并返回单条记录"""
+        cursor = self._execute(sql, params)
+        row = cursor.fetchone()
+        if row:
+            return dict(row)
+        return None
+    
+    def _fetch_all(self, sql: str, params: tuple = ()) -> List[Dict[str, Any]]:
+        """执行查询并返回所有记录"""
+        cursor = self._execute(sql, params)
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    
+    # ==================== Teams 操作 ====================
+    
+    def save_team(self, team: Team) -> int:
+        """保存或更新团队信息"""
+        try:
+            # 检查是否已存在
+            existing = self._fetch_one(
+                "SELECT id FROM teams WHERE team_id = ?",
+                (team.team_id,)
+            )
+            
+            if existing:
+                # 更新
+                team.update_timestamp()
+                self._execute("""
+                    UPDATE teams SET
+                        school = ?, grade = ?, class_name = ?, stove_number = ?,
+                        member_count = ?, member_names = ?,
+                        updated_at = ?, schema_version = ?, extra_data = ?
+                    WHERE team_id = ?
+                """, (
+                    team.school, team.grade, team.class_name, team.stove_number,
+                    team.member_count, team.member_names,
+                    team.updated_at, team.schema_version, team.extra_data,
+                    team.team_id
+                ))
+                team.id = existing['id']
+                logger.info(f"更新团队: {team.team_id}")
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO teams (
+                        team_id, school, grade, class_name, stove_number,
+                        member_count, member_names,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    team.team_id, team.school, team.grade, team.class_name, team.stove_number,
+                    team.member_count, team.member_names,
+                    team.created_at, team.updated_at, team.schema_version, team.extra_data
+                ))
+                team.id = cursor.lastrowid
+                logger.info(f"插入团队: {team.team_id}")
+            
+            return team.id
+        except Exception as e:
+            logger.error(f"保存团队失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_team(self, team_id: str) -> Optional[Team]:
+        """获取团队信息"""
+        try:
+            row = self._fetch_one("SELECT * FROM teams WHERE team_id = ?", (team_id,))
+            if row:
+                return Team(row)
+            return None
+        except Exception as e:
+            logger.error(f"获取团队失败: {str(e)}", exc_info=True)
+            return None
+    
+    def get_all_teams(self) -> List[Team]:
+        """获取所有团队"""
+        try:
+            rows = self._fetch_all("SELECT * FROM teams ORDER BY school, grade, class_name, stove_number")
+            return [Team(row) for row in rows]
+        except Exception as e:
+            logger.error(f"获取所有团队失败: {str(e)}", exc_info=True)
+            return []
+    
+    # ==================== Team Divisions 操作 ====================
+    
+    def save_team_division(self, team_id: str, division: TeamDivision) -> int:
+        """保存或更新团队分工（一对一关系）"""
+        try:
+            division.team_id = team_id
+            
+            # 检查是否已存在
+            existing = self._fetch_one(
+                "SELECT id FROM team_divisions WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            if existing:
+                # 更新
+                division.update_timestamp()
+                self._execute("""
+                    UPDATE team_divisions SET
+                        group_leader = ?, group_cooking = ?, group_soup_rice = ?,
+                        group_fire = ?, group_health = ?,
+                        updated_at = ?, schema_version = ?, extra_data = ?
+                    WHERE team_id = ?
+                """, (
+                    division.group_leader, division.group_cooking, division.group_soup_rice,
+                    division.group_fire, division.group_health,
+                    division.updated_at, division.schema_version, division.extra_data,
+                    team_id
+                ))
+                division.id = existing['id']
+                logger.info(f"更新团队分工: {team_id}")
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO team_divisions (
+                        team_id, group_leader, group_cooking, group_soup_rice,
+                        group_fire, group_health,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    team_id, division.group_leader, division.group_cooking, division.group_soup_rice,
+                    division.group_fire, division.group_health,
+                    division.created_at, division.updated_at, division.schema_version, division.extra_data
+                ))
+                division.id = cursor.lastrowid
+                logger.info(f"插入团队分工: {team_id}")
+            
+            return division.id
+        except Exception as e:
+            logger.error(f"保存团队分工失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_team_division(self, team_id: str) -> Optional[TeamDivision]:
+        """获取团队分工"""
+        try:
+            row = self._fetch_one("SELECT * FROM team_divisions WHERE team_id = ?", (team_id,))
+            if row:
+                return TeamDivision(row)
+            return None
+        except Exception as e:
+            logger.error(f"获取团队分工失败: {str(e)}", exc_info=True)
+            return None
+    
+    # ==================== Process Records 操作 ====================
+    
+    def save_process_record(self, team_id: str, process_record: ProcessRecord, stages: List[StageRecord]) -> int:
+        """保存或更新过程记录和阶段记录（使用事务）"""
+        conn = self._get_connection()
+        try:
+            conn.execute("BEGIN TRANSACTION")
+            
+            process_record.team_id = team_id
+            
+            # 检查是否已存在过程记录
+            existing = self._fetch_one(
+                "SELECT id FROM process_records WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            if existing:
+                # 更新过程记录
+                process_record.update_timestamp()
+                self._execute("""
+                    UPDATE process_records SET
+                        start_time = ?, end_time = ?, current_stage = ?, overall_notes = ?,
+                        updated_at = ?, schema_version = ?, extra_data = ?
+                    WHERE team_id = ?
+                """, (
+                    process_record.start_time, process_record.end_time,
+                    process_record.current_stage, process_record.overall_notes,
+                    process_record.updated_at, process_record.schema_version, process_record.extra_data,
+                    team_id
+                ))
+                process_record.id = existing['id']
+                # 删除旧的阶段记录
+                self._execute("DELETE FROM stage_records WHERE process_record_id = ?", (process_record.id,))
+                logger.info(f"更新过程记录: {team_id}")
+            else:
+                # 插入过程记录
+                cursor = self._execute("""
+                    INSERT INTO process_records (
+                        team_id, start_time, end_time, current_stage, overall_notes,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    team_id, process_record.start_time, process_record.end_time,
+                    process_record.current_stage, process_record.overall_notes,
+                    process_record.created_at, process_record.updated_at,
+                    process_record.schema_version, process_record.extra_data
+                ))
+                process_record.id = cursor.lastrowid
+                logger.info(f"插入过程记录: {team_id}")
+            
+            # 插入所有阶段记录
+            for stage in stages:
+                stage.process_record_id = process_record.id
+                stage.update_timestamp()
+                self._execute("""
+                    INSERT INTO stage_records (
+                        process_record_id, stage_name, start_time, end_time,
+                        self_rating, notes, problem_notes, is_completed, selected_tags,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    stage.process_record_id, stage.stage_name, stage.start_time, stage.end_time,
+                    stage.self_rating, stage.notes, stage.problem_notes,
+                    1 if stage.is_completed else 0,
+                    json.dumps(stage.selected_tags, ensure_ascii=False) if stage.selected_tags else '[]',
+                    stage.created_at, stage.updated_at, stage.schema_version, stage.extra_data
+                ))
+            
+            conn.commit()
+            logger.info(f"保存过程记录和{len(stages)}个阶段记录: {team_id}")
+            return process_record.id
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"保存过程记录失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_process_record(self, team_id: str) -> Optional[Tuple[ProcessRecord, List[StageRecord]]]:
+        """获取过程记录及所有阶段记录（按STAGE_ORDER排序）"""
+        try:
+            # 获取过程记录
+            process_row = self._fetch_one(
+                "SELECT * FROM process_records WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            if not process_row:
+                return None
+            
+            # 确保数据是字典格式（sqlite3.Row转换为dict）
+            if not isinstance(process_row, dict):
+                process_row = dict(process_row)
+            
+            try:
+                process_record = ProcessRecord(process_row)
+            except Exception as e:
+                logger.error(f"创建ProcessRecord对象失败: {str(e)}, 数据: {process_row}", exc_info=True)
+                raise
+            
+            # 获取阶段记录（按固定顺序排序）
+            stage_rows = self._fetch_all("""
+                SELECT * FROM stage_records
+                WHERE process_record_id = ?
+                ORDER BY CASE stage_name
+                    WHEN 'PREPARATION' THEN 1
+                    WHEN 'FIRE_MAKING' THEN 2
+                    WHEN 'COOKING_RICE' THEN 3
+                    WHEN 'COOKING_DISHES' THEN 4
+                    WHEN 'SHOWCASE' THEN 5
+                    WHEN 'CLEANING' THEN 6
+                    WHEN 'COMPLETED' THEN 7
+                    ELSE 999
+                END
+            """, (process_record.id,))
+            
+            # 确保每个stage_row都是字典格式
+            stages = []
+            for row in stage_rows:
+                if not isinstance(row, dict):
+                    row = dict(row)
+                try:
+                    stage = StageRecord(row)
+                    stages.append(stage)
+                except Exception as e:
+                    logger.error(f"创建StageRecord对象失败: {str(e)}, 数据: {row}", exc_info=True)
+                    raise
+            
+            return (process_record, stages)
+        except Exception as e:
+            logger.error(f"获取过程记录失败: {str(e)}", exc_info=True)
+            return None
+    
+    # ==================== Summary Data 操作 ====================
+    
+    def save_summary_data(self, team_id: str, summary: SummaryData) -> int:
+        """保存或更新课后总结（一对一关系）"""
+        try:
+            summary.team_id = team_id
+            
+            # 检查是否已存在
+            existing = self._fetch_one(
+                "SELECT id FROM summary_data WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            if existing:
+                # 更新
+                summary.update_timestamp()
+                self._execute("""
+                    UPDATE summary_data SET
+                        answer1 = ?, answer2 = ?, answer3 = ?,
+                        updated_at = ?, schema_version = ?, extra_data = ?
+                    WHERE team_id = ?
+                """, (
+                    summary.answer1, summary.answer2, summary.answer3,
+                    summary.updated_at, summary.schema_version, summary.extra_data,
+                    team_id
+                ))
+                summary.id = existing['id']
+                logger.info(f"更新课后总结: {team_id}")
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO summary_data (
+                        team_id, answer1, answer2, answer3,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    team_id, summary.answer1, summary.answer2, summary.answer3,
+                    summary.created_at, summary.updated_at, summary.schema_version, summary.extra_data
+                ))
+                summary.id = cursor.lastrowid
+                logger.info(f"插入课后总结: {team_id}")
+            
+            return summary.id
+        except Exception as e:
+            logger.error(f"保存课后总结失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_summary_data(self, team_id: str) -> Optional[SummaryData]:
+        """获取课后总结"""
+        try:
+            row = self._fetch_one("SELECT * FROM summary_data WHERE team_id = ?", (team_id,))
+            if row:
+                return SummaryData(row)
+            return None
+        except Exception as e:
+            logger.error(f"获取课后总结失败: {str(e)}", exc_info=True)
+            return None
+    
+    # ==================== Teacher Evaluations 操作 ====================
+    
+    def save_teacher_evaluation(self, team_id: str, evaluation: TeacherEvaluation) -> int:
+        """保存或更新教师评价（一对一关系）"""
+        try:
+            evaluation.team_id = team_id
+            
+            # 检查是否已存在
+            existing = self._fetch_one(
+                "SELECT id FROM teacher_evaluations WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            if existing:
+                # 更新
+                evaluation.update_timestamp()
+                self._execute("""
+                    UPDATE teacher_evaluations SET
+                        stage_name = ?, rating = ?, comment = ?,
+                        strengths = ?, improvements = ?, timestamp = ?,
+                        updated_at = ?, schema_version = ?, extra_data = ?
+                    WHERE team_id = ?
+                """, (
+                    evaluation.stage_name, evaluation.rating, evaluation.comment,
+                    evaluation.strengths, evaluation.improvements, evaluation.timestamp,
+                    evaluation.updated_at, evaluation.schema_version, evaluation.extra_data,
+                    team_id
+                ))
+                evaluation.id = existing['id']
+                logger.info(f"更新教师评价: {team_id}")
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO teacher_evaluations (
+                        team_id, stage_name, rating, comment,
+                        strengths, improvements, timestamp,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    team_id, evaluation.stage_name, evaluation.rating, evaluation.comment,
+                    evaluation.strengths, evaluation.improvements, evaluation.timestamp,
+                    evaluation.created_at, evaluation.updated_at, evaluation.schema_version, evaluation.extra_data
+                ))
+                evaluation.id = cursor.lastrowid
+                logger.info(f"插入教师评价: {team_id}")
+            
+            return evaluation.id
+        except Exception as e:
+            logger.error(f"保存教师评价失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_teacher_evaluation(self, team_id: str) -> Optional[TeacherEvaluation]:
+        """获取教师评价"""
+        try:
+            row = self._fetch_one("SELECT * FROM teacher_evaluations WHERE team_id = ?", (team_id,))
+            if row:
+                return TeacherEvaluation(row)
+            return None
+        except Exception as e:
+            logger.error(f"获取教师评价失败: {str(e)}", exc_info=True)
+            return None
+    
+    # ==================== 统计操作 ====================
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """获取统计数据"""
+        try:
+            # 总团队数
+            total_teams = self._fetch_one("SELECT COUNT(*) as count FROM teams")['count']
+            
+            # 有过程记录的团队数
+            teams_with_process = self._fetch_one(
+                "SELECT COUNT(DISTINCT team_id) as count FROM process_records"
+            )['count']
+            
+            # 有课后总结的团队数
+            teams_with_summary = self._fetch_one(
+                "SELECT COUNT(*) as count FROM summary_data"
+            )['count']
+            
+            # 阶段完成统计
+            stage_stats = self._fetch_one("""
+                SELECT 
+                    COUNT(*) as total_stages,
+                    SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed_stages
+                FROM stage_records
+            """)
+            
+            total_stages = stage_stats['total_stages'] or 0
+            completed_stages = stage_stats['completed_stages'] or 0
+            avg_completion = (completed_stages / total_stages * 100) if total_stages > 0 else 0
+            
+            return {
+                'totalStudents': total_teams,
+                'studentsWithProcess': teams_with_process,
+                'studentsWithSummary': teams_with_summary,
+                'averageCompletion': round(avg_completion, 2),
+                'totalCompletedStages': completed_stages,
+                'totalStages': total_stages
+            }
+        except Exception as e:
+            logger.error(f"获取统计失败: {str(e)}", exc_info=True)
+            return {
+                'totalStudents': 0,
+                'studentsWithProcess': 0,
+                'studentsWithSummary': 0,
+                'averageCompletion': 0,
+                'totalCompletedStages': 0,
+                'totalStages': 0
+            }
+    
+    # ==================== 清空数据 ====================
+    
+    def clear_all_data(self) -> Dict[str, int]:
+        """清空所有数据，返回删除的记录数"""
+        conn = self._get_connection()
+        try:
+            conn.execute("BEGIN TRANSACTION")
+            
+            counts = {}
+            
+            # 按顺序删除（考虑外键约束）
+            tables = [
+                'stage_records',
+                'process_records',
+                'media_items',
+                'summary_data',
+                'teacher_evaluations',
+                'team_divisions',
+                'teams'
+            ]
+            
+            for table in tables:
+                cursor = self._execute(f"DELETE FROM {table}")
+                counts[table] = cursor.rowcount
+            
+            conn.commit()
+            logger.info(f"清空所有数据: {counts}")
+            return counts
+            
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"清空数据失败: {str(e)}", exc_info=True)
+            raise
+

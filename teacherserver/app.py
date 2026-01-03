@@ -10,6 +10,7 @@ from flask_cors import CORS
 import json
 import os
 import socket
+import shutil
 from datetime import datetime
 from typing import Dict, List, Optional
 import logging
@@ -17,6 +18,7 @@ import logging
 from models import StudentDataPackage, TeacherEvaluation
 from storage import DataStorage
 from config import Config
+import sqlite3
 
 # 配置日志
 logging.basicConfig(
@@ -86,7 +88,12 @@ def submit_student_data():
         # 记录分工信息（如果有）
         if data_package.teamDivision:
             logger.info(f"✅ 收到学生数据: {student_id}, 包含分工信息")
-            logger.info(f"   分工详情: {data_package.teamDivision.to_dict()}")
+            try:
+                # 使用 to_android_dict() 避免 team_id 问题
+                division_info = data_package.teamDivision.to_android_dict()
+                logger.info(f"   分工详情: {division_info}")
+            except Exception as e:
+                logger.warning(f"   记录分工信息失败: {str(e)}")
         else:
             logger.info(f"✅ 收到学生数据: {student_id}, 无分工信息")
         
@@ -287,6 +294,54 @@ def get_statistics():
         return jsonify({
             'status': 'error',
             'message': str(e)
+        }), 500
+
+
+@app.route('/api/database/clear', methods=['POST'])
+def clear_database():
+    """清空数据库数据"""
+    try:
+        # 使用db_manager清空数据库
+        from db_manager import DatabaseManager
+        db_manager = DatabaseManager()
+        
+        try:
+            counts = db_manager.clear_all_data()
+            cleared_items = [f"数据库表 {table}: {count} 条记录" for table, count in counts.items()]
+            
+            # 验证清空结果
+            verification = {}
+            for table in counts.keys():
+                # 重新查询确认
+                cursor = db_manager._execute(f"SELECT COUNT(*) FROM {table}")
+                count = cursor.fetchone()[0]
+                verification[f"db_{table}"] = count
+            
+            db_manager.close()
+            
+            logger.warning("⚠️ 所有数据库数据已被清空！")
+            logger.info(f"清空验证结果: {verification}")
+            
+            return jsonify({
+                'status': 'success',
+                'message': '数据库已清空',
+                'cleared_items': cleared_items,
+                'verification': verification
+            }), 200
+            
+        except Exception as e:
+            db_manager.close()
+            logger.error(f"清空数据库失败: {str(e)}", exc_info=True)
+            return jsonify({
+                'status': 'error',
+                'message': f'清空数据库失败: {str(e)}'
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"清空数据失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'清空失败: {str(e)}'
         }), 500
 
 

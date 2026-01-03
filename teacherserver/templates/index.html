@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -86,21 +86,13 @@
         }
 
         .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-        }
-
-        .students-panel {
             background: white;
             border-radius: 12px;
-            padding: 20px;
+            padding: 24px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-height: 80vh;
-            overflow-y: auto;
         }
 
-        .students-panel h2 {
+        .main-content h2 {
             margin-bottom: 16px;
             color: #333;
             font-size: 20px;
@@ -108,10 +100,10 @@
 
         .search-box {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             font-size: 14px;
         }
 
@@ -120,95 +112,397 @@
             border-color: #667eea;
         }
 
-        .student-item {
-            padding: 16px;
+        .team-row {
+            background: #fafafa;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            cursor: pointer;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
             transition: all 0.3s;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: start;
         }
 
-        .student-item:hover {
+        .team-row:hover {
             border-color: #667eea;
-            transform: translateX(4px);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
         }
 
-        .student-item.active {
-            border-color: #667eea;
-            background: #f0f4ff;
+        .team-row.completed {
+            border-color: #4CAF50;
+            background: #f1f8f4;
         }
 
-        .student-item .team-name {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 16px;
+        .team-row.in-progress {
+            border-color: #ff9800;
+            background: #fff8e1;
         }
 
-        .student-item .team-info {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 4px;
+        .team-row.not-started {
+            border-color: #e0e0e0;
+            background: #fafafa;
         }
 
-        .student-item .badges {
+        .team-left {
             display: flex;
+            flex-direction: column;
             gap: 8px;
-            margin-top: 8px;
-            flex-wrap: wrap;
+            min-width: 200px;
         }
 
-        .badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
+        .team-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stove-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .team-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label {
+            color: #999;
+            min-width: 60px;
+        }
+
+        .info-value {
+            color: #333;
             font-weight: 500;
         }
 
-        .badge.process {
+        .members-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .member-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .member-tag.leader {
+            background: #fff3e0;
+            color: #e65100;
+            font-weight: 600;
+        }
+
+        .team-middle {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .division-section {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .division-section h4 {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .division-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .division-tag {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 24px;
+        }
+
+        .progress-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-bar-container {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 24px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .progress-bar.medium {
+            background: linear-gradient(90deg, #ff9800 0%, #ffb74d 100%);
+        }
+
+        .progress-bar.low {
+            background: linear-gradient(90deg, #f44336 0%, #ef5350 100%);
+        }
+
+        .stages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .stage-badge {
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 22px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .stage-badge.completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .stage-badge.in-progress {
+            background: #ff9800;
+            color: white;
+        }
+
+        .stage-badge.not-started {
+            background: #e0e0e0;
+            color: #999;
+        }
+
+        .status-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.process {
             background: #e3f2fd;
             color: #1976d2;
         }
 
-        .badge.summary {
+        .status-badge.summary {
             background: #f3e5f5;
             color: #7b1fa2;
         }
 
-        .badge.stages {
+        .status-badge.division {
             background: #fff3e0;
             color: #e65100;
+        }
+
+        .team-right {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+            min-width: 200px;
+        }
+
+        .detail-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        .detail-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .detail-btn.division-btn {
+            background: #ff9800;
+        }
+
+        .detail-btn.division-btn:hover {
+            background: #f57c00;
+        }
+
+        .detail-btn.process-btn {
+            background: #4CAF50;
+        }
+
+        .detail-btn.process-btn:hover {
+            background: #45a049;
+        }
+
+        .refresh-btn, .clear-db-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+
+        .clear-db-btn {
+            background: #f44336;
+            margin-left: 10px;
+        }
+
+        .clear-db-btn:hover {
+            background: #d32f2f;
+        }
+
+        .clear-db-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        /* 详情页面样式 */
+        .detail-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .detail-overlay.active {
+            display: block;
         }
 
         .detail-panel {
             background: white;
             border-radius: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 24px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .detail-panel.empty {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #999;
-            font-size: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .detail-header {
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e0e0e0;
         }
 
         .detail-header h2 {
             color: #333;
             font-size: 24px;
-            margin-bottom: 8px;
+        }
+
+        .close-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .close-btn:hover {
+            background: #d32f2f;
         }
 
         .detail-section {
@@ -217,81 +511,64 @@
 
         .detail-section h3 {
             color: #667eea;
-            font-size: 18px;
+            font-size: 36px;
             margin-bottom: 16px;
             padding-bottom: 8px;
             border-bottom: 1px solid #e0e0e0;
         }
 
-        .info-grid {
+        .detail-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
-            margin-bottom: 16px;
         }
 
-        .info-item {
+        .detail-item {
             padding: 12px;
             background: #f5f5f5;
             border-radius: 8px;
         }
 
-        .info-item .label {
+        .detail-item .label {
             color: #666;
-            font-size: 12px;
+            font-size: 24px;
             margin-bottom: 4px;
         }
 
-        .info-item .value {
+        .detail-item .value {
             color: #333;
-            font-size: 16px;
+            font-size: 32px;
             font-weight: 500;
         }
 
-        .stages-list {
+        .stages-detail {
             display: grid;
-            gap: 12px;
+            gap: 16px;
         }
 
-        .stage-item {
-            padding: 16px;
+        .stage-detail-item {
+            padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             background: #fafafa;
         }
 
-        .stage-item.completed {
+        .stage-detail-item.completed {
             border-color: #4CAF50;
             background: #f1f8f4;
         }
 
-        .stage-header {
+        .stage-detail-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
-        .stage-name {
+        .stage-detail-name {
             font-weight: bold;
             color: #333;
-        }
-
-        .stage-status {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .stage-status.completed {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .stage-status.pending {
-            background: #ff9800;
-            color: white;
+            font-size: 32px;
         }
 
         .media-grid {
@@ -309,66 +586,19 @@
             cursor: pointer;
         }
 
-        .media-item img {
+        .media-item img, .media-item video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .media-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .media-item .play-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 16px 0;
-        }
-
-        .refresh-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-
-        .refresh-btn:hover {
-            background: #5568d3;
         }
 
         @media (max-width: 1024px) {
-            .main-content {
+            .team-row {
                 grid-template-columns: 1fr;
+            }
+            
+            .team-right {
+                align-items: stretch;
             }
         }
     </style>
@@ -381,6 +611,7 @@
                 <div class="status-indicator"></div>
                 <span id="serverStatus">运行中</span>
                 <button class="refresh-btn" onclick="loadData()">刷新</button>
+                <button class="clear-db-btn" onclick="clearDatabase()">清空数据库</button>
             </div>
         </div>
 
@@ -404,45 +635,68 @@
         </div>
 
         <div class="main-content">
-            <div class="students-panel">
-                <h2>学生列表</h2>
-                <input type="text" class="search-box" id="searchBox" placeholder="搜索学生..." oninput="filterStudents()">
+            <h2>野炊小组列表</h2>
+            <input type="text" class="search-box" id="searchBox" placeholder="搜索小组（学校、班级、成员、炉号）..." oninput="filterStudents()">
                 <div id="studentsList" class="loading">加载中...</div>
             </div>
+    </div>
 
-            <div class="detail-panel empty" id="detailPanel">
-                请选择左侧的学生查看详细信息
-            </div>
+    <!-- 详情页面遮罩 -->
+    <div class="detail-overlay" id="detailOverlay" onclick="if(event.target === this) closeDetail()">
+        <div class="detail-panel" id="detailPanel">
+            <!-- 详情内容将通过JavaScript动态加载 -->
         </div>
     </div>
 
     <script>
         const API_BASE = window.location.origin;
         let allStudents = [];
-        let currentStudentId = null;
+        const STAGE_NAMES = {
+            'PREPARATION': '准备阶段',
+            'FIRE_MAKING': '生火',
+            'COOKING_RICE': '煮饭',
+            'COOKING_DISHES': '炒菜',
+            'SHOWCASE': '成果展示',
+            'CLEANING': '卫生清洁',
+            'COMPLETED': '整体表现'
+        };
+        const STAGE_ORDER = ['PREPARATION', 'FIRE_MAKING', 'COOKING_RICE', 'COOKING_DISHES', 'SHOWCASE', 'CLEANING', 'COMPLETED'];
 
         // 页面加载时获取数据
         window.onload = function() {
             loadData();
-            // 每30秒自动刷新
             setInterval(loadData, 30000);
         };
 
         // 加载所有数据
         async function loadData() {
             try {
-                // 加载学生列表
-                const studentsResponse = await fetch(`${API_BASE}/api/students`);
+                // 添加时间戳防止缓存
+                const timestamp = Date.now();
+                const studentsResponse = await fetch(`${API_BASE}/api/students?t=${timestamp}`, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
                 const studentsData = await studentsResponse.json();
                 
                 if (studentsData.status === 'success') {
-                    allStudents = studentsData.students;
+                    allStudents = studentsData.students || [];
+                    renderStudentsList();
+                    updateStats();
+                } else {
+                    allStudents = [];
                     renderStudentsList();
                     updateStats();
                 }
 
-                // 加载统计数据
-                const statsResponse = await fetch(`${API_BASE}/api/statistics`);
+                const statsResponse = await fetch(`${API_BASE}/api/statistics?t=${timestamp}`, {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache'
+                    }
+                });
                 const statsData = await statsResponse.json();
                 
                 if (statsData.status === 'success') {
@@ -452,6 +706,8 @@
                 console.error('加载数据失败:', error);
                 document.getElementById('studentsList').innerHTML = 
                     '<div class="error">加载失败，请检查网络连接</div>';
+                allStudents = [];
+                updateStats();
             }
         }
 
@@ -463,282 +719,625 @@
             const filtered = allStudents.filter(s => 
                 s.teamName.toLowerCase().includes(searchTerm) ||
                 s.school.toLowerCase().includes(searchTerm) ||
-                s.memberNames.toLowerCase().includes(searchTerm)
+                s.memberNames.toLowerCase().includes(searchTerm) ||
+                (s.groupLeader && s.groupLeader.toLowerCase().includes(searchTerm)) ||
+                s.stoveNumber.toLowerCase().includes(searchTerm)
             );
 
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="loading">暂无学生数据</div>';
+                container.innerHTML = '<div class="loading">暂无小组数据</div>';
                 return;
             }
 
-            container.innerHTML = filtered.map(student => {
-                // 构建成员显示文本，如果有组长则显示组长
-                let memberText = escapeHtml(student.memberNames || '');
-                if (student.groupLeader && student.groupLeader.trim()) {
-                    memberText = `组长: ${escapeHtml(student.groupLeader)} | 成员: ${escapeHtml(student.memberNames || '')}`;
-                }
+            let html = '';
+            filtered.forEach(student => {
+                const progress = student.totalStages > 0 
+                    ? (student.completedStages / student.totalStages * 100).toFixed(0)
+                    : 0;
                 
-                return `
-                <div class="student-item ${currentStudentId === student.id ? 'active' : ''}" 
-                     onclick="loadStudentDetail('${student.id}')">
-                    <div class="team-name">${escapeHtml(student.teamName)}</div>
-                    <div class="team-info">${escapeHtml(student.school)} - ${escapeHtml(student.grade)}年级 ${escapeHtml(student.className)}</div>
-                    <div class="team-info">${memberText}</div>
-                    <div class="badges">
-                        ${student.hasProcessRecord ? '<span class="badge process">过程记录</span>' : ''}
-                        ${student.hasSummary ? '<span class="badge summary">课后总结</span>' : ''}
-                        <span class="badge stages">完成 ${student.completedStages}/${student.totalStages} 阶段</span>
+                // 确定行样式
+                let rowClass = 'not-started';
+                if (student.hasProcessRecord) {
+                    if (progress >= 100) {
+                        rowClass = 'completed';
+                    } else if (progress > 0) {
+                        rowClass = 'in-progress';
+                    }
+                }
+
+                // 成员列表
+                const members = (student.memberNames || '').split(/[、,，]/).filter(m => m.trim());
+                const membersHtml = members.map(m => {
+                    const isLeader = m.trim() === student.groupLeader;
+                    return `<span class="member-tag ${isLeader ? 'leader' : ''}">${escapeHtml(m.trim())}${isLeader ? ' (组长)' : ''}</span>`;
+                }).join('');
+
+                // 进度条样式
+                let progressBarClass = '';
+                if (progress >= 70) progressBarClass = '';
+                else if (progress >= 30) progressBarClass = 'medium';
+                else progressBarClass = 'low';
+
+                html += `
+                    <div class="team-row ${rowClass}">
+                        <div class="team-left">
+                            <div class="team-header">
+                                <div class="stove-badge">${escapeHtml(student.stoveNumber || '')}</div>
+                                <div class="team-name">${escapeHtml(student.school || '')} ${escapeHtml(student.grade || '')}${escapeHtml(student.className || '')}</div>
+                            </div>
+                            <div class="team-info">
+                                <div class="info-row">
+                                    <span class="info-label">成员:</span>
+                                    <div class="members-list">${membersHtml || '<span style="color: #999;">-</span>'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="team-middle">
+                            <div class="progress-section">
+                                <div class="progress-header">
+                                    <span class="progress-title">完成进度</span>
+                                    <span class="progress-text">${student.completedStages}/${student.totalStages} 阶段</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar ${progressBarClass}" style="width: ${progress}%">
+                                        ${progress}%
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="status-badges">
+                                ${student.hasProcessRecord ? '<span class="status-badge process">✓ 过程记录</span>' : ''}
+                                ${student.hasSummary ? '<span class="status-badge summary">✓ 课后总结</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="team-right">
+                            <button class="detail-btn division-btn" onclick="showDivision('${escapeHtml(student.id)}')">团队分工</button>
+                            <button class="detail-btn process-btn" onclick="showProcessRecord('${escapeHtml(student.id)}')">过程记录</button>
+                        </div>
                     </div>
-                </div>
-            `;
-            }).join('');
+                `;
+            });
+
+            container.innerHTML = html;
         }
 
-        // 加载学生详细信息
-        async function loadStudentDetail(studentId) {
-            currentStudentId = studentId;
-            const panel = document.getElementById('detailPanel');
-            panel.innerHTML = '<div class="loading">加载中...</div>';
-            panel.classList.remove('empty');
-
+        // 显示团队分工
+        async function showDivision(studentId) {
             try {
                 const response = await fetch(`${API_BASE}/api/student/${encodeURIComponent(studentId)}`);
-                const data = await response.json();
-
-                if (data.status === 'success') {
-                    // 调试：输出完整数据
-                    console.log('学生完整数据:', data.data);
-                    console.log('团队分工数据:', data.data.teamDivision);
-                    renderStudentDetail(data.data);
-                    // 更新列表中的选中状态
-                    renderStudentsList();
-                } else {
-                    panel.innerHTML = `<div class="error">${escapeHtml(data.message)}</div>`;
+                const result = await response.json();
+                
+                if (result.status !== 'success') {
+                    alert('获取数据失败: ' + (result.message || '未知错误'));
+                    return;
                 }
-            } catch (error) {
-                console.error('加载学生详情失败:', error);
-                panel.innerHTML = '<div class="error">加载失败，请检查网络连接</div>';
-            }
-        }
 
-        // 渲染学生详细信息
-        function renderStudentDetail(data) {
-            const panel = document.getElementById('detailPanel');
-            const teamInfo = data.teamInfo || {};
-            const teamDivision = data.teamDivision || {};
-            const processRecord = data.processRecord || {};
-            const summaryData = data.summaryData || {};
+                const data = result.data;
+                const panel = document.getElementById('detailPanel');
+                
+                // 构建团队分工HTML
+                let html = `
+                    <div class="detail-header">
+                        <h2>团队分工 - ${escapeHtml(data.teamInfo?.school || '')} ${escapeHtml(data.teamInfo?.grade || '')}${escapeHtml(data.teamInfo?.className || '')} - ${escapeHtml(data.teamInfo?.stoveNumber || '')}</h2>
+                        <button class="close-btn" onclick="closeDetail()">关闭</button>
+                    </div>
+                `;
 
-            let html = `
-                <div class="detail-header">
-                    <h2>${escapeHtml(teamInfo.school || '')} - ${escapeHtml(teamInfo.grade || '')}年级 ${escapeHtml(teamInfo.className || '')} - 炉号${escapeHtml(teamInfo.stoveNumber || '')}</h2>
-                    <div class="team-info">成员: ${escapeHtml(teamInfo.memberNames || '')}</div>
-                </div>
-
-                <div class="detail-section">
-                    <h3>📋 团队信息</h3>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="label">学校</div>
-                            <div class="value">${escapeHtml(teamInfo.school || '-')}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">年级</div>
-                            <div class="value">${escapeHtml(teamInfo.grade || '-')}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">班级</div>
-                            <div class="value">${escapeHtml(teamInfo.className || '-')}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">炉号</div>
-                            <div class="value">${escapeHtml(teamInfo.stoveNumber || '-')}</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">成员数量</div>
-                            <div class="value">${teamInfo.memberCount || 0} 人</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">成员姓名</div>
-                            <div class="value">${escapeHtml(teamInfo.memberNames || '-')}</div>
+                // 基本信息
+                html += `
+                    <div class="detail-section">
+                        <h3>团队基本信息</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="label">学校</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.school || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">年级</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.grade || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">班级</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.className || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">炉号</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.stoveNumber || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">成员数量</div>
+                                <div class="value">${data.teamInfo?.memberCount || 0} 人</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">成员名单</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.memberNames || '-')}</div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
 
-            // 团队分工信息
-            // 调试：输出分工数据
-            console.log('团队分工数据:', teamDivision);
-            console.log('团队分工数据类型:', typeof teamDivision);
-            console.log('团队分工数据键:', teamDivision ? Object.keys(teamDivision) : 'null');
-            
-            // 检查是否有分工数据
-            const hasDivision = teamDivision && 
-                typeof teamDivision === 'object' && 
-                (teamDivision.groupLeader || teamDivision.groupCooking || teamDivision.groupSoupRice || 
-                 teamDivision.groupFire || teamDivision.groupHealth);
-            
-            if (hasDivision) {
-                html += '<div class="detail-section"><h3>👥 团队分工</h3>';
-                html += '<div class="stages-list">';
-                
-                if (teamDivision.groupLeader) {
+                // 团队分工
+                if (data.teamDivision) {
                     html += `
-                        <div class="stage-item completed">
-                            <div class="stage-header">
-                                <span class="stage-name">项目组长</span>
+                        <div class="detail-section">
+                            <h3>团队分工详情</h3>
+                            <div class="detail-grid">
+                                ${data.teamDivision.groupLeader ? `
+                                    <div class="detail-item">
+                                        <div class="label">项目组长</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupLeader)}</div>
+                                    </div>
+                                ` : '<div class="detail-item"><div class="label">项目组长</div><div class="value" style="color: #999;">未设置</div></div>'}
+                                ${data.teamDivision.groupCooking ? `
+                                    <div class="detail-item">
+                                        <div class="label">烹饪组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupCooking)}</div>
+                                    </div>
+                                ` : '<div class="detail-item"><div class="label">烹饪组</div><div class="value" style="color: #999;">未设置</div></div>'}
+                                ${data.teamDivision.groupSoupRice ? `
+                                    <div class="detail-item">
+                                        <div class="label">汤饭组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupSoupRice)}</div>
+                                    </div>
+                                ` : '<div class="detail-item"><div class="label">汤饭组</div><div class="value" style="color: #999;">未设置</div></div>'}
+                                ${data.teamDivision.groupFire ? `
+                                    <div class="detail-item">
+                                        <div class="label">生火组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupFire)}</div>
+                                    </div>
+                                ` : '<div class="detail-item"><div class="label">生火组</div><div class="value" style="color: #999;">未设置</div></div>'}
+                                ${data.teamDivision.groupHealth ? `
+                                    <div class="detail-item">
+                                        <div class="label">卫生组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupHealth)}</div>
+                                    </div>
+                                ` : '<div class="detail-item"><div class="label">卫生组</div><div class="value" style="color: #999;">未设置</div></div>'}
                             </div>
-                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupLeader)}</div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="detail-section">
+                            <h3>团队分工</h3>
+                            <div class="detail-item" style="text-align: center; padding: 40px;">
+                                <div class="value" style="color: #999; font-size: 16px;">暂无团队分工信息</div>
+                            </div>
                         </div>
                     `;
                 }
-                
-                if (teamDivision.groupCooking) {
-                    html += `
-                        <div class="stage-item completed">
-                            <div class="stage-header">
-                                <span class="stage-name">烹饪组</span>
-                            </div>
-                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupCooking)}</div>
-                        </div>
-                    `;
-                }
-                
-                if (teamDivision.groupSoupRice) {
-                    html += `
-                        <div class="stage-item completed">
-                            <div class="stage-header">
-                                <span class="stage-name">汤饭组</span>
-                            </div>
-                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupSoupRice)}</div>
-                        </div>
-                    `;
-                }
-                
-                if (teamDivision.groupFire) {
-                    html += `
-                        <div class="stage-item completed">
-                            <div class="stage-header">
-                                <span class="stage-name">生火组</span>
-                            </div>
-                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupFire)}</div>
-                        </div>
-                    `;
-                }
-                
-                if (teamDivision.groupHealth) {
-                    html += `
-                        <div class="stage-item completed">
-                            <div class="stage-header">
-                                <span class="stage-name">卫生组</span>
-                            </div>
-                            <div style="margin-top: 8px; color: #333; font-size: 15px; line-height: 1.6;">${escapeHtml(teamDivision.groupHealth)}</div>
-                        </div>
-                    `;
-                }
-                
-                html += '</div></div>';
-            } else {
-                // 如果没有分工数据，显示提示
-                html += '<div class="detail-section"><h3>👥 团队分工</h3>';
-                html += '<div style="padding: 16px; background: #fff3cd; border-radius: 8px; color: #856404;">';
-                html += '<strong>提示：</strong>该组尚未提交分工信息。请在团队分工页面完成成员分配后重新提交数据。';
-                html += '</div></div>';
-                console.log('未找到团队分工数据，teamDivision:', teamDivision);
+
+                panel.innerHTML = html;
+                document.getElementById('detailOverlay').classList.add('active');
+            } catch (error) {
+                console.error('获取团队分工失败:', error);
+                alert('获取团队分工失败: ' + error.message);
             }
-
-            // 过程记录
-            if (processRecord.stages && Object.keys(processRecord.stages).length > 0) {
-                html += '<div class="detail-section"><h3>📝 过程记录</h3><div class="stages-list">';
-                
-                const stageNames = {
-                    'PREPARATION': '准备阶段',
-                    'FIRE_STARTING': '生火阶段',
-                    'COOKING': '烹饪阶段',
-                    'EATING': '用餐阶段',
-                    'CLEANUP': '清理阶段',
-                    'REFLECTION': '反思阶段'
-                };
-
-                for (const [stageKey, stage] of Object.entries(processRecord.stages)) {
-                    const stageName = stageNames[stageKey] || stageKey;
-                    const isCompleted = stage.isCompleted || false;
-                    
-                    html += `
-                        <div class="stage-item ${isCompleted ? 'completed' : ''}">
-                            <div class="stage-header">
-                                <span class="stage-name">${escapeHtml(stageName)}</span>
-                                <span class="stage-status ${isCompleted ? 'completed' : 'pending'}">
-                                    ${isCompleted ? '已完成' : '未完成'}
-                                </span>
-                            </div>
-                            ${stage.notes ? `<div style="margin-bottom: 8px;"><strong>做得好的地方:</strong> ${escapeHtml(stage.notes)}</div>` : ''}
-                            ${stage.problemNotes ? `<div style="margin-bottom: 8px;"><strong>需要改进:</strong> ${escapeHtml(stage.problemNotes)}</div>` : ''}
-                            ${stage.selfRating ? `<div style="margin-bottom: 8px;"><strong>自评:</strong> ${'⭐'.repeat(stage.selfRating)}</div>` : ''}
-                            ${stage.mediaItems && stage.mediaItems.length > 0 ? renderMediaItems(stage.mediaItems, currentStudentId) : ''}
-                        </div>
-                    `;
-                }
-                
-                html += '</div></div>';
-            }
-
-            // 课后总结
-            if (summaryData.answer1 || summaryData.answer2 || summaryData.answer3) {
-                html += '<div class="detail-section"><h3>📚 课后总结</h3>';
-                
-                if (summaryData.answer1) {
-                    html += `<div style="margin-bottom: 16px;"><strong>问题1:</strong> ${escapeHtml(summaryData.answer1)}</div>`;
-                    if (summaryData.photos1 && summaryData.photos1.length > 0) {
-                        html += renderMediaItems(summaryData.photos1.map(p => ({path: p, type: 'PHOTO'})), currentStudentId);
-                    }
-                }
-                
-                if (summaryData.answer2) {
-                    html += `<div style="margin-bottom: 16px;"><strong>问题2:</strong> ${escapeHtml(summaryData.answer2)}</div>`;
-                    if (summaryData.photos2 && summaryData.photos2.length > 0) {
-                        html += renderMediaItems(summaryData.photos2.map(p => ({path: p, type: 'PHOTO'})), currentStudentId);
-                    }
-                }
-                
-                if (summaryData.answer3) {
-                    html += `<div style="margin-bottom: 16px;"><strong>问题3:</strong> ${escapeHtml(summaryData.answer3)}</div>`;
-                    if (summaryData.photos3 && summaryData.photos3.length > 0) {
-                        html += renderMediaItems(summaryData.photos3.map(p => ({path: p, type: 'PHOTO'})), currentStudentId);
-                    }
-                }
-                
-                html += '</div>';
-            }
-
-            panel.innerHTML = html;
         }
 
-        // 渲染媒体文件
-        function renderMediaItems(mediaItems, studentId) {
-            if (!mediaItems || mediaItems.length === 0) return '';
-            
-            return `
-                <div class="media-grid">
-                    ${mediaItems.map(item => {
-                        const mediaUrl = `${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}`;
-                        if (item.type === 'VIDEO') {
-                            return `
-                                <div class="media-item" onclick="window.open('${mediaUrl}', '_blank')">
-                                    <video src="${mediaUrl}" preload="metadata"></video>
-                                    <div class="play-icon">▶</div>
+        // 显示过程记录
+        async function showProcessRecord(studentId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/student/${encodeURIComponent(studentId)}`);
+                const result = await response.json();
+                
+                if (result.status !== 'success') {
+                    alert('获取数据失败: ' + (result.message || '未知错误'));
+                    return;
+                }
+
+                const data = result.data;
+                const panel = document.getElementById('detailPanel');
+                
+                // 调试：输出数据结构
+                console.log('过程记录数据:', data);
+                console.log('processRecord:', data.processRecord);
+                
+                // 构建过程记录HTML
+                let html = `
+                    <div class="detail-header">
+                        <h2>过程记录 - ${escapeHtml(data.teamInfo?.school || '')} ${escapeHtml(data.teamInfo?.grade || '')}${escapeHtml(data.teamInfo?.className || '')} - ${escapeHtml(data.teamInfo?.stoveNumber || '')}</h2>
+                        <button class="close-btn" onclick="closeDetail()">关闭</button>
+                    </div>
+                `;
+
+                // 过程记录
+                if (data.processRecord) {
+                    const pr = data.processRecord;
+                    
+                    // 调试：输出过程记录数据
+                    console.log('pr对象:', pr);
+                    console.log('pr.stages:', pr.stages);
+                    
+                    // 过程记录总体信息（显示 process_records 表的所有字段）
+                    // 兼容多种字段名格式
+                    const prId = pr.id || '-';
+                    const prTeamId = pr.teamId || pr.team_id || data.teamInfo ? (data.teamInfo.school + '_' + data.teamInfo.grade + '_' + data.teamInfo.className + '_' + data.teamInfo.stoveNumber) : '-';
+                    const prStartTime = pr.startTime || pr.start_time || 0;
+                    const prEndTime = pr.endTime || pr.end_time || null;
+                    const prCurrentStage = pr.currentStage || pr.current_stage || 'PREPARATION';
+                    const prOverallNotes = pr.overallNotes || pr.overall_notes || '';
+                    const prCreatedAt = (pr.createdAt || pr.created_at) ? new Date(pr.createdAt || pr.created_at).toLocaleString('zh-CN') : '-';
+                    const prUpdatedAt = (pr.updatedAt || pr.updated_at) ? new Date(pr.updatedAt || pr.updated_at).toLocaleString('zh-CN') : '-';
+                    const prSchemaVersion = pr.schemaVersion || pr.schema_version || 1;
+                    const prExtraData = pr.extraData || pr.extra_data;
+                    
+                    html += ``;
+
+                    // 阶段记录详情
+                    // 检查stages是否存在
+                    const stages = pr.stages || {};
+                    console.log('stages对象:', stages);
+                    console.log('stages键:', Object.keys(stages));
+                    
+                    if (stages && Object.keys(stages).length > 0) {
+                        html += `
+                            <div class="detail-section">
+                                <h3>阶段记录详情 (共 ${Object.keys(stages).length} 个阶段)</h3>
+                                <div class="stages-detail">
+                        `;
+                        
+                        // 按顺序显示阶段
+                        STAGE_ORDER.forEach(stageKey => {
+                            const stage = stages[stageKey];
+                            if (stage) {
+                                console.log(`阶段 ${stageKey}:`, stage);
+                                
+                                // 获取阶段数据（兼容多种字段名格式）- 必须先获取这些变量
+                                const stageName = stage.stage || stage.stageName || stage.stage_name || stageKey;
+                                const startTime = stage.startTime || stage.start_time || 0;
+                                const endTime = stage.endTime || stage.end_time || null;
+                                const selfRating = stage.selfRating || stage.self_rating || 0;
+                                const notes = stage.notes || '';
+                                const problemNotes = stage.problemNotes || stage.problem_notes || '';
+                                const isCompleted = stage.isCompleted !== undefined ? stage.isCompleted : (stage.is_completed === 1 || stage.is_completed === true);
+                                const selectedTags = stage.selectedTags || stage.selected_tags || [];
+                                const mediaItems = stage.mediaItems || stage.media_items || [];
+                                
+                                // 获取数据库字段（兼容多种字段名格式）
+                                const stageId = stage.id || stage.stageId || '-';
+                                const processRecordId = stage.processRecordId || stage.process_record_id || '-';
+                                const createdAt = (stage.createdAt || stage.created_at) ? new Date(stage.createdAt || stage.created_at).toLocaleString('zh-CN') : '-';
+                                const updatedAt = (stage.updatedAt || stage.updated_at) ? new Date(stage.updatedAt || stage.updated_at).toLocaleString('zh-CN') : '-';
+                                const schemaVersion = stage.schemaVersion || stage.schema_version || 1;
+                                const extraData = stage.extraData || stage.extra_data;
+                                
+                                // 时间格式化（现在可以使用startTime和endTime了）
+                                const startTimeFormatted = startTime ? new Date(startTime).toLocaleString('zh-CN') : '-';
+                                const endTimeFormatted = endTime ? new Date(endTime).toLocaleString('zh-CN') : '进行中';
+                                const duration = startTime && endTime 
+                                    ? Math.round((endTime - startTime) / 1000 / 60) + ' 分钟'
+                                    : '-';
+                                
+                                html += `
+                                    <div class="stage-detail-item ${isCompleted ? 'completed' : ''}">
+                                        <div class="stage-detail-header">
+                                            <span class="stage-detail-name">${STAGE_NAMES[stageKey] || stageKey}</span>
+                                            <span class="stage-badge ${isCompleted ? 'completed' : 'in-progress'}">
+                                                ${isCompleted ? '已完成' : '进行中'}
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- 时间信息 -->
+                                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 8px 0;">
+                                            <div>
+                                                <div style="color: #666; font-size: 24px;">开始时间</div>
+                                                <div style="color: #333; margin-top: 4px; font-weight: 500; font-size: 26px;">${startTimeFormatted}</div>
+                                                ${startTime ? `<div style="color: #999; font-size: 22px; margin-top: 2px;">时间戳: ${startTime}</div>` : ''}
+                                            </div>
+                                            <div>
+                                                <div style="color: #666; font-size: 24px;">结束时间</div>
+                                                <div style="color: #333; margin-top: 4px; font-weight: 500; font-size: 26px;">${endTimeFormatted}</div>
+                                                ${endTime ? `<div style="color: #999; font-size: 22px; margin-top: 2px;">时间戳: ${endTime}</div>` : ''}
+                                            </div>
+                                            <div>
+                                                <div style="color: #666; font-size: 24px;">用时</div>
+                                                <div style="color: #333; margin-top: 4px; font-weight: 500; font-size: 26px;">${duration}</div>
+                                            </div>
+                                        </div>
+                                        ${selfRating > 0 ? `
+                                            <div style="margin: 6px 0;">
+                                                <span style="color: #666; font-size: 24px;">自评: </span>
+                                                <span style="color: #ff9800; font-weight: 600; font-size: 32px;">${'★'.repeat(selfRating)}${'☆'.repeat(5 - selfRating)}</span>
+                                                <span style="color: #666; margin-left: 6px; font-size: 24px;">(${selfRating}/5)</span>
+                                            </div>
+                                        ` : ''}
+                                        ${notes ? `
+                                            <div style="margin: 8px 0; padding: 10px; background: #e8f5e9; border-radius: 6px;">
+                                                <div style="color: #2e7d32; font-weight: 600; font-size: 24px; margin-bottom: 4px;">✓ 做得好的地方:</div>
+                                                <div style="color: #333; line-height: 1.5; font-size: 26px;">${escapeHtml(notes)}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${problemNotes ? `
+                                            <div style="margin: 8px 0; padding: 10px; background: #fff3e0; border-radius: 6px;">
+                                                <div style="color: #e65100; font-weight: 600; font-size: 24px; margin-bottom: 4px;">⚠ 需要改进:</div>
+                                                <div style="color: #333; line-height: 1.5; font-size: 26px;">${escapeHtml(problemNotes)}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${selectedTags && selectedTags.length > 0 ? `
+                                            <div style="margin: 8px 0;">
+                                                <div style="color: #666; font-size: 24px; margin-bottom: 6px;">选择的标签:</div>
+                                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                    ${selectedTags.map(tag => `<span class="division-tag">${escapeHtml(tag)}</span>`).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        ${mediaItems && mediaItems.length > 0 ? `
+                                            <div style="margin-top: 8px;">
+                                                <div style="color: #666; font-size: 24px; margin-bottom: 6px;">媒体文件 (${mediaItems.length} 个):</div>
+                                                <div class="media-grid">
+                                                    ${mediaItems.map(item => {
+                                                        const itemType = item.type || item.file_type || 'PHOTO';
+                                                        const itemPath = item.path || item.file_path || '';
+                                                        if (itemType === 'VIDEO') {
+                                                            return `<div class="media-item" onclick="window.open('${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(itemPath)}', '_blank')">
+                                                                <video src="${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(itemPath)}"></video>
+                                                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 8px; border-radius: 50%; font-size: 20px;">▶</div>
+                                                            </div>`;
+                                                        } else {
+                                                            return `<div class="media-item" onclick="window.open('${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(itemPath)}', '_blank')">
+                                                                <img src="${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(itemPath)}" alt="照片">
+                                                            </div>`;
+                                                        }
+                                                    }).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }
+                        });
+                        
+                        html += `
                                 </div>
-                            `;
-                        } else {
-                            return `
-                                <div class="media-item" onclick="window.open('${mediaUrl}', '_blank')">
-                                    <img src="${mediaUrl}" alt="照片" loading="lazy">
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="detail-section">
+                                <h3>阶段记录</h3>
+                                <div class="detail-item" style="text-align: center; padding: 40px;">
+                                    <div class="value" style="color: #999; font-size: 16px;">暂无阶段记录</div>
+                                    <div style="color: #999; font-size: 12px; margin-top: 8px;">
+                                        调试信息: stages = ${JSON.stringify(stages)}
+                                    </div>
                                 </div>
-                            `;
-                        }
-                    }).join('')}
-                </div>
-            `;
+                            </div>
+                        `;
+                    }
+                } else {
+                    html += `
+                        <div class="detail-section">
+                            <h3>过程记录</h3>
+                            <div class="detail-item" style="text-align: center; padding: 40px;">
+                                <div class="value" style="color: #999; font-size: 16px;">暂无过程记录</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                panel.innerHTML = html;
+                document.getElementById('detailOverlay').classList.add('active');
+            } catch (error) {
+                console.error('获取过程记录失败:', error);
+                alert('获取过程记录失败: ' + error.message);
+            }
+        }
+
+        // 显示详情（保留原有函数，但不再使用）
+        async function showDetail(studentId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/student/${encodeURIComponent(studentId)}`);
+                const result = await response.json();
+                
+                if (result.status !== 'success') {
+                    alert('获取详情失败: ' + (result.message || '未知错误'));
+                    return;
+                }
+
+                const data = result.data;
+                const panel = document.getElementById('detailPanel');
+                
+                // 构建详情HTML
+                let html = `
+                    <div class="detail-header">
+                        <h2>${escapeHtml(data.teamInfo?.school || '')} ${escapeHtml(data.teamInfo?.grade || '')}${escapeHtml(data.teamInfo?.className || '')} - ${escapeHtml(data.teamInfo?.stoveNumber || '')}</h2>
+                        <button class="close-btn" onclick="closeDetail()">关闭</button>
+                    </div>
+                `;
+
+                // 基本信息
+                html += `
+                    <div class="detail-section">
+                        <h3>基本信息</h3>
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <div class="label">学校</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.school || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">年级</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.grade || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">班级</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.className || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">炉号</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.stoveNumber || '-')}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">成员数量</div>
+                                <div class="value">${data.teamInfo?.memberCount || 0} 人</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="label">成员名单</div>
+                                <div class="value">${escapeHtml(data.teamInfo?.memberNames || '-')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // 团队分工
+                if (data.teamDivision) {
+                    html += `
+                        <div class="detail-section">
+                            <h3>团队分工</h3>
+                            <div class="detail-grid">
+                                ${data.teamDivision.groupLeader ? `
+                                    <div class="detail-item">
+                                        <div class="label">项目组长</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupLeader)}</div>
+                                    </div>
+                                ` : ''}
+                                ${data.teamDivision.groupCooking ? `
+                                    <div class="detail-item">
+                                        <div class="label">烹饪组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupCooking)}</div>
+                                    </div>
+                                ` : ''}
+                                ${data.teamDivision.groupSoupRice ? `
+                                    <div class="detail-item">
+                                        <div class="label">汤饭组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupSoupRice)}</div>
+                                    </div>
+                                ` : ''}
+                                ${data.teamDivision.groupFire ? `
+                                    <div class="detail-item">
+                                        <div class="label">生火组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupFire)}</div>
+                                    </div>
+                                ` : ''}
+                                ${data.teamDivision.groupHealth ? `
+                                    <div class="detail-item">
+                                        <div class="label">卫生组</div>
+                                        <div class="value">${escapeHtml(data.teamDivision.groupHealth)}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 过程记录
+                if (data.processRecord) {
+                    const pr = data.processRecord;
+                    html += `
+                        <div class="detail-section">
+                            <h3>过程记录</h3>
+                            <div class="detail-item" style="margin-bottom: 16px;">
+                                <div class="label">当前阶段</div>
+                                <div class="value">${STAGE_NAMES[pr.currentStage] || pr.currentStage || '-'}</div>
+                            </div>
+                            ${pr.overallNotes ? `
+                                <div class="detail-item" style="margin-bottom: 16px;">
+                                    <div class="label">总体备注</div>
+                                    <div class="value">${escapeHtml(pr.overallNotes)}</div>
+                                </div>
+                            ` : ''}
+                    `;
+
+                    if (pr.stages && Object.keys(pr.stages).length > 0) {
+                        html += '<div class="stages-detail">';
+                        STAGE_ORDER.forEach(stageKey => {
+                            const stage = pr.stages[stageKey];
+                            if (stage) {
+                                const isCompleted = stage.isCompleted;
+                                html += `
+                                    <div class="stage-detail-item ${isCompleted ? 'completed' : ''}">
+                                        <div class="stage-detail-header">
+                                            <span class="stage-detail-name">${STAGE_NAMES[stageKey] || stageKey}</span>
+                                            <span class="stage-badge ${isCompleted ? 'completed' : 'in-progress'}">
+                                                ${isCompleted ? '已完成' : '进行中'}
+                                            </span>
+                                        </div>
+                                        ${stage.selfRating > 0 ? `
+                                            <div style="margin: 8px 0;">
+                                                <span style="color: #666;">自评: </span>
+                                                <span style="color: #ff9800; font-weight: 600;">${'★'.repeat(stage.selfRating)}${'☆'.repeat(5 - stage.selfRating)}</span>
+                                            </div>
+                                        ` : ''}
+                                        ${stage.notes ? `
+                                            <div style="margin: 8px 0;">
+                                                <div style="color: #666; font-size: 12px;">做得好的地方:</div>
+                                                <div style="color: #333; margin-top: 4px;">${escapeHtml(stage.notes)}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${stage.problemNotes ? `
+                                            <div style="margin: 8px 0;">
+                                                <div style="color: #666; font-size: 12px;">需要改进:</div>
+                                                <div style="color: #333; margin-top: 4px;">${escapeHtml(stage.problemNotes)}</div>
+                                            </div>
+                                        ` : ''}
+                                        ${stage.selectedTags && stage.selectedTags.length > 0 ? `
+                                            <div style="margin: 8px 0;">
+                                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                    ${stage.selectedTags.map(tag => `<span class="division-tag">${escapeHtml(tag)}</span>`).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                        ${stage.mediaItems && stage.mediaItems.length > 0 ? `
+                                            <div class="media-grid" style="margin-top: 12px;">
+                                                ${stage.mediaItems.map(item => {
+                                                    if (item.type === 'VIDEO') {
+                                                        return `<div class="media-item" onclick="window.open('${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}', '_blank')">
+                                                            <video src="${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}"></video>
+                                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 8px; border-radius: 50%;">▶</div>
+                                                        </div>`;
+                                                    } else {
+                                                        return `<div class="media-item" onclick="window.open('${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}', '_blank')">
+                                                            <img src="${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}" alt="照片">
+                                                        </div>`;
+                                                    }
+                                                }).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `;
+                            }
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+
+                // 课后总结
+                if (data.summaryData) {
+                    html += `
+                        <div class="detail-section">
+                            <h3>课后总结</h3>
+                            ${data.summaryData.answer1 ? `
+                                <div class="detail-item" style="margin-bottom: 12px;">
+                                    <div class="label">问题1</div>
+                                    <div class="value">${escapeHtml(data.summaryData.answer1)}</div>
+                                </div>
+                            ` : ''}
+                            ${data.summaryData.answer2 ? `
+                                <div class="detail-item" style="margin-bottom: 12px;">
+                                    <div class="label">问题2</div>
+                                    <div class="value">${escapeHtml(data.summaryData.answer2)}</div>
+                                </div>
+                            ` : ''}
+                            ${data.summaryData.answer3 ? `
+                                <div class="detail-item" style="margin-bottom: 12px;">
+                                    <div class="label">问题3</div>
+                                    <div class="value">${escapeHtml(data.summaryData.answer3)}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                panel.innerHTML = html;
+                document.getElementById('detailOverlay').classList.add('active');
+            } catch (error) {
+                console.error('获取详情失败:', error);
+                alert('获取详情失败: ' + error.message);
+            }
+        }
+
+        // 关闭详情
+        function closeDetail() {
+            document.getElementById('detailOverlay').classList.remove('active');
         }
 
         // 更新统计数据
@@ -752,7 +1351,6 @@
             document.getElementById('withSummary').textContent = withSummary;
         }
 
-        // 从API更新统计数据
         function updateStatsFromAPI(stats) {
             if (stats.averageCompletion !== undefined) {
                 document.getElementById('completionRate').textContent = 
@@ -760,19 +1358,80 @@
             }
         }
 
-        // 过滤学生
         function filterStudents() {
             renderStudentsList();
         }
 
-        // HTML转义
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
+
+        async function clearDatabase() {
+            if (!confirm('⚠️ 警告：此操作将清空所有数据！\n\n此操作不可恢复，确定要继续吗？')) {
+                return;
+            }
+            if (!confirm('请再次确认：真的要清空所有数据吗？')) {
+                return;
+            }
+
+            const btn = document.querySelector('.clear-db-btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '清空中...';
+
+            try {
+                // 添加时间戳防止缓存
+                const response = await fetch(`${API_BASE}/api/database/clear?t=${Date.now()}`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    },
+                    cache: 'no-store'
+                });
+
+                const result = await response.json();
+                if (result.status === 'success') {
+                    // 清空本地数据
+                    allStudents = [];
+                    
+                    // 构建验证信息
+                    let verifyMsg = '';
+                    if (result.verification) {
+                        verifyMsg = '\n\n验证结果：\n';
+                        if (result.verification.fs_students !== undefined) {
+                            verifyMsg += `剩余学生目录: ${result.verification.fs_students}\n`;
+                        }
+                        if (result.verification.fs_evaluations !== undefined) {
+                            verifyMsg += `剩余评价文件: ${result.verification.fs_evaluations}\n`;
+                        }
+                    }
+                    
+                    // 立即刷新数据（添加时间戳防止缓存）
+                    await loadData();
+                    
+                    // 再次刷新确保数据清空
+                    setTimeout(() => {
+                        loadData();
+                    }, 500);
+                    
+                    alert('✅ 数据已清空！\n\n已清空项目：\n' + 
+                          (result.cleared_items || []).join('\n') + 
+                          verifyMsg);
+                } else {
+                    alert('❌ 清空失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('清空数据库失败:', error);
+                alert('❌ 清空失败：网络错误\n' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
     </script>
 </body>
 </html>
-

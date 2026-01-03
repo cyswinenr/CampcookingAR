@@ -20,6 +20,7 @@ class Config:
     MEDIA_DIR = os.path.join(BASE_DIR, 'data', 'media')  # 媒体文件目录
     EVALUATION_DIR = os.path.join(BASE_DIR, 'data', 'evaluations')  # 评价数据目录
     EXPORT_DIR = os.path.join(BASE_DIR, 'data', 'exports')  # 导出文件目录
+    DATABASE_PATH = os.path.join(BASE_DIR, 'data', 'campcooking.db')  # SQLite数据库路径
     
     # 允许的文件类型
     ALLOWED_IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.bmp'}
