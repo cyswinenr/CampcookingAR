@@ -8,6 +8,8 @@
 import sqlite3
 import json
 import logging
+import time
+import random
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 
@@ -18,6 +20,11 @@ from models import (
 from config import Config
 
 logger = logging.getLogger(__name__)
+
+# 数据库重试配置
+MAX_RETRIES = 5  # 最大重试次数
+RETRY_DELAY_BASE = 0.1  # 基础延迟（秒）
+RETRY_DELAY_MAX = 1.0  # 最大延迟（秒）
 
 
 class DatabaseManager:
@@ -35,10 +42,18 @@ class DatabaseManager:
             self._thread_connections = {}
         
         if thread_id not in self._thread_connections:
-            conn = sqlite3.connect(self.db_path, check_same_thread=False)
+            conn = sqlite3.connect(self.db_path, check_same_thread=False, timeout=30.0)
             conn.row_factory = sqlite3.Row  # 返回字典格式的行
             # 启用外键约束
             conn.execute("PRAGMA foreign_keys = ON")
+            # 启用 WAL 模式（Write-Ahead Logging）以提高并发性能
+            try:
+                conn.execute("PRAGMA journal_mode=WAL")
+                logger.debug("已启用 WAL 模式")
+            except Exception as e:
+                logger.warning(f"启用 WAL 模式失败（可能已启用）: {str(e)}")
+            # 设置 busy_timeout（毫秒），自动重试锁定的数据库
+            conn.execute("PRAGMA busy_timeout=5000")  # 5秒超时
             self._thread_connections[thread_id] = conn
         
         return self._thread_connections[thread_id]
@@ -53,12 +68,49 @@ class DatabaseManager:
                 del self._thread_connections[thread_id]
     
     def _execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:
-        """执行SQL语句"""
-        conn = self._get_connection()
-        cursor = conn.cursor()
-        cursor.execute(sql, params)
-        conn.commit()
-        return cursor
+        """执行SQL语句（带重试机制）"""
+        last_exception = None
+        
+        for attempt in range(MAX_RETRIES):
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute(sql, params)
+                conn.commit()
+                return cursor
+            except sqlite3.OperationalError as e:
+                error_msg = str(e).lower()
+                # 检查是否是数据库锁定错误
+                if 'locked' in error_msg or 'database is locked' in error_msg:
+                    last_exception = e
+                    if attempt < MAX_RETRIES - 1:
+                        # 指数退避 + 随机抖动，避免同时重试
+                        delay = min(
+                            RETRY_DELAY_BASE * (2 ** attempt) + random.uniform(0, 0.1),
+                            RETRY_DELAY_MAX
+                        )
+                        logger.warning(
+                            f"数据库被锁定，{delay:.2f}秒后重试 "
+                            f"({attempt + 1}/{MAX_RETRIES}): {str(e)}"
+                        )
+                        time.sleep(delay)
+                        continue
+                    else:
+                        logger.error(f"数据库锁定，已达到最大重试次数: {str(e)}")
+                        raise
+                else:
+                    # 其他类型的错误，直接抛出
+                    logger.error(f"数据库操作失败: {str(e)}")
+                    raise
+            except Exception as e:
+                # 非数据库锁定错误，直接抛出
+                logger.error(f"数据库操作失败: {str(e)}")
+                raise
+        
+        # 如果所有重试都失败
+        if last_exception:
+            raise last_exception
+        raise Exception("数据库操作失败：未知错误")
     
     def _fetch_one(self, sql: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
         """执行查询并返回单条记录"""
@@ -371,6 +423,8 @@ class DatabaseManager:
                     row = dict(row)
                 try:
                     stage = StageRecord(row)
+                    # 调试：记录阶段评分
+                    logger.debug(f"从数据库读取阶段 {stage.stage_name}: self_rating={row.get('self_rating')}, 类型={type(row.get('self_rating'))}")
                     # 获取该阶段的媒体文件
                     media_rows = self._fetch_all(
                         "SELECT * FROM media_items WHERE stage_record_id = ? ORDER BY timestamp",

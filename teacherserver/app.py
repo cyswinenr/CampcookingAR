@@ -181,6 +181,11 @@ def get_students():
         # 转换为API格式（已经按炉号排序）
         result = []
         for student in students:
+            stage_ratings = student.get('stageRatings', {})
+            # 调试：记录评分数据
+            if stage_ratings:
+                logger.debug(f"学生 {student['id']} 的评分数据: {stage_ratings}")
+            
             result.append({
                 'id': student['id'],
                 'teamName': student['teamName'],
@@ -195,7 +200,8 @@ def get_students():
                 'hasProcessRecord': student['hasProcessRecord'],
                 'hasSummary': student['hasSummary'],
                 'completedStages': student['completedStages'],
-                'totalStages': student['totalStages']
+                'totalStages': student['totalStages'],
+                'stageRatings': stage_ratings  # 每个阶段的评分
             })
         
         return jsonify({

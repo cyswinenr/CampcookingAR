@@ -168,11 +168,32 @@ class DataStorage:
                     completed_stages = 0
                     total_stages = 0
                     has_process_record = False
+                    stage_ratings = {}  # 存储每个阶段的评分
                     if process_result:
                         process_record, stages = process_result
                         has_process_record = True
                         total_stages = len(stages)
                         completed_stages = sum(1 for s in stages if s.is_completed)
+                        logger.info(f"🔍 学生 {student_id}: 找到 {len(stages)} 个阶段记录")
+                        # 提取每个阶段的评分
+                        for stage in stages:
+                            # 确保正确读取评分值（处理 None、0 等情况）
+                            self_rating = stage.self_rating
+                            if self_rating is None:
+                                self_rating = 0
+                            else:
+                                # 确保是整数类型
+                                try:
+                                    self_rating = int(self_rating)
+                                except (ValueError, TypeError):
+                                    self_rating = 0
+                            
+                            stage_ratings[stage.stage_name] = {
+                                'selfRating': self_rating,
+                                'isCompleted': stage.is_completed
+                            }
+                            # 使用 INFO 级别，确保能看到日志
+                            logger.info(f"✅ 阶段 {stage.stage_name} 评分: {self_rating} (原始值: {stage.self_rating}, 类型: {type(stage.self_rating)})")
                     
                     # 检查是否有课后总结
                     summary_data = self.db_manager.get_summary_data(student_id)
@@ -204,8 +225,15 @@ class DataStorage:
                         'hasProcessRecord': has_process_record,
                         'hasSummary': has_summary,
                         'completedStages': completed_stages,
-                        'totalStages': total_stages
+                        'totalStages': total_stages,
+                        'stageRatings': stage_ratings  # 每个阶段的评分
                     })
+                    
+                    # 记录评分数据摘要
+                    if stage_ratings:
+                        logger.info(f"📊 学生 {student_id} 的评分摘要: {len(stage_ratings)} 个阶段有数据")
+                        for stage_name, rating_data in stage_ratings.items():
+                            logger.info(f"   {stage_name}: {rating_data['selfRating']} 星")
                     
                 except Exception as e:
                     logger.error(f"读取学生数据失败 {student_id}: {str(e)}")

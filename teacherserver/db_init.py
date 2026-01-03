@@ -22,9 +22,17 @@ class DatabaseInitializer:
     
     def connect(self):
         """连接数据库"""
-        self.conn = sqlite3.connect(self.db_path)
+        self.conn = sqlite3.connect(self.db_path, timeout=30.0)
         self.conn.row_factory = sqlite3.Row  # 返回字典格式的行
-        logger.info(f"连接到数据库: {self.db_path}")
+        # 启用 WAL 模式（Write-Ahead Logging）以提高并发性能
+        try:
+            self.conn.execute("PRAGMA journal_mode=WAL")
+            logger.info(f"连接到数据库: {self.db_path} (WAL 模式已启用)")
+        except Exception as e:
+            logger.warning(f"启用 WAL 模式失败: {str(e)}")
+            logger.info(f"连接到数据库: {self.db_path}")
+        # 设置 busy_timeout（毫秒），自动重试锁定的数据库
+        self.conn.execute("PRAGMA busy_timeout=5000")  # 5秒超时
     
     def close(self):
         """关闭数据库连接"""
