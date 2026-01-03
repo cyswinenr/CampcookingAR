@@ -2309,10 +2309,22 @@
         }
 
         async function clearDatabase() {
+            // 第一次确认
             if (!confirm('⚠️ 警告：此操作将清空所有数据！\n\n此操作不可恢复，确定要继续吗？')) {
                 return;
             }
+            
+            // 第二次确认
             if (!confirm('请再次确认：真的要清空所有数据吗？')) {
+                return;
+            }
+            
+            // 输入密码
+            const password = prompt('🔐 请输入密码以确认清空数据库：\n\n此操作将永久删除所有数据，请谨慎操作！');
+            
+            // 如果用户取消或密码为空
+            if (password === null || password === '') {
+                alert('❌ 已取消操作：未输入密码');
                 return;
             }
 
@@ -2329,6 +2341,7 @@
                         'Content-Type': 'application/json',
                         'Cache-Control': 'no-cache'
                     },
+                    body: JSON.stringify({ password: password }),
                     cache: 'no-store'
                 });
 

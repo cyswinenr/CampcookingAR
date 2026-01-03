@@ -601,8 +601,21 @@ def get_statistics():
 
 @app.route('/api/database/clear', methods=['POST'])
 def clear_database():
-    """清空数据库数据"""
+    """清空数据库数据（需要密码验证）"""
     try:
+        # 获取请求数据
+        data = request.get_json() or {}
+        password = data.get('password', '')
+        
+        # 验证密码
+        from config import Config
+        if password != Config.CLEAR_DATABASE_PASSWORD:
+            logger.warning(f"⚠️ 清空数据库请求被拒绝：密码错误（尝试的密码: {password[:3]}***）")
+            return jsonify({
+                'status': 'error',
+                'message': '密码错误，无法清空数据库'
+            }), 403
+        
         # 使用db_manager清空数据库
         from db_manager import DatabaseManager
         db_manager = DatabaseManager()

@@ -31,4 +31,7 @@ class Config:
     
     # API配置
     CORS_ORIGINS = ['*']  # 允许的跨域来源（生产环境应限制具体域名）
+    
+    # 清空数据库密码配置
+    CLEAR_DATABASE_PASSWORD = '81438316'  # 清空数据库所需的密码
 
