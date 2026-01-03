@@ -98,19 +98,6 @@
             font-size: 20px;
         }
 
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .search-box:focus {
-            outline: none;
-            border-color: #667eea;
-        }
 
         .team-row {
             background: #fafafa;
@@ -633,9 +620,8 @@
 
         <div class="main-content">
             <h2>野炊小组列表</h2>
-            <input type="text" class="search-box" id="searchBox" placeholder="搜索小组（学校、班级、成员、炉号）..." oninput="filterStudents()">
-                <div id="studentsList" class="loading">加载中...</div>
-            </div>
+            <div id="studentsList" class="loading">加载中...</div>
+        </div>
     </div>
 
     <!-- 详情页面遮罩 -->
@@ -721,15 +707,8 @@
         // 渲染学生列表
         function renderStudentsList() {
             const container = document.getElementById('studentsList');
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
             
-            const filtered = allStudents.filter(s => 
-                s.teamName.toLowerCase().includes(searchTerm) ||
-                s.school.toLowerCase().includes(searchTerm) ||
-                s.memberNames.toLowerCase().includes(searchTerm) ||
-                (s.groupLeader && s.groupLeader.toLowerCase().includes(searchTerm)) ||
-                s.stoveNumber.toLowerCase().includes(searchTerm)
-            );
+            const filtered = allStudents;
 
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="loading">暂无小组数据</div>';
@@ -748,12 +727,13 @@
                     }
                 }
 
-                // 成员列表
-                const members = (student.memberNames || '').split(/[、,，]/).filter(m => m.trim());
-                const membersHtml = members.map(m => {
-                    const isLeader = m.trim() === student.groupLeader;
-                    return `<span class="member-tag ${isLeader ? 'leader' : ''}">${escapeHtml(m.trim())}${isLeader ? ' (组长)' : ''}</span>`;
-                }).join('');
+                // 只显示组长
+                let membersHtml = '';
+                if (student.groupLeader) {
+                    membersHtml = `<span class="member-tag leader">${escapeHtml(student.groupLeader)} (组长)</span>`;
+                } else {
+                    membersHtml = '<span style="color: #999;">-</span>';
+                }
 
                 // 生成阶段评分显示
                 const stageRatings = student.stageRatings || {};
@@ -834,8 +814,8 @@
                             </div>
                             <div class="team-info">
                                 <div class="info-row">
-                                    <span class="info-label">成员:</span>
-                                    <div class="members-list">${membersHtml || '<span style="color: #999;">-</span>'}</div>
+                                    <span class="info-label">组长:</span>
+                                    <div class="members-list">${membersHtml}</div>
                                 </div>
                             </div>
                         </div>
@@ -1418,10 +1398,6 @@
                 document.getElementById('completionRate').textContent = 
                     Math.round(stats.averageCompletion) + '%';
             }
-        }
-
-        function filterStudents() {
-            renderStudentsList();
         }
 
         function escapeHtml(text) {
