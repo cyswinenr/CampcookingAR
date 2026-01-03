@@ -22,9 +22,19 @@ import com.campcooking.ar.data.MediaType
 import com.campcooking.ar.databinding.ActivitySummaryBinding
 import com.campcooking.ar.utils.ProcessRecordManager
 import com.campcooking.ar.utils.SummaryManager
+import com.campcooking.ar.utils.TeamInfoManager
+import com.campcooking.ar.utils.ServerConfigManager
+import com.campcooking.ar.utils.DataSubmitManager
+import com.google.gson.Gson
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
+import android.util.Log
 
 /**
  * 课后总结Activity
@@ -35,6 +45,16 @@ class SummaryActivity : AppCompatActivity() {
     
     private lateinit var binding: ActivitySummaryBinding
     private lateinit var summaryManager: SummaryManager
+    private lateinit var teamInfoManager: TeamInfoManager
+    private lateinit var serverConfigManager: ServerConfigManager
+    private lateinit var dataSubmitManager: DataSubmitManager
+    
+    private val gson = Gson()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .build()
     
     // 图片列表
     private val photos1 = mutableListOf<String>()
@@ -52,6 +72,7 @@ class SummaryActivity : AppCompatActivity() {
     private var currentQuestionNumber: Int = 1 // 当前正在为哪个问题添加图片
     
     companion object {
+        private const val TAG = "SummaryActivity"
         private const val REQUEST_CAMERA_PERMISSION = 200
         private const val REQUEST_TAKE_PHOTO_1 = 201
         private const val REQUEST_TAKE_PHOTO_2 = 202
@@ -77,6 +98,9 @@ class SummaryActivity : AppCompatActivity() {
             
             // 初始化数据管理器
             summaryManager = SummaryManager(this)
+            teamInfoManager = TeamInfoManager(this)
+            serverConfigManager = ServerConfigManager(this)
+            dataSubmitManager = DataSubmitManager(this)
             
             // 获取团队信息
             val teamName = intent.getStringExtra("teamName") ?: "野炊小组"
@@ -136,7 +160,7 @@ class SummaryActivity : AppCompatActivity() {
             
             // 保存按钮
             binding.saveButton.setOnClickListener {
-                saveSummary()
+                saveAndUploadSummary()
             }
             
             // 添加图片按钮
@@ -473,6 +497,210 @@ class SummaryActivity : AppCompatActivity() {
             if (!silent) {
                 Toast.makeText(this, "保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+    
+    /**
+     * 保存并上传总结到服务器
+     */
+    private fun saveAndUploadSummary() {
+        try {
+            // 先保存到本地
+            val answer1 = binding.answer1Input.text?.toString()?.trim() ?: ""
+            val answer2 = binding.answer2Input.text?.toString()?.trim() ?: ""
+            val answer3 = binding.answer3Input.text?.toString()?.trim() ?: ""
+            
+            val saveSuccess = summaryManager.saveSummary(
+                answer1 = answer1,
+                answer2 = answer2,
+                answer3 = answer3,
+                photos1 = photos1,
+                photos2 = photos2,
+                photos3 = photos3
+            )
+            
+            if (!saveSuccess) {
+                Toast.makeText(this, "保存失败，无法上传", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // 获取团队信息
+            val teamInfo = teamInfoManager.loadTeamInfo()
+            if (teamInfo == null) {
+                Toast.makeText(this, "团队信息不存在，无法上传", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // 显示上传提示
+            Toast.makeText(this, "正在上传到服务器...", Toast.LENGTH_SHORT).show()
+            
+            // 在后台线程上传
+            Thread {
+                try {
+                    uploadSummaryToServer(teamInfo, answer1, answer2, answer3)
+                } catch (e: Exception) {
+                    Log.e(TAG, "上传失败: ${e.message}", e)
+                    runOnUiThread {
+                        Toast.makeText(this, "上传失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }.start()
+            
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
+     * 上传总结数据到服务器
+     */
+    private fun uploadSummaryToServer(
+        teamInfo: com.campcooking.ar.data.TeamInfo,
+        answer1: String,
+        answer2: String,
+        answer3: String
+    ) {
+        try {
+            val studentId = "${teamInfo.school}_${teamInfo.grade}_${teamInfo.className}_${teamInfo.stoveNumber}"
+            val serverUrl = serverConfigManager.getServerUrl()
+            
+            // 1. 先上传所有总结图片
+            val allPhotos = photos1 + photos2 + photos3
+            if (allPhotos.isNotEmpty()) {
+                Log.d(TAG, "开始上传 ${allPhotos.size} 张总结图片")
+                var uploadSuccessCount = 0
+                var uploadFailCount = 0
+                
+                for (photoPath in allPhotos) {
+                    try {
+                        val file = File(photoPath)
+                        if (file.exists()) {
+                            val success = uploadSummaryPhoto(serverUrl, studentId, file)
+                            if (success) {
+                                uploadSuccessCount++
+                                Log.d(TAG, "✅ 上传成功: ${file.name}")
+                            } else {
+                                uploadFailCount++
+                                Log.w(TAG, "⚠️ 上传失败: ${file.name}")
+                            }
+                        } else {
+                            uploadFailCount++
+                            Log.w(TAG, "⚠️ 文件不存在: $photoPath")
+                        }
+                    } catch (e: Exception) {
+                        uploadFailCount++
+                        Log.e(TAG, "上传图片异常: $photoPath, ${e.message}", e)
+                    }
+                }
+                
+                Log.d(TAG, "总结图片上传完成: 成功 $uploadSuccessCount, 失败 $uploadFailCount")
+            }
+            
+            // 2. 构建总结数据包
+            val summaryData = mapOf(
+                "answer1" to answer1,
+                "answer2" to answer2,
+                "answer3" to answer3,
+                "photos1" to photos1,
+                "photos2" to photos2,
+                "photos3" to photos3
+            )
+            
+            // 3. 构建完整数据包（只包含团队信息和总结数据）
+            val dataPackage = mapOf(
+                "teamInfo" to mapOf(
+                    "school" to teamInfo.school,
+                    "grade" to teamInfo.grade,
+                    "className" to teamInfo.className,
+                    "stoveNumber" to teamInfo.stoveNumber,
+                    "memberCount" to teamInfo.memberCount,
+                    "memberNames" to teamInfo.memberNames
+                ),
+                "processRecord" to null,
+                "summaryData" to summaryData,
+                "exportTime" to System.currentTimeMillis()
+            )
+            
+            // 4. 提交到服务器
+            val json = gson.toJson(dataPackage)
+            val requestBody = json.toRequestBody("application/json".toMediaType())
+            
+            val request = Request.Builder()
+                .url("$serverUrl/api/submit")
+                .post(requestBody)
+                .build()
+            
+            Log.d(TAG, "提交总结数据到: $serverUrl/api/submit")
+            
+            val response = client.newCall(request).execute()
+            
+            if (response.isSuccessful) {
+                val responseBody = response.body?.string()
+                Log.d(TAG, "上传成功: $responseBody")
+                runOnUiThread {
+                    Toast.makeText(this, "✅ 总结已保存并上传", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                val errorMsg = "服务器错误: ${response.code}"
+                Log.e(TAG, errorMsg)
+                runOnUiThread {
+                    Toast.makeText(this, "上传失败: $errorMsg", Toast.LENGTH_SHORT).show()
+                }
+            }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "上传总结数据异常: ${e.message}", e)
+            throw e
+        }
+    }
+    
+    /**
+     * 上传总结图片到服务器
+     */
+    private fun uploadSummaryPhoto(serverUrl: String, studentId: String, file: File): Boolean {
+        return try {
+            // 根据文件类型确定MIME类型
+            val mimeType = when {
+                file.name.endsWith(".jpg", ignoreCase = true) || file.name.endsWith(".jpeg", ignoreCase = true) -> "image/jpeg"
+                file.name.endsWith(".png", ignoreCase = true) -> "image/png"
+                else -> "image/jpeg"
+            }
+            
+            // 构建请求体（multipart/form-data）
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", file.name, file.asRequestBody(mimeType.toMediaType()))
+                .addFormDataPart("original_path", file.absolutePath)
+                .addFormDataPart("type", "PHOTO")
+                .addFormDataPart("timestamp", System.currentTimeMillis().toString())
+                .build()
+            
+            val encodedStudentId = java.net.URLEncoder.encode(studentId, "UTF-8")
+            val request = Request.Builder()
+                .url("$serverUrl/api/student/$encodedStudentId/media/upload")
+                .post(requestBody)
+                .build()
+            
+            Log.d(TAG, "上传总结图片: ${file.name} (${file.length()} 字节)")
+            
+            val response = client.newCall(request).execute()
+            val success = response.isSuccessful
+            
+            if (success) {
+                val responseBody = response.body?.string()
+                Log.d(TAG, "上传成功: ${file.name}, 响应: $responseBody")
+            } else {
+                val errorBody = response.body?.string()
+                Log.e(TAG, "上传图片失败: ${file.name}, 响应码: ${response.code}, 错误: $errorBody")
+            }
+            
+            response.close()
+            success
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "上传图片异常: ${file.name}, ${e.message}", e)
+            false
         }
     }
     

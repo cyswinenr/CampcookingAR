@@ -646,12 +646,64 @@
             overflow: hidden;
             aspect-ratio: 1;
             cursor: pointer;
+            min-height: 150px;
+            background: #f0f0f0;
         }
 
-        .media-item img, .media-item video {
+        .media-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+
+        /* 视频缩略图占位符样式 */
+        .media-item.video-placeholder {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .media-item.video-placeholder:hover {
+            background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+            transform: scale(1.02);
+        }
+
+        .video-play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .media-item.video-placeholder:hover .video-play-icon {
+            background: rgba(255, 255, 255, 1);
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        .video-label {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         /* 悬浮窗口样式 */
@@ -694,6 +746,19 @@
         .media-overlay-content video {
             width: auto;
             height: auto;
+        }
+
+        /* 视频加载指示器 */
+        .video-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 24px;
+            border-radius: 8px;
         }
 
         .media-overlay-close {
@@ -1264,13 +1329,13 @@
                                                         const itemPath = item.path || item.file_path || '';
                                                         const mediaUrl = `${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(itemPath)}`;
                                                         if (itemType === 'VIDEO') {
-                                                            return `<div class="media-item" onclick="showMediaInOverlay('${mediaUrl}', 'VIDEO')">
-                                                                <video src="${mediaUrl}"></video>
-                                                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 8px; border-radius: 50%; font-size: 20px;">▶</div>
+                                                            return `<div class="media-item video-placeholder" onclick="showMediaInOverlay('${mediaUrl}', 'VIDEO')">
+                                                                <div class="video-play-icon">▶</div>
+                                                                <div class="video-label">视频</div>
                                                             </div>`;
                                                         } else {
                                                             return `<div class="media-item" onclick="showMediaInOverlay('${mediaUrl}', 'PHOTO')">
-                                                                <img src="${mediaUrl}" alt="照片">
+                                                                <img src="${mediaUrl}" alt="照片" loading="lazy">
                                                             </div>`;
                                                         }
                                                     }).join('')}
@@ -1566,16 +1631,16 @@
                                             <div class="media-grid" style="margin-top: 12px;">
                                                     ${stage.mediaItems.map(item => {
                                                         const mediaUrl = `${API_BASE}/api/student/${encodeURIComponent(studentId)}/media/${encodeURIComponent(item.path)}`;
-                                                        if (item.type === 'VIDEO') {
-                                                            return `<div class="media-item" onclick="showMediaInOverlay('${mediaUrl}', 'VIDEO')">
-                                                                <video src="${mediaUrl}"></video>
-                                                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 8px; border-radius: 50%;">▶</div>
-                                                            </div>`;
-                                                        } else {
-                                                            return `<div class="media-item" onclick="showMediaInOverlay('${mediaUrl}', 'PHOTO')">
-                                                                <img src="${mediaUrl}" alt="照片">
-                                                            </div>`;
-                                                        }
+                                                    if (item.type === 'VIDEO') {
+                                                        return `<div class="media-item video-placeholder" onclick="showMediaInOverlay('${mediaUrl}', 'VIDEO')">
+                                                            <div class="video-play-icon">▶</div>
+                                                            <div class="video-label">视频</div>
+                                                        </div>`;
+                                                    } else {
+                                                        return `<div class="media-item" onclick="showMediaInOverlay('${mediaUrl}', 'PHOTO')">
+                                                            <img src="${mediaUrl}" alt="照片" loading="lazy">
+                                                        </div>`;
+                                                    }
                                                     }).join('')}
                                             </div>
                                         ` : ''}
@@ -1899,8 +1964,11 @@
             
             if (mediaItem.type === 'VIDEO') {
                 mediaDiv.innerHTML = `
-                    <video src="${mediaUrl}" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
-                    <div style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.7); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; line-height: 1;" onclick="removeMedia('${stageKey}', '${escapeHtml(mediaItem.path)}')">×</div>
+                    <div style="width: 100%; height: 100%; background: #000; display: flex; align-items: center; justify-content: center; position: relative;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.6); color: white; padding: 8px; border-radius: 50%; font-size: 20px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">▶</div>
+                        <div style="color: #fff; font-size: 12px; position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 4px;">视频</div>
+                        <div style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.7); color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; line-height: 1;" onclick="removeMedia('${stageKey}', '${escapeHtml(mediaItem.path)}')">×</div>
+                    </div>
                 `;
             } else {
                 mediaDiv.innerHTML = `
@@ -2029,50 +2097,214 @@
             return div.innerHTML;
         }
 
+        // ESC键监听器（全局，避免重复添加）
+        let escapeKeyHandler = null;
+
         // 显示媒体文件在悬浮窗口中
         function showMediaInOverlay(url, type) {
             const overlay = document.getElementById('mediaOverlay');
             const content = document.getElementById('mediaOverlayContent');
             
-            // 清空之前的内容
+            // 先停止并清理之前的媒体资源
+            const oldMedia = content.querySelector('video, img');
+            if (oldMedia) {
+                if (oldMedia.tagName === 'VIDEO') {
+                    try {
+                        oldMedia.pause();
+                        oldMedia.removeAttribute('src');
+                        oldMedia.load(); // 释放视频资源
+                    } catch (e) {
+                        console.log('清理旧视频资源时出错:', e);
+                    }
+                }
+                oldMedia.remove();
+            }
+            
+            // 清空内容
             content.innerHTML = '';
             
             if (type === 'VIDEO') {
+                // 显示加载提示
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'video-loading';
+                loadingDiv.textContent = '正在加载视频...';
+                content.appendChild(loadingDiv);
+                
+                // 创建视频元素（针对Android优化）
                 const video = document.createElement('video');
-                video.src = url;
                 video.controls = true;
+                video.playsInline = true; // 内联播放
+                video.preload = 'none'; // Android平板：不预加载，减少内存占用
                 video.style.maxWidth = '100%';
                 video.style.maxHeight = '90vh';
+                video.style.display = 'block';
+                video.style.width = 'auto';
+                video.style.height = 'auto';
+                video.style.visibility = 'hidden';
+                
+                // 添加错误处理
+                let errorHandled = false;
+                video.addEventListener('error', function(e) {
+                    if (errorHandled) return;
+                    errorHandled = true;
+                    console.error('视频加载错误:', e, video.error);
+                    loadingDiv.remove();
+                    let errorMsg = '视频加载失败';
+                    if (video.error) {
+                        switch(video.error.code) {
+                            case video.error.MEDIA_ERR_ABORTED:
+                                errorMsg = '视频加载被中止';
+                                break;
+                            case video.error.MEDIA_ERR_NETWORK:
+                                errorMsg = '网络错误，请检查连接';
+                                break;
+                            case video.error.MEDIA_ERR_DECODE:
+                                errorMsg = '视频解码失败，格式可能不支持';
+                                break;
+                            case video.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                                errorMsg = '视频格式不支持';
+                                break;
+                        }
+                    }
+                    content.innerHTML = `<div style="color: white; padding: 20px; text-align: center; background: rgba(255,0,0,0.3); border-radius: 8px;">${errorMsg}</div>`;
+                });
+                
+                // 加载超时处理（30秒）
+                const loadTimeout = setTimeout(() => {
+                    if (video.readyState < 2) { // HAVE_CURRENT_DATA
+                        if (!errorHandled) {
+                            errorHandled = true;
+                            loadingDiv.remove();
+                            content.innerHTML = '<div style="color: white; padding: 20px; text-align: center; background: rgba(255,165,0,0.3); border-radius: 8px;">视频加载超时<br>请检查网络或重试</div>';
+                        }
+                    }
+                }, 30000);
+                
+                // 元数据加载完成
+                video.addEventListener('loadedmetadata', function() {
+                    clearTimeout(loadTimeout);
+                    loadingDiv.remove();
+                    video.style.visibility = 'visible';
+                });
+                
+                // 可以播放时
+                video.addEventListener('canplay', function() {
+                    clearTimeout(loadTimeout);
+                    loadingDiv.remove();
+                    video.style.visibility = 'visible';
+                    
+                    // Android平板：尝试自动播放
+                    const playPromise = video.play();
+                    if (playPromise !== undefined) {
+                        playPromise.then(() => {
+                            console.log('视频自动播放成功');
+                        }).catch(err => {
+                            console.log('自动播放失败（可能需要用户交互）:', err);
+                            // 显示播放提示
+                            const playHint = document.createElement('div');
+                            playHint.style.cssText = 'position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 6px; font-size: 16px; z-index: 10; white-space: nowrap;';
+                            playHint.textContent = '点击播放按钮 ▶ 开始播放';
+                            content.appendChild(playHint);
+                            setTimeout(() => {
+                                if (playHint.parentNode) {
+                                    playHint.style.transition = 'opacity 0.3s';
+                                    playHint.style.opacity = '0';
+                                    setTimeout(() => playHint.remove(), 300);
+                                }
+                            }, 4000);
+                        });
+                    }
+                });
+                
+                // 加载进度
+                video.addEventListener('loadstart', function() {
+                    loadingDiv.textContent = '开始加载视频...';
+                });
+                
+                video.addEventListener('progress', function() {
+                    if (video.buffered.length > 0) {
+                        const loaded = (video.buffered.end(0) / video.duration * 100).toFixed(0);
+                        loadingDiv.textContent = `正在加载视频... ${loaded}%`;
+                    }
+                });
+                
+                // 添加到DOM
                 content.appendChild(video);
+                
+                // 设置视频源（Android需要直接设置，不需要延迟）
+                try {
+                    video.src = url;
+                    // 触发加载
+                    video.load();
+                } catch (e) {
+                    console.error('设置视频源失败:', e);
+                    clearTimeout(loadTimeout);
+                    loadingDiv.remove();
+                    content.innerHTML = '<div style="color: white; padding: 20px; text-align: center;">视频加载失败</div>';
+                }
+                
             } else {
                 const img = document.createElement('img');
                 img.src = url;
                 img.alt = '照片';
                 img.style.maxWidth = '100%';
                 img.style.maxHeight = '90vh';
+                img.style.display = 'block';
+                
+                // 添加错误处理
+                img.addEventListener('error', function() {
+                    content.innerHTML = '<div style="color: white; padding: 20px; text-align: center;">图片加载失败</div>';
+                });
+                
                 content.appendChild(img);
             }
             
             // 显示悬浮窗口
             overlay.classList.add('active');
             
-            // 按ESC键关闭
-            document.addEventListener('keydown', handleEscapeKey);
+            // 添加ESC键监听（如果还没有添加）
+            if (!escapeKeyHandler) {
+                escapeKeyHandler = function(event) {
+                    if (event.key === 'Escape') {
+                        closeMediaOverlay();
+                    }
+                };
+                document.addEventListener('keydown', escapeKeyHandler);
+            }
         }
 
         // 关闭媒体悬浮窗口
         function closeMediaOverlay() {
             const overlay = document.getElementById('mediaOverlay');
+            const content = document.getElementById('mediaOverlayContent');
+            
+            // 停止视频播放并释放资源
+            const video = content.querySelector('video');
+            if (video) {
+                try {
+                    // 移除所有事件监听器
+                    const newVideo = video.cloneNode(false);
+                    video.parentNode.replaceChild(newVideo, video);
+                    
+                    // 停止播放
+                    video.pause();
+                    video.removeAttribute('src');
+                    video.load(); // 释放视频资源
+                } catch (e) {
+                    console.log('关闭视频时出错:', e);
+                }
+            }
+            
+            // 清空内容
+            content.innerHTML = '';
+            
+            // 隐藏悬浮窗口
             overlay.classList.remove('active');
             
             // 移除ESC键监听
-            document.removeEventListener('keydown', handleEscapeKey);
-        }
-
-        // 处理ESC键关闭
-        function handleEscapeKey(event) {
-            if (event.key === 'Escape') {
-                closeMediaOverlay();
+            if (escapeKeyHandler) {
+                document.removeEventListener('keydown', escapeKeyHandler);
+                escapeKeyHandler = null;
             }
         }
 

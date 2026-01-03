@@ -435,21 +435,12 @@
         android:layout_height="70dp"
         android:orientation="horizontal"
         android:background="@color/fire_orange"
-        android:gravity="center_vertical"
+        android:gravity="center_vertical|end"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="💾 内容会自动保存"
-            android:textColor="@android:color/white"
-            android:textSize="14sp"
-            android:alpha="0.9" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/saveButton"
