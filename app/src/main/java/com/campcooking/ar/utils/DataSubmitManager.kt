@@ -1,15 +1,19 @@
 package com.campcooking.ar.utils
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import com.campcooking.ar.data.ProcessRecord
 import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.data.MediaItem
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okio.BufferedSink
+import okio.source
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -26,14 +30,71 @@ class DataSubmitManager(private val context: Context) {
     private val processRecordManager = ProcessRecordManager(context)
     private val summaryManager = SummaryManager(context)
     
+    // 增加超时时间，特别是writeTimeout（大文件需要更长时间）
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)  // 5分钟
+        .writeTimeout(300, TimeUnit.SECONDS)  // 5分钟（大文件上传需要更长时间）
         .build()
     
     companion object {
         private const val TAG = "DataSubmitManager"
+        private const val PREF_NAME = "uploaded_files_prefs"
+        private const val KEY_UPLOADED_FILES = "uploaded_files"
+    }
+    
+    // 已上传文件记录（内存缓存）
+    private val uploadedFilesSet = mutableSetOf<String>()
+    
+    init {
+        // 加载已上传文件记录
+        loadUploadedFiles()
+    }
+    
+    /**
+     * 加载已上传文件记录
+     */
+    private fun loadUploadedFiles() {
+        try {
+            val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            val filesJson = prefs.getString(KEY_UPLOADED_FILES, "[]") ?: "[]"
+            val type = object : TypeToken<List<String>>() {}.type
+            val filesList: List<String> = gson.fromJson(filesJson, type)
+            uploadedFilesSet.clear()
+            uploadedFilesSet.addAll(filesList)
+            Log.d(TAG, "加载已上传文件记录: ${uploadedFilesSet.size} 个文件")
+        } catch (e: Exception) {
+            Log.e(TAG, "加载已上传文件记录失败: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * 保存已上传文件记录
+     */
+    private fun saveUploadedFiles() {
+        try {
+            val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            val filesJson = gson.toJson(uploadedFilesSet.toList())
+            prefs.edit().putString(KEY_UPLOADED_FILES, filesJson).apply()
+            Log.d(TAG, "保存已上传文件记录: ${uploadedFilesSet.size} 个文件")
+        } catch (e: Exception) {
+            Log.e(TAG, "保存已上传文件记录失败: ${e.message}", e)
+        }
+    }
+    
+    /**
+     * 标记文件已上传
+     */
+    private fun markFileAsUploaded(filePath: String) {
+        uploadedFilesSet.add(filePath)
+        saveUploadedFiles()
+    }
+    
+    /**
+     * 检查文件是否已上传
+     */
+    private fun isFileUploaded(filePath: String): Boolean {
+        return uploadedFilesSet.contains(filePath)
     }
     
     /**
@@ -107,10 +168,12 @@ class DataSubmitManager(private val context: Context) {
      * 提交完整数据到服务器（包含团队信息、过程记录、课后总结）
      * @param onSuccess 成功回调
      * @param onError 错误回调
+     * @param onProgress 进度回调 (current: 当前文件索引, total: 总文件数, fileName: 当前文件名, fileProgress: 当前文件进度 0-100)
      */
     fun submitAllData(
         onSuccess: (() -> Unit)? = null,
-        onError: ((String) -> Unit)? = null
+        onError: ((String) -> Unit)? = null,
+        onProgress: ((Int, Int, String, Int) -> Unit)? = null
     ) {
         // 在后台线程执行
         Thread {
@@ -200,19 +263,46 @@ class DataSubmitManager(private val context: Context) {
                     }
                 }
                 
-                // 上传媒体文件
-                if (mediaFilesToUpload.isNotEmpty()) {
-                    Log.d(TAG, "开始上传 ${mediaFilesToUpload.size} 个媒体文件")
+                // 过滤掉已上传的文件
+                val filesToUpload = mediaFilesToUpload.filter { mediaItem ->
+                    val file = File(mediaItem.path)
+                    if (file.exists() && !isFileUploaded(mediaItem.path)) {
+                        true
+                    } else {
+                        if (isFileUploaded(mediaItem.path)) {
+                            Log.d(TAG, "⏭️ 跳过已上传文件: ${file.name}")
+                        }
+                        false
+                    }
+                }
+                
+                // 上传媒体文件（带进度回调）
+                if (filesToUpload.isNotEmpty()) {
+                    Log.d(TAG, "开始上传 ${filesToUpload.size} 个媒体文件（跳过 ${mediaFilesToUpload.size - filesToUpload.size} 个已上传文件）")
                     var uploadSuccessCount = 0
                     var uploadFailCount = 0
                     
-                    for (mediaItem in mediaFilesToUpload) {
+                    filesToUpload.forEachIndexed { index, mediaItem ->
                         try {
                             val file = File(mediaItem.path)
                             if (file.exists()) {
-                                val success = uploadMediaFile(serverConfig.getServerUrl(), studentId, mediaItem, file)
+                                // 通知开始上传当前文件
+                                onProgress?.invoke(index + 1, filesToUpload.size, file.name, 0)
+                                
+                                val success = uploadMediaFile(
+                                    serverConfig.getServerUrl(), 
+                                    studentId, 
+                                    mediaItem, 
+                                    file,
+                                    onFileProgress = { progress ->
+                                        // 文件上传进度 (0-100)
+                                        onProgress?.invoke(index + 1, filesToUpload.size, file.name, progress)
+                                    }
+                                )
+                                
                                 if (success) {
                                     uploadSuccessCount++
+                                    markFileAsUploaded(mediaItem.path) // 标记为已上传
                                     Log.d(TAG, "✅ 上传成功: ${file.name}")
                                 } else {
                                     uploadFailCount++
@@ -231,6 +321,8 @@ class DataSubmitManager(private val context: Context) {
                     Log.d(TAG, "媒体文件上传完成: 成功 $uploadSuccessCount, 失败 $uploadFailCount")
                 } else {
                     Log.d(TAG, "没有媒体文件需要上传")
+                    // 如果没有文件需要上传，也要通知进度完成
+                    onProgress?.invoke(0, 0, "", 100)
                 }
                 
                 // 转换为JSON
@@ -322,9 +414,15 @@ class DataSubmitManager(private val context: Context) {
     }
     
     /**
-     * 上传媒体文件到服务器
+     * 上传媒体文件到服务器（带进度回调）
      */
-    private fun uploadMediaFile(serverUrl: String, studentId: String, mediaItem: MediaItem, file: File): Boolean {
+    private fun uploadMediaFile(
+        serverUrl: String, 
+        studentId: String, 
+        mediaItem: MediaItem, 
+        file: File,
+        onFileProgress: ((Int) -> Unit)? = null
+    ): Boolean {
         return try {
             // 根据文件类型确定MIME类型
             val mimeType = when {
@@ -337,10 +435,40 @@ class DataSubmitManager(private val context: Context) {
                 else -> "application/octet-stream"
             }
             
-            // 构建请求体（multipart/form-data）
-            val requestBody = MultipartBody.Builder()
+            // 创建带进度的请求体
+            val fileSize = file.length()
+            val requestBody = object : RequestBody() {
+                override fun contentType(): MediaType = mimeType.toMediaType()
+                
+                override fun contentLength(): Long = fileSize
+                
+                override fun writeTo(sink: BufferedSink) {
+                    val source = file.source()
+                    var totalBytesRead = 0L
+                    val buffer = okio.Buffer()
+                    
+                    while (true) {
+                        val bytesRead = source.read(buffer, 8192)
+                        if (bytesRead == -1L) break
+                        
+                        sink.write(buffer, bytesRead)
+                        totalBytesRead += bytesRead
+                        
+                        // 计算并回调进度
+                        if (fileSize > 0) {
+                            val progress = ((totalBytesRead * 100) / fileSize).toInt()
+                            onFileProgress?.invoke(progress)
+                        }
+                    }
+                    
+                    source.close()
+                }
+            }
+            
+            // 构建multipart请求体
+            val multipartBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
-                .addFormDataPart("file", file.name, file.asRequestBody(mimeType.toMediaType()))
+                .addFormDataPart("file", file.name, requestBody)
                 .addFormDataPart("original_path", mediaItem.path)
                 .addFormDataPart("type", mediaItem.type.name)
                 .addFormDataPart("timestamp", mediaItem.timestamp.toString())
@@ -349,10 +477,10 @@ class DataSubmitManager(private val context: Context) {
             val encodedStudentId = java.net.URLEncoder.encode(studentId, "UTF-8")
             val request = Request.Builder()
                 .url("$serverUrl/api/student/$encodedStudentId/media/upload")
-                .post(requestBody)
+                .post(multipartBody)
                 .build()
             
-            Log.d(TAG, "上传文件: ${file.name} (${file.length()} 字节) 到 $serverUrl/api/student/$encodedStudentId/media/upload")
+            Log.d(TAG, "上传文件: ${file.name} (${fileSize} 字节)")
             
             val response = client.newCall(request).execute()
             val success = response.isSuccessful

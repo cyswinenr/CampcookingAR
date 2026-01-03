@@ -61,6 +61,10 @@ class RecordActivity : AppCompatActivity() {
 
     // 定时器（用于更新用时显示）
     private var timer: Timer? = null
+    
+    // 上传相关
+    private var uploadProgressDialog: android.app.ProgressDialog? = null
+    private var isUploading = false
 
     companion object {
         private const val REQUEST_ALL_PERMISSIONS = 100      // 一次性请求所有权限
@@ -1281,22 +1285,80 @@ class RecordActivity : AppCompatActivity() {
         // 先保存到本地
         saveRecord()
         
-        // 显示发送中提示
-        Toast.makeText(this, "正在保存并发送数据...", Toast.LENGTH_SHORT).show()
+        // 检查是否正在上传
+        if (isUploading) {
+            Toast.makeText(this, "正在上传中，请稍候...", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // 显示上传进度对话框
+        showUploadProgressDialog()
         
         // 发送数据到服务器
         dataSubmitManager.submitAllData(
             onSuccess = {
                 runOnUiThread {
+                    dismissUploadProgressDialog()
                     Toast.makeText(this, "✅ 数据已保存并发送到服务器", Toast.LENGTH_LONG).show()
+                    isUploading = false
                 }
             },
             onError = { errorMsg ->
                 runOnUiThread {
+                    dismissUploadProgressDialog()
                     Toast.makeText(this, "⚠️ 保存成功，但发送失败: $errorMsg", Toast.LENGTH_LONG).show()
+                    isUploading = false
+                }
+            },
+            onProgress = { current, total, fileName, fileProgress ->
+                runOnUiThread {
+                    updateUploadProgress(current, total, fileName, fileProgress)
                 }
             }
         )
+        
+        isUploading = true
+    }
+    
+    /**
+     * 显示上传进度对话框
+     */
+    private fun showUploadProgressDialog() {
+        uploadProgressDialog = android.app.ProgressDialog(this).apply {
+            setTitle("正在上传数据")
+            setMessage("准备上传...")
+            setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL)
+            setMax(100)
+            setProgress(0)
+            setCancelable(false)  // 不可取消
+            setCanceledOnTouchOutside(false)  // 点击外部不可取消
+            show()
+        }
+    }
+    
+    /**
+     * 更新上传进度
+     */
+    private fun updateUploadProgress(current: Int, total: Int, fileName: String, fileProgress: Int) {
+        uploadProgressDialog?.apply {
+            if (total > 0) {
+                val overallProgress = ((current - 1) * 100 + fileProgress) / total
+                setProgress(overallProgress)
+                setMessage("正在上传文件 $current/$total\n$fileName\n${fileProgress}%")
+            } else {
+                // 如果没有文件需要上传，显示完成
+                setProgress(100)
+                setMessage("正在提交数据...")
+            }
+        }
+    }
+    
+    /**
+     * 关闭上传进度对话框
+     */
+    private fun dismissUploadProgressDialog() {
+        uploadProgressDialog?.dismiss()
+        uploadProgressDialog = null
     }
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -1411,7 +1473,14 @@ class RecordActivity : AppCompatActivity() {
         timer?.cancel()
     }
     
+    /**
+     * 重写返回键，上传期间禁用返回
+     */
     override fun onBackPressed() {
+        if (isUploading) {
+            Toast.makeText(this, "正在上传中，请稍候...", Toast.LENGTH_SHORT).show()
+            return
+        }
         AlertDialog.Builder(this)
             .setTitle("返回")
             .setMessage("记录会自动保存，确定返回吗？")
