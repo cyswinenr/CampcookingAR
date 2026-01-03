@@ -239,8 +239,9 @@ class DataStorage:
                     logger.error(f"读取学生数据失败 {student_id}: {str(e)}")
                     continue
             
-            # 按照炉号数字排序（1-20）
-            students.sort(key=lambda x: x['stoveNumberInt'])
+            # 按照炉号数字排序（1-20），从小到大
+            # 如果炉号相同，则按提交时间排序（后提交的排在后面）
+            students.sort(key=lambda x: (x['stoveNumberInt'], x.get('submitTime', 0)))
             
         except Exception as e:
             logger.error(f"获取学生列表失败: {str(e)}", exc_info=True)
