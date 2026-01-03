@@ -18,6 +18,7 @@ import logging
 from models import StudentDataPackage, TeacherEvaluation
 from storage import DataStorage
 from config import Config
+from db_init import init_database
 import sqlite3
 
 # 配置日志
@@ -313,9 +314,26 @@ def save_student_evaluation(student_id: str):
         }), 500
 
 
+@app.route('/api/evaluation/teams', methods=['GET'])
+def get_evaluation_teams():
+    """获取可评价的团队列表（新版本，高性能）"""
+    try:
+        teams = storage.get_all_evaluation_teams()
+        return jsonify({
+            'status': 'success',
+            'teams': teams
+        }), 200
+    except Exception as e:
+        logger.error(f"获取评价团队列表失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 @app.route('/api/evaluation', methods=['POST'])
 def save_evaluation():
-    """保存完整的教师评价数据（包含所有环节）"""
+    """保存完整的教师评价数据（新版本，高性能，单次操作）"""
     try:
         data = request.get_json()
         
@@ -333,58 +351,84 @@ def save_evaluation():
             }), 400
         
         team_id = data['teamId']
+        team_name = data.get('teamName', team_id)
         evaluations = data.get('evaluations', {})
         
-        # 保存每个环节的评价
+        logger.info(f"收到评价保存请求（V2）: team_id={team_id}, 评价环节数={len(evaluations)}")
+        
+        # 准备评价数据（JSON格式）
+        evaluation_data = {
+            'timestamp': data.get('timestamp', int(datetime.now().timestamp() * 1000)),
+            'stages': {}
+        }
+        
+        # 转换评价数据格式
         for stage, stage_eval in evaluations.items():
             if isinstance(stage_eval, dict):
-                # 创建TeacherEvaluation对象
-                evaluation = TeacherEvaluation({
-                    'team_id': team_id,
-                    'stage': stage,
-                    'rating': 0,  # 评价数据中没有rating，设为0
-                    'comment': stage_eval.get('otherComment', ''),
-                    'strengths': ', '.join(stage_eval.get('positiveTags', [])),
-                    'improvements': ', '.join(stage_eval.get('improvementTags', []))
-                })
-                
-                # 保存评价
-                storage.save_student_evaluation(team_id, evaluation)
-                logger.info(f"✅ 保存评价: {team_id} - {stage}")
+                evaluation_data['stages'][stage] = {
+                    'positiveTags': stage_eval.get('positiveTags', []),
+                    'improvementTags': stage_eval.get('improvementTags', []),
+                    'otherComment': stage_eval.get('otherComment', '')
+                }
         
-        return jsonify({
-            'status': 'success',
-            'message': '评价保存成功'
-        }), 200
+        # 保存评价（单次操作，高性能）
+        success = storage.save_teacher_evaluation_v2(team_id, team_name, evaluation_data)
+        
+        if success:
+            return jsonify({
+                'status': 'success',
+                'message': f'评价保存成功（已保存 {len(evaluation_data["stages"])} 个环节）'
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': '保存评价失败'
+            }), 500
         
     except Exception as e:
         logger.error(f"保存评价失败: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': f'服务器错误: {str(e)}'
         }), 500
 
 
 @app.route('/api/evaluation/<team_id>', methods=['GET'])
 def get_evaluation(team_id: str):
-    """获取指定团队的完整评价数据"""
+    """获取指定团队的完整评价数据（新版本，优先使用V2）"""
     try:
-        # 获取所有环节的评价
+        # 优先从V2表获取
+        evaluation_v2 = storage.get_teacher_evaluation_v2(team_id)
+        if evaluation_v2:
+            return jsonify({
+                'status': 'success',
+                'teamId': team_id,
+                'evaluations': evaluation_v2.get('stages', {})
+            }), 200
+        
+        # 如果V2没有，尝试从旧表获取（向后兼容）
         all_evaluations = storage.get_all_student_evaluations(team_id)
+        if all_evaluations:
+            # 转换为前端需要的格式
+            evaluations = {}
+            for stage, eval_data in all_evaluations.items():
+                evaluations[stage] = {
+                    'positiveTags': eval_data.get('strengths', '').split(', ') if eval_data.get('strengths') else [],
+                    'improvementTags': eval_data.get('improvements', '').split(', ') if eval_data.get('improvements') else [],
+                    'otherComment': eval_data.get('comment', '')
+                }
+            
+            return jsonify({
+                'status': 'success',
+                'teamId': team_id,
+                'evaluations': evaluations
+            }), 200
         
-        # 转换为前端需要的格式
-        evaluations = {}
-        for stage, eval_data in all_evaluations.items():
-            evaluations[stage] = {
-                'positiveTags': eval_data.get('strengths', '').split(', ') if eval_data.get('strengths') else [],
-                'improvementTags': eval_data.get('improvements', '').split(', ') if eval_data.get('improvements') else [],
-                'otherComment': eval_data.get('comment', '')
-            }
-        
+        # 没有找到评价
         return jsonify({
             'status': 'success',
             'teamId': team_id,
-            'evaluations': evaluations
+            'evaluations': {}
         }), 200
         
     except Exception as e:
@@ -800,6 +844,29 @@ def main():
     # 确保数据目录存在
     os.makedirs(Config.DATA_DIR, exist_ok=True)
     os.makedirs(Config.MEDIA_DIR, exist_ok=True)
+    os.makedirs(Config.EVALUATION_DIR, exist_ok=True)
+    
+    # 自动初始化数据库（确保所有表都存在）
+    print("=" * 60)
+    print("正在检查数据库...")
+    print("=" * 60)
+    try:
+        db_path = Config.DATABASE_PATH
+        # 确保数据库目录存在
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        
+        # 初始化数据库（如果表不存在会自动创建）
+        success = init_database(db_path)
+        if success:
+            print("✅ 数据库检查完成，所有表已就绪")
+        else:
+            print("⚠️  数据库初始化失败，但将继续启动服务器")
+            print("   如果遇到表不存在错误，请手动运行: python db_init.py")
+    except Exception as e:
+        logger.error(f"数据库初始化出错: {str(e)}", exc_info=True)
+        print(f"⚠️  数据库初始化出错: {str(e)}")
+        print("   如果遇到表不存在错误，请手动运行: python db_init.py")
+    print("=" * 60)
     
     # 获取本机IP
     server_ip = get_local_ip()

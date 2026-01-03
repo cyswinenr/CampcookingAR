@@ -190,7 +190,30 @@ class DatabaseInitializer:
             )
         """)
         
-        # 8. 创建 data_versions 表
+        # 8. 创建 teacher_evaluation_teams 表（独立的团队ID表，用于教师端显示）
+        self.execute_sql("""
+            CREATE TABLE IF NOT EXISTS teacher_evaluation_teams (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                team_id TEXT NOT NULL UNIQUE,
+                team_name TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            )
+        """)
+        
+        # 9. 创建 teacher_evaluations_v2 表（新版本评价表，JSON格式存储）
+        self.execute_sql("""
+            CREATE TABLE IF NOT EXISTS teacher_evaluations_v2 (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                team_id TEXT NOT NULL UNIQUE,
+                evaluation_data TEXT NOT NULL,
+                json_file_path TEXT,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            )
+        """)
+        
+        # 10. 创建 data_versions 表
         self.execute_sql("""
             CREATE TABLE IF NOT EXISTS data_versions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -235,6 +258,12 @@ class DatabaseInitializer:
         self.execute_sql("CREATE INDEX IF NOT EXISTS idx_teacher_evaluations_stage ON teacher_evaluations(stage_name)")
         self.execute_sql("CREATE INDEX IF NOT EXISTS idx_teacher_evaluations_timestamp ON teacher_evaluations(timestamp)")
         
+        # teacher_evaluation_teams 表索引
+        self.execute_sql("CREATE INDEX IF NOT EXISTS idx_teacher_evaluation_teams_team_id ON teacher_evaluation_teams(team_id)")
+        
+        # teacher_evaluations_v2 表索引
+        self.execute_sql("CREATE INDEX IF NOT EXISTS idx_teacher_evaluations_v2_team_id ON teacher_evaluations_v2(team_id)")
+        
         # data_versions 表索引
         self.execute_sql("CREATE INDEX IF NOT EXISTS idx_data_versions_table ON data_versions(table_name)")
         
@@ -250,14 +279,16 @@ class DatabaseInitializer:
             SELECT name FROM sqlite_master 
             WHERE type='table' AND name IN (
                 'teams', 'team_divisions', 'process_records', 'stage_records',
-                'media_items', 'summary_data', 'teacher_evaluations', 'data_versions'
+                'media_items', 'summary_data', 'teacher_evaluations', 
+                'teacher_evaluation_teams', 'teacher_evaluations_v2', 'data_versions'
             )
         """)
         tables = [row[0] for row in cursor.fetchall()]
         
         required_tables = [
             'teams', 'team_divisions', 'process_records', 'stage_records',
-            'media_items', 'summary_data', 'teacher_evaluations', 'data_versions'
+            'media_items', 'summary_data', 'teacher_evaluations',
+            'teacher_evaluation_teams', 'teacher_evaluations_v2', 'data_versions'
         ]
         
         missing_tables = set(required_tables) - set(tables)

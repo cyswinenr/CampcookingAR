@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
 
-from models import StudentDataPackage, TeacherEvaluation, TeamInfo, Team, TeamDivision, ProcessRecord, StageRecord, SummaryData
+from models import StudentDataPackage, TeacherEvaluation, TeacherEvaluationV2, TeacherEvaluationTeam, TeamInfo, Team, TeamDivision, ProcessRecord, StageRecord, SummaryData
 from config import Config
 from db_manager import DatabaseManager
 
@@ -506,4 +506,77 @@ class DataStorage:
                 'totalCompletedStages': 0,
                 'totalStages': 0
             }
+    
+    # ==================== Teacher Evaluation V2 操作 ====================
+    
+    def save_teacher_evaluation_v2(self, team_id: str, team_name: str, evaluation_data: Dict[str, Any]) -> bool:
+        """保存教师评价V2（高性能版本，单次数据库操作 + JSON文件）"""
+        try:
+            # 确保评价目录存在
+            os.makedirs(Config.EVALUATION_DIR, exist_ok=True)
+            
+            # 准备JSON数据
+            json_data = {
+                'teamId': team_id,
+                'teamName': team_name,
+                'timestamp': evaluation_data.get('timestamp', int(datetime.now().timestamp() * 1000)),
+                'stages': evaluation_data.get('stages', {})
+            }
+            
+            # 保存JSON文件
+            timestamp = int(datetime.now().timestamp() * 1000)
+            safe_team_id = team_id.replace('/', '_').replace('\\', '_')
+            json_filename = f"evaluation_{safe_team_id}_{timestamp}.json"
+            json_file_path = os.path.join(Config.EVALUATION_DIR, json_filename)
+            
+            # 保存带时间戳的文件
+            with open(json_file_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, ensure_ascii=False, indent=2)
+            
+            # 保存最新版本（覆盖）
+            latest_filename = f"evaluation_{safe_team_id}_latest.json"
+            latest_file_path = os.path.join(Config.EVALUATION_DIR, latest_filename)
+            with open(latest_file_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, ensure_ascii=False, indent=2)
+            
+            # 保存到数据库
+            self.db_manager.save_teacher_evaluation_v2(
+                team_id=team_id,
+                evaluation_data=json_data,
+                json_file_path=json_file_path
+            )
+            
+            # 确保团队在teacher_evaluation_teams表中
+            self.db_manager.save_teacher_evaluation_team(team_id, team_name)
+            
+            logger.info(f"✅ 保存教师评价V2成功: {team_id}, JSON文件: {json_file_path}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"保存教师评价V2失败: {str(e)}", exc_info=True)
+            return False
+    
+    def get_teacher_evaluation_v2(self, team_id: str) -> Optional[Dict[str, Any]]:
+        """获取教师评价V2"""
+        try:
+            evaluation = self.db_manager.get_teacher_evaluation_v2(team_id)
+            if evaluation:
+                return evaluation.to_json_dict()
+            return None
+        except Exception as e:
+            logger.error(f"获取教师评价V2失败: {str(e)}", exc_info=True)
+            return None
+    
+    def get_all_evaluation_teams(self) -> List[Dict[str, Any]]:
+        """获取所有可评价的团队列表"""
+        try:
+            teams = self.db_manager.get_all_evaluation_teams()
+            return [{
+                'id': team.team_id,
+                'teamName': team.team_name or team.team_id,
+                'teamId': team.team_id
+            } for team in teams]
+        except Exception as e:
+            logger.error(f"获取评价团队列表失败: {str(e)}", exc_info=True)
+            return []
 

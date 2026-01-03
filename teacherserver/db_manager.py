@@ -15,16 +15,16 @@ from datetime import datetime
 
 from models import (
     Team, TeamDivision, ProcessRecord, StageRecord,
-    SummaryData, TeacherEvaluation, MediaItem, STAGE_ORDER
+    SummaryData, TeacherEvaluation, TeacherEvaluationV2, TeacherEvaluationTeam, MediaItem, STAGE_ORDER
 )
 from config import Config
 
 logger = logging.getLogger(__name__)
 
 # 数据库重试配置
-MAX_RETRIES = 5  # 最大重试次数
+MAX_RETRIES = 10  # 最大重试次数（增加到10次，应对并发锁定）
 RETRY_DELAY_BASE = 0.1  # 基础延迟（秒）
-RETRY_DELAY_MAX = 1.0  # 最大延迟（秒）
+RETRY_DELAY_MAX = 2.0  # 最大延迟（秒，增加到2秒）
 
 
 class DatabaseManager:
@@ -53,7 +53,8 @@ class DatabaseManager:
             except Exception as e:
                 logger.warning(f"启用 WAL 模式失败（可能已启用）: {str(e)}")
             # 设置 busy_timeout（毫秒），自动重试锁定的数据库
-            conn.execute("PRAGMA busy_timeout=5000")  # 5秒超时
+            # 增加到30秒，给并发操作更多时间
+            conn.execute("PRAGMA busy_timeout=30000")  # 30秒超时
             self._thread_connections[thread_id] = conn
         
         return self._thread_connections[thread_id]
@@ -68,14 +69,16 @@ class DatabaseManager:
                 del self._thread_connections[thread_id]
     
     def _execute(self, sql: str, params: tuple = ()) -> sqlite3.Cursor:
-        """执行SQL语句（带重试机制）"""
+        """执行SQL语句（带重试机制和连接管理）"""
         last_exception = None
         
         for attempt in range(MAX_RETRIES):
+            conn = None
             try:
                 conn = self._get_connection()
                 cursor = conn.cursor()
                 cursor.execute(sql, params)
+                # 立即提交，避免长时间持有锁
                 conn.commit()
                 return cursor
             except sqlite3.OperationalError as e:
@@ -83,6 +86,13 @@ class DatabaseManager:
                 # 检查是否是数据库锁定错误
                 if 'locked' in error_msg or 'database is locked' in error_msg:
                     last_exception = e
+                    # 如果连接存在，尝试回滚
+                    if conn:
+                        try:
+                            conn.rollback()
+                        except:
+                            pass
+                    
                     if attempt < MAX_RETRIES - 1:
                         # 指数退避 + 随机抖动，避免同时重试
                         delay = min(
@@ -94,16 +104,37 @@ class DatabaseManager:
                             f"({attempt + 1}/{MAX_RETRIES}): {str(e)}"
                         )
                         time.sleep(delay)
+                        # 关闭当前连接，强制重新获取
+                        if conn:
+                            try:
+                                conn.close()
+                                # 从线程连接池中移除
+                                import threading
+                                thread_id = threading.current_thread().ident
+                                if hasattr(self, '_thread_connections') and thread_id in self._thread_connections:
+                                    del self._thread_connections[thread_id]
+                            except:
+                                pass
                         continue
                     else:
                         logger.error(f"数据库锁定，已达到最大重试次数: {str(e)}")
                         raise
                 else:
                     # 其他类型的错误，直接抛出
+                    if conn:
+                        try:
+                            conn.rollback()
+                        except:
+                            pass
                     logger.error(f"数据库操作失败: {str(e)}")
                     raise
             except Exception as e:
-                # 非数据库锁定错误，直接抛出
+                # 非数据库锁定错误，回滚并抛出
+                if conn:
+                    try:
+                        conn.rollback()
+                    except:
+                        pass
                 logger.error(f"数据库操作失败: {str(e)}")
                 raise
         
@@ -178,12 +209,17 @@ class DatabaseManager:
     def get_team(self, team_id: str) -> Optional[Team]:
         """获取团队信息"""
         try:
+            # 添加详细日志
+            logger.debug(f"查询团队: team_id='{team_id}' (类型: {type(team_id)})")
             row = self._fetch_one("SELECT * FROM teams WHERE team_id = ?", (team_id,))
             if row:
+                logger.debug(f"✅ 找到团队: team_id='{team_id}'")
                 return Team(row)
+            else:
+                logger.debug(f"❌ 未找到团队: team_id='{team_id}'")
             return None
         except Exception as e:
-            logger.error(f"获取团队失败: {str(e)}", exc_info=True)
+            logger.error(f"获取团队失败: team_id='{team_id}', 错误: {str(e)}", exc_info=True)
             return None
     
     def get_all_teams(self) -> List[Team]:
@@ -600,6 +636,119 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"获取所有教师评价失败: {str(e)}", exc_info=True)
             return {}
+    
+    # ==================== Teacher Evaluation Teams 操作 ====================
+    
+    def save_teacher_evaluation_team(self, team_id: str, team_name: str = '') -> int:
+        """保存或更新教师评价团队（如果不存在则插入，存在则更新）"""
+        try:
+            existing = self._fetch_one(
+                "SELECT id FROM teacher_evaluation_teams WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            now = int(datetime.now().timestamp() * 1000)
+            
+            if existing:
+                # 更新
+                self._execute("""
+                    UPDATE teacher_evaluation_teams SET
+                        team_name = ?, updated_at = ?
+                    WHERE team_id = ?
+                """, (team_name, now, team_id))
+                return existing['id']
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO teacher_evaluation_teams (
+                        team_id, team_name, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?)
+                """, (team_id, team_name, now, now))
+                return cursor.lastrowid
+        except Exception as e:
+            logger.error(f"保存教师评价团队失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_all_evaluation_teams(self) -> List[TeacherEvaluationTeam]:
+        """获取所有可评价的团队列表"""
+        try:
+            rows = self._fetch_all(
+                "SELECT * FROM teacher_evaluation_teams ORDER BY team_id"
+            )
+            teams = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    row = dict(row)
+                teams.append(TeacherEvaluationTeam(row))
+            return teams
+        except Exception as e:
+            logger.error(f"获取评价团队列表失败: {str(e)}", exc_info=True)
+            return []
+    
+    # ==================== Teacher Evaluations V2 操作 ====================
+    
+    def save_teacher_evaluation_v2(self, team_id: str, evaluation_data: Dict[str, Any], json_file_path: Optional[str] = None) -> int:
+        """保存或更新教师评价V2（单次操作，高性能）"""
+        try:
+            import json
+            eval_json = json.dumps(evaluation_data, ensure_ascii=False)
+            
+            existing = self._fetch_one(
+                "SELECT id FROM teacher_evaluations_v2 WHERE team_id = ?",
+                (team_id,)
+            )
+            
+            now = int(datetime.now().timestamp() * 1000)
+            
+            if existing:
+                # 更新
+                self._execute("""
+                    UPDATE teacher_evaluations_v2 SET
+                        evaluation_data = ?, json_file_path = ?, updated_at = ?
+                    WHERE team_id = ?
+                """, (eval_json, json_file_path, now, team_id))
+                return existing['id']
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO teacher_evaluations_v2 (
+                        team_id, evaluation_data, json_file_path, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?)
+                """, (team_id, eval_json, json_file_path, now, now))
+                return cursor.lastrowid
+        except Exception as e:
+            logger.error(f"保存教师评价V2失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_teacher_evaluation_v2(self, team_id: str) -> Optional[TeacherEvaluationV2]:
+        """获取教师评价V2"""
+        try:
+            row = self._fetch_one(
+                "SELECT * FROM teacher_evaluations_v2 WHERE team_id = ?",
+                (team_id,)
+            )
+            if row:
+                return TeacherEvaluationV2(row)
+            return None
+        except Exception as e:
+            logger.error(f"获取教师评价V2失败: {str(e)}", exc_info=True)
+            return None
+    
+    def get_all_teacher_evaluations_v2(self) -> List[TeacherEvaluationV2]:
+        """获取所有教师评价V2"""
+        try:
+            rows = self._fetch_all(
+                "SELECT * FROM teacher_evaluations_v2 ORDER BY updated_at DESC"
+            )
+            evaluations = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    row = dict(row)
+                evaluations.append(TeacherEvaluationV2(row))
+            return evaluations
+        except Exception as e:
+            logger.error(f"获取所有教师评价V2失败: {str(e)}", exc_info=True)
+            return []
     
     # ==================== 统计操作 ====================
     

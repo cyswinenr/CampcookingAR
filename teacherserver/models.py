@@ -679,6 +679,116 @@ class TeacherEvaluation(BaseModel):
         }
 
 
+# ==================== 8. teacher_evaluations_v2 - 新版本教师评价表 ====================
+class TeacherEvaluationV2(BaseModel):
+    """新版本教师评价表（JSON格式存储）"""
+    
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.team_id = ''
+        self.evaluation_data: Dict[str, Any] = {}  # JSON数据
+        self.json_file_path: Optional[str] = None
+        self.created_at = int(datetime.now().timestamp() * 1000)
+        self.updated_at = int(datetime.now().timestamp() * 1000)
+        
+        if data:
+            self.from_dict(data)
+    
+    def from_dict(self, data: Dict[str, Any]):
+        """从字典创建"""
+        self.team_id = data.get('team_id', '')
+        
+        # 处理evaluation_data（可能是字符串或字典）
+        eval_data = data.get('evaluation_data', {})
+        if isinstance(eval_data, str):
+            try:
+                import json
+                self.evaluation_data = json.loads(eval_data)
+            except:
+                self.evaluation_data = {}
+        else:
+            self.evaluation_data = eval_data or {}
+        
+        self.json_file_path = data.get('json_file_path')
+        
+        # 数据库字段
+        if 'id' in data:
+            self.id = data['id']
+        if 'created_at' in data:
+            self.created_at = data['created_at']
+        if 'updated_at' in data:
+            self.updated_at = data['updated_at']
+        if 'schema_version' in data:
+            self.schema_version = data['schema_version']
+        if 'extra_data' in data:
+            self.extra_data = data['extra_data']
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典（数据库格式）"""
+        import json
+        return {
+            'id': self.id,
+            'team_id': self.team_id,
+            'evaluation_data': json.dumps(self.evaluation_data, ensure_ascii=False),
+            'json_file_path': self.json_file_path,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'schema_version': self.schema_version,
+            'extra_data': self.extra_data
+        }
+    
+    def to_json_dict(self) -> Dict[str, Any]:
+        """转换为JSON格式（用于导出）"""
+        return {
+            'teamId': self.team_id,
+            'teamName': self.evaluation_data.get('teamName', ''),
+            'timestamp': self.evaluation_data.get('timestamp', self.updated_at),
+            'stages': self.evaluation_data.get('stages', {})
+        }
+    
+    def update_timestamp(self):
+        """更新时间戳"""
+        self.updated_at = int(datetime.now().timestamp() * 1000)
+
+
+# ==================== 9. teacher_evaluation_teams - 教师评价团队表 ====================
+class TeacherEvaluationTeam(BaseModel):
+    """教师评价团队表"""
+    
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        self.team_id = ''
+        self.team_name = ''
+        self.created_at = int(datetime.now().timestamp() * 1000)
+        self.updated_at = int(datetime.now().timestamp() * 1000)
+        
+        if data:
+            self.from_dict(data)
+    
+    def from_dict(self, data: Dict[str, Any]):
+        """从字典创建"""
+        self.team_id = data.get('team_id', '')
+        self.team_name = data.get('team_name', '')
+        
+        # 数据库字段
+        if 'id' in data:
+            self.id = data['id']
+        if 'created_at' in data:
+            self.created_at = data['created_at']
+        if 'updated_at' in data:
+            self.updated_at = data['updated_at']
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典"""
+        return {
+            'id': self.id,
+            'team_id': self.team_id,
+            'team_name': self.team_name,
+            'created_at': self.created_at,
+            'updated_at': self.updated_at
+        }
+
+
 # ==================== 兼容性类（保持向后兼容） ====================
 class TeamInfo:
     """团队信息（兼容旧代码）"""
