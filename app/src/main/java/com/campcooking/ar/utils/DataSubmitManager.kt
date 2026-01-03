@@ -149,8 +149,26 @@ class DataSubmitManager(private val context: Context) {
                 
                 // 添加过程记录
                 if (processRecord != null) {
-                    dataPackage["processRecord"] = convertProcessRecordToMap(processRecord)
+                    val processRecordMap = convertProcessRecordToMap(processRecord)
+                    dataPackage["processRecord"] = processRecordMap
+                    
+                    // 调试日志：检查 stages 数据
+                    val stagesCount = (processRecordMap["stages"] as? Map<*, *>)?.size ?: 0
+                    Log.d(TAG, "✅ 过程记录包含 $stagesCount 个阶段")
+                    
+                    // 统计媒体文件数量
+                    var totalMediaCount = 0
+                    (processRecordMap["stages"] as? Map<*, *>)?.forEach { (stageName, stageData) ->
+                        val mediaItems = (stageData as? Map<*, *>)?.get("mediaItems") as? List<*>
+                        val mediaCount = mediaItems?.size ?: 0
+                        if (mediaCount > 0) {
+                            Log.d(TAG, "  阶段 $stageName: $mediaCount 个媒体文件")
+                            totalMediaCount += mediaCount
+                        }
+                    }
+                    Log.d(TAG, "✅ 总计 $totalMediaCount 个媒体文件")
                 } else {
+                    Log.w(TAG, "⚠️ processRecord 为 null，不包含过程记录数据")
                     dataPackage["processRecord"] = null
                 }
                 
@@ -212,42 +230,48 @@ class DataSubmitManager(private val context: Context) {
     private fun convertProcessRecordToMap(processRecord: ProcessRecord): Map<String, Any?> {
         val stagesMap = mutableMapOf<String, Map<String, Any?>>()
         
+        // 遍历所有阶段，确保包含所有阶段数据（即使没有媒体文件）
         processRecord.stages.forEach { (stage, stageRecord) ->
+            val mediaItemsList = stageRecord.mediaItems.map { mediaItem ->
+                mapOf(
+                    "path" to mediaItem.path,
+                    "type" to mediaItem.type.name,
+                    "timestamp" to mediaItem.timestamp
+                )
+            }
+            
             stagesMap[stage.name] = mapOf(
                 "stage" to stage.name,
                 "startTime" to stageRecord.startTime,
                 "endTime" to stageRecord.endTime,
                 "photos" to stageRecord.photos,
-                "mediaItems" to stageRecord.mediaItems.map { mediaItem ->
-                    mapOf(
-                        "path" to mediaItem.path,
-                        "type" to mediaItem.type.name,
-                        "timestamp" to mediaItem.timestamp
-                    )
-                },
+                "mediaItems" to mediaItemsList,  // 即使为空列表也要包含
                 "selfRating" to stageRecord.selfRating,
                 "selectedTags" to stageRecord.selectedTags,
                 "notes" to stageRecord.notes,
                 "problemNotes" to stageRecord.problemNotes,
                 "isCompleted" to stageRecord.isCompleted
             )
+            
+            // 调试日志：记录每个阶段的媒体文件数量
+            if (mediaItemsList.isNotEmpty()) {
+                Log.d(TAG, "  阶段 ${stage.name}: ${mediaItemsList.size} 个媒体文件")
+            }
         }
         
-        return mapOf(
-            "teamInfo" to mapOf(
-                "school" to processRecord.teamInfo.school,
-                "grade" to processRecord.teamInfo.grade,
-                "className" to processRecord.teamInfo.className,
-                "stoveNumber" to processRecord.teamInfo.stoveNumber,
-                "memberCount" to processRecord.teamInfo.memberCount,
-                "memberNames" to processRecord.teamInfo.memberNames
-            ),
+        // 确保 stages 字段始终存在（即使为空）
+        val result = mapOf(
             "startTime" to processRecord.startTime,
             "endTime" to processRecord.endTime,
-            "stages" to stagesMap,
+            "stages" to stagesMap,  // 即使为空也要包含
             "currentStage" to processRecord.currentStage.name,
             "overallNotes" to processRecord.overallNotes
         )
+        
+        // 调试日志
+        Log.d(TAG, "转换过程记录: stages数量=${stagesMap.size}, 总阶段数=${processRecord.stages.size}")
+        
+        return result
     }
     
     /**

@@ -43,6 +43,36 @@ class DataStorage:
             # 生成学生ID（team_id）
             student_id = data_package.teamInfo.get_student_id()
             
+            # ⭐ 关键调试：检查原始数据
+            logger.info(f"🔍 开始保存学生数据到数据库: {student_id}")
+            if hasattr(data_package, '_raw_data') and data_package._raw_data:
+                process_record_raw = data_package._raw_data.get('processRecord')
+                if process_record_raw:
+                    has_stages = 'stages' in process_record_raw
+                    logger.info(f"   原始数据检查:")
+                    logger.info(f"     processRecord 存在: {process_record_raw is not None}")
+                    logger.info(f"     包含 stages 字段: {has_stages}")
+                    if has_stages:
+                        stages_dict = process_record_raw.get('stages', {})
+                        stages_count = len(stages_dict)
+                        logger.info(f"     stages 数量: {stages_count}")
+                        # 统计媒体文件
+                        total_media = 0
+                        for stage_name, stage_data in stages_dict.items():
+                            media_items = stage_data.get('mediaItems', [])
+                            if not media_items:
+                                media_items = stage_data.get('media_items', [])
+                            media_count = len(media_items) if media_items else 0
+                            total_media += media_count
+                        logger.info(f"     总计媒体文件: {total_media}")
+                    else:
+                        logger.warning(f"     ⚠️ processRecord 中没有 stages 字段！")
+                        logger.warning(f"     processRecord 的键: {list(process_record_raw.keys())}")
+                else:
+                    logger.warning(f"   ⚠️ _raw_data 中没有 processRecord")
+            else:
+                logger.warning(f"⚠️ data_package 没有 _raw_data 或为空")
+            
             # 1. 保存团队信息
             team = Team({'teamInfo': data_package.teamInfo.to_dict()})
             self.db_manager.save_team(team)
@@ -55,19 +85,53 @@ class DataStorage:
             
             # 3. 保存过程记录和阶段记录（如果有）
             if data_package.processRecord:
-                # 提取阶段记录
+                # 提取阶段记录和媒体文件
                 stages = []
+                stages_media = {}  # 存储每个阶段的媒体文件
                 # 从原始数据中提取stages（如果存在）
                 if hasattr(data_package, '_raw_data') and data_package._raw_data:
                     process_data = data_package._raw_data.get('processRecord')
-                    if process_data and 'stages' in process_data:
-                        stages_dict = process_data.get('stages', {})
-                        for stage_name, stage_data in stages_dict.items():
-                            stage = StageRecord(stage_data)
-                            stages.append(stage)
+                    logger.info(f"处理过程记录数据: process_data存在={process_data is not None}")
+                    
+                    if process_data:
+                        if 'stages' in process_data:
+                            stages_dict = process_data.get('stages', {})
+                            logger.info(f"找到stages数据: {len(stages_dict)} 个阶段")
+                            
+                            for stage_name, stage_data in stages_dict.items():
+                                try:
+                                    stage = StageRecord(stage_data)
+                                    stages.append(stage)
+                                    
+                                    # 提取媒体文件
+                                    media_items = []
+                                    if 'mediaItems' in stage_data:
+                                        media_items = stage_data['mediaItems']
+                                    elif 'media_items' in stage_data:
+                                        media_items = stage_data['media_items']
+                                    
+                                    if media_items:
+                                        stages_media[stage_name] = media_items
+                                        logger.info(f"  阶段 {stage_name}: {len(media_items)} 个媒体文件")
+                                        # 记录每个媒体文件的详细信息
+                                        for idx, media_item in enumerate(media_items):
+                                            logger.info(f"    媒体文件 {idx+1}: path={media_item.get('path', 'N/A')}, type={media_item.get('type', 'N/A')}")
+                                    else:
+                                        logger.info(f"  阶段 {stage_name}: 没有媒体文件")
+                                        
+                                except Exception as e:
+                                    logger.error(f"处理阶段 {stage_name} 失败: {str(e)}", exc_info=True)
+                        else:
+                            logger.warning(f"processRecord 中没有 'stages' 字段")
+                            logger.debug(f"processRecord 的键: {list(process_data.keys()) if process_data else []}")
+                    else:
+                        logger.warning(f"process_data 为 None")
+                else:
+                    logger.warning(f"data_package 没有 _raw_data 属性或 _raw_data 为空")
                 
-                # 保存过程记录和阶段记录
-                self.db_manager.save_process_record(student_id, data_package.processRecord, stages)
+                # 保存过程记录和阶段记录（包括媒体文件）
+                logger.info(f"准备保存: {len(stages)} 个阶段记录, {len(stages_media)} 个阶段有媒体文件")
+                self.db_manager.save_process_record(student_id, data_package.processRecord, stages, stages_media)
             
             # 4. 保存课后总结（如果有）
             if data_package.summaryData:

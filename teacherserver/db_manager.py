@@ -13,7 +13,7 @@ from datetime import datetime
 
 from models import (
     Team, TeamDivision, ProcessRecord, StageRecord,
-    SummaryData, TeacherEvaluation, STAGE_ORDER
+    SummaryData, TeacherEvaluation, MediaItem, STAGE_ORDER
 )
 from config import Config
 
@@ -207,7 +207,7 @@ class DatabaseManager:
     
     # ==================== Process Records 操作 ====================
     
-    def save_process_record(self, team_id: str, process_record: ProcessRecord, stages: List[StageRecord]) -> int:
+    def save_process_record(self, team_id: str, process_record: ProcessRecord, stages: List[StageRecord], stages_media: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> int:
         """保存或更新过程记录和阶段记录（使用事务）"""
         conn = self._get_connection()
         try:
@@ -259,7 +259,7 @@ class DatabaseManager:
             for stage in stages:
                 stage.process_record_id = process_record.id
                 stage.update_timestamp()
-                self._execute("""
+                cursor = self._execute("""
                     INSERT INTO stage_records (
                         process_record_id, stage_name, start_time, end_time,
                         self_rating, notes, problem_notes, is_completed, selected_tags,
@@ -272,9 +272,53 @@ class DatabaseManager:
                     json.dumps(stage.selected_tags, ensure_ascii=False) if stage.selected_tags else '[]',
                     stage.created_at, stage.updated_at, stage.schema_version, stage.extra_data
                 ))
+                stage.id = cursor.lastrowid
+                
+                # 删除该阶段旧的媒体文件（如果存在）
+                self._execute("DELETE FROM media_items WHERE stage_record_id = ?", (stage.id,))
+                
+                # 保存该阶段的媒体文件
+                logger.info(f"处理阶段 {stage.stage_name} (ID: {stage.id}) 的媒体文件")
+                logger.info(f"stages_media 的键: {list(stages_media.keys()) if stages_media else []}")
+                
+                if stages_media and stage.stage_name in stages_media:
+                    media_items = stages_media[stage.stage_name]
+                    logger.info(f"找到 {len(media_items)} 个媒体文件需要保存")
+                    
+                    for idx, media_data in enumerate(media_items):
+                        try:
+                            logger.debug(f"处理媒体文件 {idx+1}: {media_data}")
+                            media_item = MediaItem(media_data)
+                            media_item.stage_record_id = stage.id
+                            media_item.update_timestamp()
+                            
+                            # 确保 timestamp 有值
+                            if not media_item.timestamp:
+                                media_item.timestamp = media_item.created_at
+                            
+                            logger.info(f"保存媒体文件: path={media_item.file_path}, type={media_item.file_type}, timestamp={media_item.timestamp}")
+                            
+                            self._execute("""
+                                INSERT INTO media_items (
+                                    stage_record_id, summary_question, file_path, file_type,
+                                    file_size, timestamp, created_at, schema_version, extra_data
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            """, (
+                                media_item.stage_record_id, media_item.summary_question,
+                                media_item.file_path, media_item.file_type,
+                                media_item.file_size, media_item.timestamp,
+                                media_item.created_at, media_item.schema_version, media_item.extra_data
+                            ))
+                            logger.info(f"✅ 成功保存媒体文件: {media_item.file_path}")
+                        except Exception as e:
+                            logger.error(f"保存媒体文件失败: {str(e)}, 数据: {media_data}", exc_info=True)
+                            # 继续处理其他媒体文件
+                else:
+                    logger.info(f"阶段 {stage.stage_name} 没有媒体文件需要保存")
             
             conn.commit()
-            logger.info(f"保存过程记录和{len(stages)}个阶段记录: {team_id}")
+            media_count = sum(len(media_list) for media_list in (stages_media or {}).values())
+            logger.info(f"保存过程记录和{len(stages)}个阶段记录，{media_count}个媒体文件: {team_id}")
             return process_record.id
             
         except Exception as e:
@@ -327,6 +371,20 @@ class DatabaseManager:
                     row = dict(row)
                 try:
                     stage = StageRecord(row)
+                    # 获取该阶段的媒体文件
+                    media_rows = self._fetch_all(
+                        "SELECT * FROM media_items WHERE stage_record_id = ? ORDER BY timestamp",
+                        (stage.id,)
+                    )
+                    # 转换为MediaItem对象并添加到stage
+                    media_items = []
+                    for media_row in media_rows:
+                        if not isinstance(media_row, dict):
+                            media_row = dict(media_row)
+                        media_item = MediaItem(media_row)
+                        media_items.append(media_item.to_android_dict())
+                    # 将媒体文件添加到stage对象（用于前端显示）
+                    stage.media_items = media_items
                     stages.append(stage)
                 except Exception as e:
                     logger.error(f"创建StageRecord对象失败: {str(e)}, 数据: {row}", exc_info=True)

@@ -473,6 +473,7 @@ class RecordActivity : AppCompatActivity() {
             // 如果ViewBinding找不到，使用findViewById
             saveAndSendButton = findViewById(R.id.saveAndSendButton)
         }
+
         saveAndSendButton?.setOnClickListener {
             saveAndSendData()
         }

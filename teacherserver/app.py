@@ -72,6 +72,67 @@ def submit_student_data():
                 'message': '缺少团队信息'
             }), 400
         
+        # ⭐ 关键修复：立即检查并保存原始 JSON 数据到文件
+        try:
+            # 生成学生ID
+            team_info = data.get('teamInfo', {})
+            student_id = f"{team_info.get('school', '')}_{team_info.get('grade', '')}_{team_info.get('className', '')}_{team_info.get('stoveNumber', '')}"
+            
+            # 立即检查接收到的数据
+            logger.info("=" * 60)
+            logger.info("收到学生数据提交")
+            logger.info(f"学生ID: {student_id}")
+            logger.info(f"数据键: {list(data.keys())}")
+            
+            process_record = data.get('processRecord')
+            if process_record:
+                logger.info(f"✅ processRecord 存在")
+                logger.info(f"   processRecord 的键: {list(process_record.keys())}")
+                has_stages = 'stages' in process_record
+                logger.info(f"   包含 stages 字段: {has_stages}")
+                if has_stages:
+                    stages = process_record.get('stages', {})
+                    logger.info(f"   stages 数量: {len(stages)}")
+                    total_media = 0
+                    for stage_name, stage_data in stages.items():
+                        media_items = stage_data.get('mediaItems', [])
+                        if not media_items:
+                            media_items = stage_data.get('media_items', [])
+                        media_count = len(media_items) if media_items else 0
+                        total_media += media_count
+                        if media_count > 0:
+                            logger.info(f"      阶段 {stage_name}: {media_count} 个媒体文件")
+                    logger.info(f"   总计: {total_media} 个媒体文件")
+                else:
+                    logger.warning(f"   ⚠️ processRecord 中没有 stages 字段！")
+            else:
+                logger.warning("⚠️ processRecord 不存在")
+            logger.info("=" * 60)
+            
+            # 创建学生数据目录
+            student_dir = os.path.join(Config.DATA_DIR, student_id)
+            os.makedirs(student_dir, exist_ok=True)
+            
+            # 保存原始 JSON 数据（带时间戳）
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            json_filename = f'data_{timestamp}.json'
+            json_path = os.path.join(student_dir, json_filename)
+            
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            # 同时保存为 latest.json（覆盖）
+            latest_json_path = os.path.join(student_dir, 'latest.json')
+            with open(latest_json_path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"✅ 已保存原始 JSON 数据: {json_path}")
+            logger.info(f"   包含 stages: {'stages' in data.get('processRecord', {})}")
+            
+        except Exception as e:
+            logger.error(f"保存 JSON 文件失败: {str(e)}", exc_info=True)
+            # 继续处理，不中断流程
+        
         # 解析数据包
         try:
             data_package = StudentDataPackage.from_dict(data)
@@ -82,7 +143,7 @@ def submit_student_data():
                 'message': f'数据格式错误: {str(e)}'
             }), 400
         
-        # 保存学生数据
+        # 保存学生数据到数据库
         student_id = storage.save_student_data(data_package)
         
         # 记录分工信息（如果有）

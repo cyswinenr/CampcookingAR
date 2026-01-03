@@ -429,8 +429,10 @@ class StageRecord(BaseModel):
             self.is_completed = False
         if not hasattr(self, 'selected_tags'):
             self.selected_tags = []
+        if not hasattr(self, 'media_items'):
+            self.media_items = []
         
-        return {
+        result = {
             'stage': self.stage_name,
             'startTime': self.start_time,
             'endTime': self.end_time,
@@ -440,6 +442,12 @@ class StageRecord(BaseModel):
             'isCompleted': self.is_completed,
             'selectedTags': self.selected_tags
         }
+        
+        # 添加媒体文件（如果存在）
+        if hasattr(self, 'media_items') and self.media_items:
+            result['mediaItems'] = self.media_items
+        
+        return result
     
     def get_duration_minutes(self) -> int:
         """获取用时（分钟）"""
@@ -474,8 +482,15 @@ class MediaItem(BaseModel):
         # 兼容Android端的MediaItem格式
         if 'path' in data:
             self.file_path = data.get('path', '')
-            self.file_type = data.get('type', 'PHOTO')
-            self.timestamp = data.get('timestamp', 0)
+            # 处理 type 字段：可能是字符串 "PHOTO" 或 "VIDEO"
+            type_value = data.get('type', 'PHOTO')
+            if isinstance(type_value, str):
+                self.file_type = type_value.upper()  # 确保大写
+            else:
+                self.file_type = 'PHOTO'
+            # timestamp 可能为 0，使用当前时间作为默认值
+            timestamp_value = data.get('timestamp', 0)
+            self.timestamp = timestamp_value if timestamp_value > 0 else int(datetime.now().timestamp() * 1000)
         else:
             # 数据库格式
             self.stage_record_id = data.get('stage_record_id')
@@ -483,7 +498,8 @@ class MediaItem(BaseModel):
             self.file_path = data.get('file_path', '')
             self.file_type = data.get('file_type', 'PHOTO')
             self.file_size = data.get('file_size')
-            self.timestamp = data.get('timestamp', 0)
+            timestamp_value = data.get('timestamp', 0)
+            self.timestamp = timestamp_value if timestamp_value > 0 else int(datetime.now().timestamp() * 1000)
         
         # 数据库字段
         if 'id' in data:
