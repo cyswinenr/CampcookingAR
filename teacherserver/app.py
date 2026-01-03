@@ -245,13 +245,13 @@ def get_student_data(student_id: str):
 
 @app.route('/api/student/<student_id>/evaluation', methods=['GET'])
 def get_student_evaluation(student_id: str):
-    """获取指定学生的教师评价"""
+    """获取指定学生的教师评价（所有阶段）"""
     try:
-        evaluation = storage.get_student_evaluation(student_id)
+        evaluations = storage.get_all_student_evaluations(student_id)
         
         return jsonify({
             'status': 'success',
-            'evaluation': evaluation
+            'evaluations': evaluations
         }), 200
         
     except Exception as e:
@@ -264,7 +264,7 @@ def get_student_evaluation(student_id: str):
 
 @app.route('/api/student/<student_id>/evaluation', methods=['POST'])
 def save_student_evaluation(student_id: str):
-    """保存教师评价"""
+    """保存教师评价（支持按阶段保存）"""
     try:
         data = request.get_json()
         
@@ -284,10 +284,21 @@ def save_student_evaluation(student_id: str):
         # 解析评价数据
         evaluation = TeacherEvaluation.from_dict(data['evaluation'])
         
+        # 确保 stage_name 存在
+        if not evaluation.stage_name:
+            # 尝试从 evaluation 数据中获取
+            if 'stage' in data['evaluation']:
+                evaluation.stage_name = data['evaluation']['stage']
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': '缺少阶段名称（stage_name）'
+                }), 400
+        
         # 保存评价
         storage.save_student_evaluation(student_id, evaluation)
         
-        logger.info(f"✅ 保存评价: {student_id}")
+        logger.info(f"✅ 保存评价: {student_id} - {evaluation.stage_name}")
         
         return jsonify({
             'status': 'success',
@@ -296,6 +307,79 @@ def save_student_evaluation(student_id: str):
         
     except Exception as e:
         logger.error(f"保存评价失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/student/<student_id>/evaluation/media/upload', methods=['POST'])
+def upload_evaluation_media(student_id: str):
+    """上传教师评价的媒体文件（照片/视频）"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({
+                'status': 'error',
+                'message': '没有文件'
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'status': 'error',
+                'message': '文件名为空'
+            }), 400
+        
+        # 获取文件信息
+        file_type = request.form.get('type', 'PHOTO')  # PHOTO 或 VIDEO
+        evaluation_stage = request.form.get('evaluation_stage', '')  # 评价阶段
+        
+        # 创建评价媒体目录
+        evaluation_media_dir = os.path.join(Config.MEDIA_DIR, student_id, 'evaluations', evaluation_stage)
+        os.makedirs(evaluation_media_dir, exist_ok=True)
+        
+        # 生成安全的文件名
+        timestamp = int(datetime.now().timestamp() * 1000)
+        file_ext = os.path.splitext(file.filename)[1] or ('.mp4' if file_type == 'VIDEO' else '.jpg')
+        safe_filename = f"EVAL_{evaluation_stage}_{timestamp}{file_ext}"
+        
+        file_path = os.path.join(evaluation_media_dir, safe_filename)
+        file.save(file_path)
+        
+        logger.info(f"✅ 上传评价媒体文件成功: {student_id}/evaluations/{evaluation_stage}/{safe_filename}")
+        
+        return jsonify({
+            'status': 'success',
+            'filename': f'evaluations/{evaluation_stage}/{safe_filename}',
+            'file_type': file_type,
+            'message': '文件上传成功'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"上传评价媒体文件失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/student/<student_id>/evaluation/media/<path:filename>', methods=['GET'])
+def get_evaluation_media(student_id: str, filename: str):
+    """获取教师评价的媒体文件"""
+    try:
+        # 构建文件路径
+        file_path = os.path.join(Config.MEDIA_DIR, student_id, filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({
+                'status': 'error',
+                'message': '文件不存在'
+            }), 404
+        
+        return send_file(file_path)
+        
+    except Exception as e:
+        logger.error(f"获取评价媒体文件失败: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
             'message': str(e)

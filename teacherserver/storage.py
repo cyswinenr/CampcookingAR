@@ -363,15 +363,29 @@ class DataStorage:
             logger.error(f"保存评价失败: {str(e)}", exc_info=True)
             raise
     
-    def get_student_evaluation(self, student_id: str) -> Optional[Dict[str, Any]]:
-        """获取学生评价（从数据库）"""
+    def get_student_evaluation(self, student_id: str, stage_name: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """获取学生评价（从数据库），如果指定stage_name则获取特定阶段的评价"""
         try:
-            evaluation = self.db_manager.get_teacher_evaluation(student_id)
+            evaluation = self.db_manager.get_teacher_evaluation(student_id, stage_name)
             if evaluation:
                 return evaluation.to_android_dict()
             return None
                 
         except Exception as e:
+            logger.error(f"获取评价失败: {str(e)}")
+            return None
+    
+    def get_all_student_evaluations(self, student_id: str) -> Dict[str, Dict[str, Any]]:
+        """获取学生所有阶段的评价"""
+        try:
+            evaluations = self.db_manager.get_all_teacher_evaluations(student_id)
+            result = {}
+            for stage_name, evaluation in evaluations.items():
+                result[stage_name] = evaluation.to_android_dict()
+            return result
+        except Exception as e:
+            logger.error(f"获取所有评价失败: {str(e)}", exc_info=True)
+            return {}
             logger.error(f"获取评价失败: {str(e)}")
             return None
     

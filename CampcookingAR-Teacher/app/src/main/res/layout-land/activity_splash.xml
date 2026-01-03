@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 横屏专用布局，优化10-11寸平板显示效果 - 教师端 -->
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/splash_background"
+    tools:context=".SplashActivity">
+
+    <!-- 背景渐变层 -->
+    <View
+        android:id="@+id/backgroundGradient"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/splash_gradient" />
+
+    <!-- 封面主图 - 横屏优化布局 -->
+    <ImageView
+        android:id="@+id/coverImage"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="120dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="120dp"
+        android:layout_marginBottom="120dp"
+        android:contentDescription="@string/app_cover_desc"
+        android:scaleType="fitCenter"
+        android:src="@drawable/fengmian"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 应用标题 - 左上角 -->
+    <TextView
+        android:id="@+id/appTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="40dp"
+        android:text="@string/app_name"
+        android:textColor="@color/title_color"
+        android:textSize="56sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-medium"
+        android:shadowColor="#80000000"
+        android:shadowDx="3"
+        android:shadowDy="3"
+        android:shadowRadius="6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 副标题 - 标题下方 -->
+    <TextView
+        android:id="@+id/appSubtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="8dp"
+        android:text="@string/app_subtitle"
+        android:textColor="@color/subtitle_color"
+        android:textSize="28sp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appTitle" />
+
+    <!-- 教师端标识 - 副标题下方 -->
+    <TextView
+        android:id="@+id/teacherBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="12dp"
+        android:text="@string/teacher_badge"
+        android:textColor="@color/teacher_badge_color"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:background="@drawable/teacher_badge_background"
+        android:paddingStart="20dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="8dp"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appSubtitle" />
+
+    <!-- 进入应用按钮 - 屏幕中下方 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/enterButton"
+        android:layout_width="240dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="80dp"
+        android:text="@string/enter_app"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:cornerRadius="36dp"
+        app:elevation="8dp"
+        app:backgroundTint="@color/fire_orange"
+        app:icon="@android:drawable/ic_media_play"
+        app:iconSize="32dp"
+        app:iconGravity="textStart"
+        app:iconPadding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- 设置按钮 - 右上角 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/settingsButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="设置"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        app:icon="@android:drawable/ic_menu_preferences"
+        app:iconGravity="textStart"
+        app:iconPadding="8dp"
+        app:iconSize="20dp"
+        app:cornerRadius="8dp"
+        app:elevation="4dp"
+        app:backgroundTint="@color/fire_orange"
+        app:iconTint="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 版本信息 - 左下角 -->
+    <TextView
+        android:id="@+id/versionInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:text="@string/version_info"
+        android:textColor="@color/version_color"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

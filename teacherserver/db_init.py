@@ -170,12 +170,12 @@ class DatabaseInitializer:
             )
         """)
         
-        # 7. 创建 teacher_evaluations 表
+        # 7. 创建 teacher_evaluations 表（支持每个团队多个阶段的评价）
         self.execute_sql("""
             CREATE TABLE IF NOT EXISTS teacher_evaluations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 team_id TEXT NOT NULL,
-                stage_name TEXT,
+                stage_name TEXT NOT NULL,
                 rating INTEGER NOT NULL DEFAULT 0,
                 comment TEXT,
                 strengths TEXT,
@@ -186,7 +186,7 @@ class DatabaseInitializer:
                 schema_version INTEGER NOT NULL DEFAULT 1,
                 extra_data TEXT,
                 FOREIGN KEY (team_id) REFERENCES teams(team_id) ON DELETE CASCADE,
-                UNIQUE(team_id)
+                UNIQUE(team_id, stage_name)
             )
         """)
         

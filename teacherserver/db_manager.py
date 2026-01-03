@@ -510,14 +510,18 @@ class DatabaseManager:
     # ==================== Teacher Evaluations 操作 ====================
     
     def save_teacher_evaluation(self, team_id: str, evaluation: TeacherEvaluation) -> int:
-        """保存或更新教师评价（一对一关系）"""
+        """保存或更新教师评价（支持每个团队多个阶段的评价）"""
         try:
             evaluation.team_id = team_id
             
-            # 检查是否已存在
+            # 确保 stage_name 不为空
+            if not evaluation.stage_name:
+                raise ValueError("stage_name 不能为空")
+            
+            # 检查是否已存在（按 team_id 和 stage_name）
             existing = self._fetch_one(
-                "SELECT id FROM teacher_evaluations WHERE team_id = ?",
-                (team_id,)
+                "SELECT id FROM teacher_evaluations WHERE team_id = ? AND stage_name = ?",
+                (team_id, evaluation.stage_name)
             )
             
             if existing:
@@ -525,18 +529,18 @@ class DatabaseManager:
                 evaluation.update_timestamp()
                 self._execute("""
                     UPDATE teacher_evaluations SET
-                        stage_name = ?, rating = ?, comment = ?,
+                        rating = ?, comment = ?,
                         strengths = ?, improvements = ?, timestamp = ?,
                         updated_at = ?, schema_version = ?, extra_data = ?
-                    WHERE team_id = ?
+                    WHERE team_id = ? AND stage_name = ?
                 """, (
-                    evaluation.stage_name, evaluation.rating, evaluation.comment,
+                    evaluation.rating, evaluation.comment,
                     evaluation.strengths, evaluation.improvements, evaluation.timestamp,
                     evaluation.updated_at, evaluation.schema_version, evaluation.extra_data,
-                    team_id
+                    team_id, evaluation.stage_name
                 ))
                 evaluation.id = existing['id']
-                logger.info(f"更新教师评价: {team_id}")
+                logger.info(f"更新教师评价: {team_id} - {evaluation.stage_name}")
             else:
                 # 插入
                 cursor = self._execute("""
@@ -551,23 +555,51 @@ class DatabaseManager:
                     evaluation.created_at, evaluation.updated_at, evaluation.schema_version, evaluation.extra_data
                 ))
                 evaluation.id = cursor.lastrowid
-                logger.info(f"插入教师评价: {team_id}")
+                logger.info(f"插入教师评价: {team_id} - {evaluation.stage_name}")
             
             return evaluation.id
         except Exception as e:
             logger.error(f"保存教师评价失败: {str(e)}", exc_info=True)
             raise
     
-    def get_teacher_evaluation(self, team_id: str) -> Optional[TeacherEvaluation]:
-        """获取教师评价"""
+    def get_teacher_evaluation(self, team_id: str, stage_name: Optional[str] = None) -> Optional[TeacherEvaluation]:
+        """获取教师评价（如果指定stage_name，则获取特定阶段的评价）"""
         try:
-            row = self._fetch_one("SELECT * FROM teacher_evaluations WHERE team_id = ?", (team_id,))
+            if stage_name:
+                row = self._fetch_one(
+                    "SELECT * FROM teacher_evaluations WHERE team_id = ? AND stage_name = ?",
+                    (team_id, stage_name)
+                )
+            else:
+                # 兼容旧代码：如果没有指定stage_name，返回第一个找到的评价
+                row = self._fetch_one(
+                    "SELECT * FROM teacher_evaluations WHERE team_id = ? LIMIT 1",
+                    (team_id,)
+                )
             if row:
                 return TeacherEvaluation(row)
             return None
         except Exception as e:
             logger.error(f"获取教师评价失败: {str(e)}", exc_info=True)
             return None
+    
+    def get_all_teacher_evaluations(self, team_id: str) -> Dict[str, TeacherEvaluation]:
+        """获取团队所有阶段的教师评价"""
+        try:
+            rows = self._fetch_all(
+                "SELECT * FROM teacher_evaluations WHERE team_id = ? ORDER BY CASE stage_name WHEN 'PREPARATION' THEN 1 WHEN 'FIRE_MAKING' THEN 2 WHEN 'COOKING_RICE' THEN 3 WHEN 'COOKING_DISHES' THEN 4 WHEN 'SHOWCASE' THEN 5 WHEN 'CLEANING' THEN 6 WHEN 'COMPLETED' THEN 7 ELSE 999 END",
+                (team_id,)
+            )
+            evaluations = {}
+            for row in rows:
+                if not isinstance(row, dict):
+                    row = dict(row)
+                evaluation = TeacherEvaluation(row)
+                evaluations[evaluation.stage_name] = evaluation
+            return evaluations
+        except Exception as e:
+            logger.error(f"获取所有教师评价失败: {str(e)}", exc_info=True)
+            return {}
     
     # ==================== 统计操作 ====================
     
