@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import android.content.res.ColorStateList
 import com.campcooking.ar.adapter.StageListAdapter
 import com.campcooking.ar.config.RecordConfig
 import com.campcooking.ar.data.CookingStage
@@ -262,6 +263,15 @@ class RecordActivity : AppCompatActivity() {
         val lastModified = java.text.SimpleDateFormat("MM-dd HH:mm", java.util.Locale.getDefault())
             .format(java.util.Date(file.lastModified()))
         mediaTimeView.text = lastModified
+
+        // 动态设置按钮图标颜色
+        // 查看按钮：绿色
+        val greenColor = ContextCompat.getColor(this, R.color.material_green_500)
+        viewButton.iconTint = ColorStateList.valueOf(greenColor)
+        
+        // 删除按钮：红色
+        val redColor = ContextCompat.getColor(this, R.color.error)
+        deleteButton.iconTint = ColorStateList.valueOf(redColor)
 
         // 查看按钮
         viewButton.setOnClickListener {

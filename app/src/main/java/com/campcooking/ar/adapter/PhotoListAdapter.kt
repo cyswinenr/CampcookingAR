@@ -2,6 +2,7 @@ package com.campcooking.ar.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
@@ -10,6 +11,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.campcooking.ar.R
@@ -69,6 +71,16 @@ class PhotoListAdapter(
 
             // 显示文件大小
             binding.mediaInfoView.text = formatFileSize(file.length())
+
+            // 动态设置按钮图标颜色
+            val context = binding.root.context
+            // 查看按钮：绿色
+            val greenColor = ContextCompat.getColor(context, R.color.material_green_500)
+            binding.viewButton.iconTint = ColorStateList.valueOf(greenColor)
+            
+            // 删除按钮：红色
+            val redColor = ContextCompat.getColor(context, R.color.error)
+            binding.deleteButton.iconTint = ColorStateList.valueOf(redColor)
 
             // 查看按钮点击
             binding.viewButton.setOnClickListener {
