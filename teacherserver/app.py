@@ -296,18 +296,169 @@ def save_student_evaluation(student_id: str):
         }), 500
 
 
+@app.route('/api/student/<student_id>/media/upload', methods=['POST'])
+def upload_media_file(student_id: str):
+    """上传媒体文件（照片/视频）"""
+    try:
+        # 记录所有上传请求（包括失败的）
+        logger.info("=" * 60)
+        logger.info(f"收到文件上传请求: student_id={student_id}")
+        logger.info(f"请求方法: {request.method}")
+        logger.info(f"Content-Type: {request.content_type}")
+        logger.info(f"请求文件: {list(request.files.keys())}")
+        logger.info(f"请求表单: {list(request.form.keys())}")
+        
+        if 'file' not in request.files:
+            logger.warning("❌ 上传请求中没有 'file' 字段")
+            logger.warning(f"   可用的文件字段: {list(request.files.keys())}")
+            return jsonify({
+                'status': 'error',
+                'message': '没有文件'
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            logger.warning("❌ 上传的文件名为空")
+            return jsonify({
+                'status': 'error',
+                'message': '文件名为空'
+            }), 400
+        
+        # 获取文件信息
+        original_path = request.form.get('original_path', '')  # Android端的原始路径
+        file_type = request.form.get('type', 'PHOTO')  # PHOTO 或 VIDEO
+        timestamp = request.form.get('timestamp', '0')
+        
+        logger.info(f"文件信息:")
+        logger.info(f"   文件名: {file.filename}")
+        logger.info(f"   原始路径: {original_path}")
+        logger.info(f"   文件类型: {file_type}")
+        logger.info(f"   时间戳: {timestamp}")
+        
+        # 创建学生媒体目录
+        student_media_dir = os.path.join(Config.MEDIA_DIR, student_id)
+        os.makedirs(student_media_dir, exist_ok=True)
+        logger.info(f"媒体目录: {student_media_dir}")
+        
+        # 生成安全的文件名（使用原始文件名或时间戳）
+        if original_path:
+            # 从原始路径提取文件名
+            safe_filename = os.path.basename(original_path)
+        else:
+            # 使用上传的文件名
+            safe_filename = file.filename
+        
+        # 确保文件名安全
+        safe_filename = safe_filename.replace('..', '').replace('/', '').replace('\\', '')
+        
+        file_path = os.path.join(student_media_dir, safe_filename)
+        logger.info(f"保存路径: {file_path}")
+        
+        # 保存文件
+        file.save(file_path)
+        logger.info(f"文件已保存，大小: {os.path.getsize(file_path)} 字节")
+        
+        # 更新数据库中的文件路径（如果存在）
+        try:
+            from db_manager import DatabaseManager
+            db_manager = DatabaseManager()
+            # 查找使用原始路径的记录并更新为服务器端路径
+            db_manager._execute(
+                "UPDATE media_items SET file_path = ? WHERE file_path = ?",
+                (safe_filename, original_path)
+            )
+            logger.info(f"   已更新数据库路径: {original_path} -> {safe_filename}")
+        except Exception as e:
+            logger.warning(f"   更新数据库路径失败: {str(e)}")
+        
+        logger.info(f"✅ 上传媒体文件成功: {student_id}/{safe_filename}")
+        logger.info(f"   原始路径: {original_path}")
+        logger.info(f"   文件类型: {file_type}")
+        logger.info(f"   文件大小: {os.path.getsize(file_path)} 字节")
+        
+        return jsonify({
+            'status': 'success',
+            'filename': safe_filename,
+            'message': '文件上传成功'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"上传媒体文件失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 @app.route('/api/student/<student_id>/media/<path:filename>', methods=['GET'])
 def get_media_file(student_id: str, filename: str):
     """获取媒体文件（照片/视频）"""
     try:
+        # 增强日志
+        logger.info(f"请求媒体文件: student_id={student_id}, filename={filename[:100]}...")
+        
+        # 首先尝试从存储管理器查找
         file_path = storage.get_media_file_path(student_id, filename)
         
+        if not file_path:
+            logger.warning(f"媒体文件路径未找到: {student_id}/{filename[:50]}...")
+            
+            # 尝试从数据库查找完整路径
+            try:
+                from db_manager import DatabaseManager
+                db_manager = DatabaseManager()
+                
+                # 如果filename是完整Android路径，提取文件名
+                search_filename = os.path.basename(filename) if '/' in filename or '\\' in filename else filename
+                
+                # 查询数据库中的文件路径（匹配文件名）
+                rows = db_manager._fetch_all(
+                    "SELECT file_path FROM media_items WHERE file_path LIKE ? OR file_path LIKE ? LIMIT 5",
+                    (f'%{search_filename}', f'%{os.path.basename(search_filename)}')
+                )
+                
+                if rows:
+                    logger.info(f"在数据库中找到 {len(rows)} 条相关记录")
+                    for row in rows:
+                        db_path = row['file_path']
+                        logger.info(f"数据库路径: {db_path[:100]}...")
+                        
+                        # 提取文件名
+                        db_filename = os.path.basename(db_path)
+                        logger.info(f"提取的文件名: {db_filename}")
+                        
+                        # 尝试使用提取的文件名查找
+                        file_path = storage.get_media_file_path(student_id, db_filename)
+                        if file_path and os.path.exists(file_path):
+                            logger.info(f"✅ 通过数据库路径找到文件: {file_path}")
+                            break
+                        
+                        # 如果数据库路径是Android路径，说明文件未上传
+                        if db_path.startswith('/storage/') or db_path.startswith('storage/'):
+                            logger.warning(f"⚠️ 数据库中的路径是Android路径，文件可能未上传: {db_path[:100]}...")
+                            logger.warning(f"   文件名应该是: {db_filename}")
+                            logger.warning(f"   请检查Android端是否已重新编译并上传文件")
+            except Exception as e:
+                logger.error(f"从数据库查找路径失败: {str(e)}", exc_info=True)
+        
         if not file_path or not os.path.exists(file_path):
+            logger.error(f"❌ 媒体文件不存在: {file_path}")
+            
+            # 提供更详细的错误信息
+            error_info = {
+                'student_id': student_id,
+                'filename': filename[:100] + ('...' if len(filename) > 100 else ''),
+                'searched_path': str(file_path) if file_path else None,
+                'hint': '文件可能未上传到服务器，请检查Android端是否已重新编译并上传文件'
+            }
+            
             return jsonify({
                 'status': 'error',
-                'message': '文件不存在'
+                'message': '文件不存在',
+                'debug': error_info
             }), 404
         
+        logger.info(f"✅ 找到媒体文件: {file_path}")
         return send_file(file_path)
         
     except Exception as e:

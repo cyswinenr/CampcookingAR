@@ -4,10 +4,13 @@ import android.content.Context
 import android.util.Log
 import com.campcooking.ar.data.ProcessRecord
 import com.campcooking.ar.data.TeamInfo
+import com.campcooking.ar.data.MediaItem
 import com.google.gson.Gson
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -186,6 +189,50 @@ class DataSubmitManager(private val context: Context) {
                     dataPackage["summaryData"] = null
                 }
                 
+                // ⭐ 关键修复：先上传媒体文件，再提交数据
+                val studentId = "${teamInfo.school}_${teamInfo.grade}_${teamInfo.className}_${teamInfo.stoveNumber}"
+                
+                // 收集所有需要上传的媒体文件
+                val mediaFilesToUpload = mutableListOf<MediaItem>()
+                if (processRecord != null) {
+                    processRecord.stages.values.forEach { stageRecord ->
+                        mediaFilesToUpload.addAll(stageRecord.mediaItems)
+                    }
+                }
+                
+                // 上传媒体文件
+                if (mediaFilesToUpload.isNotEmpty()) {
+                    Log.d(TAG, "开始上传 ${mediaFilesToUpload.size} 个媒体文件")
+                    var uploadSuccessCount = 0
+                    var uploadFailCount = 0
+                    
+                    for (mediaItem in mediaFilesToUpload) {
+                        try {
+                            val file = File(mediaItem.path)
+                            if (file.exists()) {
+                                val success = uploadMediaFile(serverConfig.getServerUrl(), studentId, mediaItem, file)
+                                if (success) {
+                                    uploadSuccessCount++
+                                    Log.d(TAG, "✅ 上传成功: ${file.name}")
+                                } else {
+                                    uploadFailCount++
+                                    Log.w(TAG, "⚠️ 上传失败: ${file.name}")
+                                }
+                            } else {
+                                uploadFailCount++
+                                Log.w(TAG, "⚠️ 文件不存在: ${mediaItem.path}")
+                            }
+                        } catch (e: Exception) {
+                            uploadFailCount++
+                            Log.e(TAG, "上传文件异常: ${mediaItem.path}, ${e.message}", e)
+                        }
+                    }
+                    
+                    Log.d(TAG, "媒体文件上传完成: 成功 $uploadSuccessCount, 失败 $uploadFailCount")
+                } else {
+                    Log.d(TAG, "没有媒体文件需要上传")
+                }
+                
                 // 转换为JSON
                 val json = gson.toJson(dataPackage)
                 val requestBody = json.toRequestBody("application/json".toMediaType())
@@ -272,6 +319,59 @@ class DataSubmitManager(private val context: Context) {
         Log.d(TAG, "转换过程记录: stages数量=${stagesMap.size}, 总阶段数=${processRecord.stages.size}")
         
         return result
+    }
+    
+    /**
+     * 上传媒体文件到服务器
+     */
+    private fun uploadMediaFile(serverUrl: String, studentId: String, mediaItem: MediaItem, file: File): Boolean {
+        return try {
+            // 根据文件类型确定MIME类型
+            val mimeType = when {
+                file.name.endsWith(".jpg", ignoreCase = true) || file.name.endsWith(".jpeg", ignoreCase = true) -> "image/jpeg"
+                file.name.endsWith(".png", ignoreCase = true) -> "image/png"
+                file.name.endsWith(".mp4", ignoreCase = true) -> "video/mp4"
+                file.name.endsWith(".avi", ignoreCase = true) -> "video/x-msvideo"
+                mediaItem.type == com.campcooking.ar.data.MediaType.PHOTO -> "image/jpeg"
+                mediaItem.type == com.campcooking.ar.data.MediaType.VIDEO -> "video/mp4"
+                else -> "application/octet-stream"
+            }
+            
+            // 构建请求体（multipart/form-data）
+            val requestBody = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("file", file.name, file.asRequestBody(mimeType.toMediaType()))
+                .addFormDataPart("original_path", mediaItem.path)
+                .addFormDataPart("type", mediaItem.type.name)
+                .addFormDataPart("timestamp", mediaItem.timestamp.toString())
+                .build()
+            
+            val encodedStudentId = java.net.URLEncoder.encode(studentId, "UTF-8")
+            val request = Request.Builder()
+                .url("$serverUrl/api/student/$encodedStudentId/media/upload")
+                .post(requestBody)
+                .build()
+            
+            Log.d(TAG, "上传文件: ${file.name} (${file.length()} 字节) 到 $serverUrl/api/student/$encodedStudentId/media/upload")
+            
+            val response = client.newCall(request).execute()
+            val success = response.isSuccessful
+            
+            if (success) {
+                val responseBody = response.body?.string()
+                Log.d(TAG, "上传成功: ${file.name}, 响应: $responseBody")
+            } else {
+                val errorBody = response.body?.string()
+                Log.e(TAG, "上传文件失败: ${file.name}, 响应码: ${response.code}, 错误: $errorBody")
+            }
+            
+            response.close()
+            success
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "上传文件异常: ${file.name}, ${e.message}", e)
+            false
+        }
     }
     
     /**

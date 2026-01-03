@@ -349,36 +349,73 @@ class DataStorage:
     def get_media_file_path(self, student_id: str, filename: str) -> Optional[str]:
         """获取媒体文件路径"""
         try:
-            # 处理不同的路径格式
-            # 1. 如果filename是完整路径，提取文件名
-            if os.path.sep in filename:
-                filename = os.path.basename(filename)
+            logger.debug(f"查找媒体文件: student_id={student_id}, filename={filename}")
             
-            # 2. 尝试在媒体目录中查找
+            # 处理不同的路径格式
+            # 1. 如果filename是完整路径（Android路径），提取文件名
+            original_filename = filename
+            if os.path.sep in filename or '/' in filename:
+                # 提取文件名（处理Android路径格式）
+                filename = os.path.basename(filename)
+                logger.debug(f"从完整路径提取文件名: {original_filename} -> {filename}")
+            
+            # 2. 尝试在媒体目录中查找（优先级最高）
             file_path = os.path.join(self.media_dir, student_id, filename)
             if os.path.exists(file_path):
+                logger.info(f"✅ 找到媒体文件（媒体目录）: {file_path}")
                 return file_path
             
             # 3. 尝试在媒体目录根目录查找
             file_path = os.path.join(self.media_dir, filename)
             if os.path.exists(file_path):
+                logger.info(f"✅ 找到媒体文件（媒体根目录）: {file_path}")
                 return file_path
             
             # 4. 尝试在学生数据目录中查找
             student_dir = os.path.join(self.data_dir, student_id)
             file_path = os.path.join(student_dir, filename)
             if os.path.exists(file_path):
+                logger.info(f"✅ 找到媒体文件（数据目录）: {file_path}")
                 return file_path
             
-            # 5. 如果filename是完整路径且文件存在
-            if os.path.exists(filename):
-                return filename
+            # 5. 如果filename是完整路径且文件存在（本地测试用）
+            if os.path.exists(original_filename):
+                logger.info(f"✅ 找到媒体文件（完整路径）: {original_filename}")
+                return original_filename
             
-            logger.warning(f"媒体文件未找到: {student_id}/{filename}")
+            # 6. 尝试从数据库查找对应的文件路径
+            try:
+                from db_manager import DatabaseManager
+                db_manager = DatabaseManager()
+                # 查询包含该文件名的记录
+                rows = db_manager._fetch_all(
+                    "SELECT file_path FROM media_items WHERE file_path LIKE ? OR file_path LIKE ? LIMIT 5",
+                    (f'%{filename}', f'%{os.path.basename(filename)}')
+                )
+                
+                if rows:
+                    logger.info(f"在数据库中找到 {len(rows)} 条相关记录")
+                    for row in rows:
+                        db_path = row['file_path']
+                        # 提取文件名
+                        db_filename = os.path.basename(db_path)
+                        # 再次尝试查找
+                        test_path = os.path.join(self.media_dir, student_id, db_filename)
+                        if os.path.exists(test_path):
+                            logger.info(f"✅ 通过数据库路径找到文件: {test_path}")
+                            return test_path
+            except Exception as e:
+                logger.debug(f"从数据库查找失败: {str(e)}")
+            
+            logger.warning(f"❌ 媒体文件未找到: student_id={student_id}, filename={filename}")
+            logger.warning(f"   尝试过的路径:")
+            logger.warning(f"     1. {os.path.join(self.media_dir, student_id, filename)}")
+            logger.warning(f"     2. {os.path.join(self.media_dir, filename)}")
+            logger.warning(f"     3. {os.path.join(self.data_dir, student_id, filename)}")
             return None
             
         except Exception as e:
-            logger.error(f"获取媒体文件路径失败: {str(e)}")
+            logger.error(f"获取媒体文件路径失败: {str(e)}", exc_info=True)
             return None
     
     def export_all_data(self) -> Optional[str]:
