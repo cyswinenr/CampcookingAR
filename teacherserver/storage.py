@@ -568,14 +568,43 @@ class DataStorage:
             return None
     
     def get_all_evaluation_teams(self) -> List[Dict[str, Any]]:
-        """获取所有可评价的团队列表"""
+        """获取所有可评价的团队列表（从teams表读取所有已提交数据的团队）"""
         try:
-            teams = self.db_manager.get_all_evaluation_teams()
-            return [{
-                'id': team.team_id,
-                'teamName': team.team_name or team.team_id,
-                'teamId': team.team_id
-            } for team in teams]
+            # 从 teams 表读取所有团队（而不是 teacher_evaluation_teams 表）
+            # 这样即使还没有评价数据，也能看到所有已提交数据的团队
+            teams = self.db_manager.get_all_teams()
+
+            result = []
+            for team in teams:
+                # 获取团队分工信息
+                division = self.db_manager.get_team_division(team.team_id)
+                group_leader = division.group_leader if division else ""
+
+                # 构建显示名称（学校 + 年级 + 班级 + 炉号）
+                display_name = f"{team.school} {team.grade}{team.class_name} {team.stove_number}"
+
+                result.append({
+                    'id': team.team_id,
+                    'teamId': team.team_id,
+                    'teamName': display_name,
+                    'school': team.school,
+                    'grade': team.grade,
+                    'className': team.class_name,
+                    'stoveNumber': team.stove_number,
+                    'memberCount': team.member_count,
+                    'memberNames': team.member_names,
+                    'groupLeader': group_leader,
+                    # 团队分工
+                    'division': {
+                        'groupLeader': division.group_leader if division else "",
+                        'groupCooking': division.group_cooking if division else "",
+                        'groupSoupRice': division.group_soup_rice if division else "",
+                        'groupFire': division.group_fire if division else "",
+                        'groupHealth': division.group_health if division else ""
+                    } if division else None
+                })
+
+            return result
         except Exception as e:
             logger.error(f"获取评价团队列表失败: {str(e)}", exc_info=True)
             return []

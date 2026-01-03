@@ -129,36 +129,22 @@ class EvaluationActivity : AppCompatActivity() {
                     val json = gson.fromJson(responseBody, Map::class.java) as Map<*, *>
                     val teamsData = json["teams"] as? List<Map<*, *>> ?: emptyList()
 
-                    android.util.Log.d("EvaluationActivity", "加载团队列表（新API） - 收到 ${teamsData.size} 个团队")
-                    
+                    android.util.Log.d("EvaluationActivity", "加载团队列表 - 收到 ${teamsData.size} 个团队")
+
                     val teamList = teamsData.map { data ->
                         val teamData = data as Map<String, Any?>
-                        val teamId = teamData["id"] as? String ?: teamData["teamId"] as? String ?: ""
-                        val teamName = teamData["teamName"] as? String ?: teamId
-                        
-                        android.util.Log.d("EvaluationActivity", "团队ID: '$teamId', 名称: '$teamName'")
-                        
-                        // 创建简化的TeamInfo对象
-                        TeamInfo(
-                            id = teamId,
-                            teamName = teamName,
-                            school = "",
-                            grade = "",
-                            className = "",
-                            stoveNumber = "",
-                            memberCount = 0,
-                            memberNames = "",
-                            groupLeader = ""
-                        )
+
+                        // 使用TeamInfo.fromApiData方法解析完整数据
+                        TeamInfo.fromApiData(teamData)
                     }
 
                     runOnUiThread {
                         teams.clear()
                         teams.addAll(teamList)
                         teamAdapter.updateTeams(teams)
-                        
+
                         android.util.Log.d("EvaluationActivity", "成功加载 ${teams.size} 个团队")
-                        
+
                         if (teams.isEmpty()) {
                             Toast.makeText(this@EvaluationActivity, "暂无可评价的团队", Toast.LENGTH_SHORT).show()
                         }
