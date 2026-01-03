@@ -403,6 +403,14 @@
             background: #6a1b8f;
         }
 
+        .detail-btn.evaluation-btn {
+            background: #1565C0;
+        }
+
+        .detail-btn.evaluation-btn:hover {
+            background: #0D47A1;
+        }
+
         .refresh-btn, .clear-db-btn {
             background: #667eea;
             color: white;
@@ -986,6 +994,7 @@
                             <button class="detail-btn division-btn" onclick="showDivision('${escapeHtml(student.id)}')">团队分工</button>
                             <button class="detail-btn process-btn" onclick="showProcessRecord('${escapeHtml(student.id)}')">过程记录</button>
                             <button class="detail-btn summary-btn" onclick="showSummary('${escapeHtml(student.id)}')">课后总结</button>
+                            <button class="detail-btn evaluation-btn" onclick="showTeacherEvaluation('${escapeHtml(student.id)}')">教师评价</button>
                         </div>
                     </div>
                 `;
@@ -1405,6 +1414,108 @@
             } catch (error) {
                 console.error('获取课后总结失败:', error);
                 alert('获取课后总结失败: ' + error.message);
+            }
+        }
+
+        // 显示教师评价
+        async function showTeacherEvaluation(studentId) {
+            try {
+                // 获取学生基本信息（用于显示标题）
+                const studentResponse = await fetch(`${API_BASE}/api/student/${encodeURIComponent(studentId)}`);
+                const studentResult = await studentResponse.json();
+
+                if (studentResult.status !== 'success') {
+                    alert('获取学生信息失败: ' + (studentResult.message || '未知错误'));
+                    return;
+                }
+
+                const teamInfo = studentResult.data.teamInfo;
+
+                // 获取教师评价数据
+                const evalResponse = await fetch(`${API_BASE}/api/evaluation/${encodeURIComponent(studentId)}`);
+                const evalResult = await evalResponse.json();
+
+                const panel = document.getElementById('detailPanel');
+
+                // 构建教师评价HTML
+                let html = `
+                    <div class="detail-header">
+                        <h2>教师评价 - ${escapeHtml(teamInfo?.school || '')} ${escapeHtml(teamInfo?.grade || '')}${escapeHtml(teamInfo?.className || '')} - ${escapeHtml(teamInfo?.stoveNumber || '')}</h2>
+                        <button class="close-btn" onclick="closeDetail()">关闭</button>
+                    </div>
+                `;
+
+                const evaluations = evalResult.evaluations || {};
+
+                if (Object.keys(evaluations).length === 0) {
+                    html += `
+                        <div class="detail-section">
+                            <h3>教师评价</h3>
+                            <div class="detail-item" style="text-align: center; padding: 40px;">
+                                <div class="value" style="color: #999; font-size: 16px;">暂无教师评价</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="detail-section">
+                            <h3>教师评价详情</h3>
+                    `;
+
+                    // 按阶段顺序显示评价
+                    STAGE_ORDER.forEach(stageKey => {
+                        const stageEval = evaluations[stageKey];
+                        if (stageEval) {
+                            const stageName = STAGE_NAMES[stageKey] || stageKey;
+                            const positiveTags = stageEval.positiveTags || [];
+                            const improvementTags = stageEval.improvementTags || [];
+                            const otherComment = stageEval.otherComment || '';
+
+                            html += `
+                                <div class="stage-detail-item" style="margin-top: 16px;">
+                                    <div class="stage-detail-header">
+                                        <span class="stage-detail-name">${stageName}</span>
+                                    </div>
+
+                                    ${positiveTags.length > 0 ? `
+                                        <div style="margin: 8px 0;">
+                                            <div style="color: #2e7d32; font-weight: 600; font-size: 14px; margin-bottom: 4px;">✓ 做得好的地方:</div>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                ${positiveTags.map(tag => `<span class="division-tag" style="background: #e8f5e9; color: #2e7d32;">${escapeHtml(tag)}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${improvementTags.length > 0 ? `
+                                        <div style="margin: 8px 0;">
+                                            <div style="color: #e65100; font-weight: 600; font-size: 14px; margin-bottom: 4px;">⚠ 需要改进:</div>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                ${improvementTags.map(tag => `<span class="division-tag" style="background: #fff3e0; color: #e65100;">${escapeHtml(tag)}</span>`).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+
+                                    ${otherComment ? `
+                                        <div style="margin: 8px 0; padding: 10px; background: #f5f5f5; border-radius: 6px;">
+                                            <div style="color: #666; font-weight: 600; font-size: 14px; margin-bottom: 4px;">💬 其他评价:</div>
+                                            <div style="color: #333; line-height: 1.5; font-size: 14px;">${escapeHtml(otherComment)}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+                    });
+
+                    html += `
+                        </div>
+                    `;
+                }
+
+                panel.innerHTML = html;
+                document.getElementById('detailOverlay').classList.add('active');
+            } catch (error) {
+                console.error('获取教师评价失败:', error);
+                alert('获取教师评价失败: ' + error.message);
             }
         }
 
