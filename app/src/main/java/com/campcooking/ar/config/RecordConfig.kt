@@ -12,6 +12,9 @@ object RecordConfig {
     const val MIN_PHOTOS_REQUIRED = 3          // 最少照片数量
     const val MIN_VIDEOS_REQUIRED = 1          // 最少视频数量
     
+    // ==================== 视频录制配置 ====================
+    const val MAX_VIDEO_DURATION_SECONDS = 30  // 视频最大录制时长（秒）
+    
     /**
      * 成果展示阶段的特殊要求
      */

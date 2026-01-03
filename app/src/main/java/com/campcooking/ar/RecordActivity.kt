@@ -1087,6 +1087,7 @@ class RecordActivity : AppCompatActivity() {
             val takeVideoIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
             takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, currentVideoUri)
             takeVideoIntent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1) // 1 = 高质量
+            takeVideoIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, RecordConfig.MAX_VIDEO_DURATION_SECONDS) // 限制录制时长为30秒
             startActivityForResult(takeVideoIntent, REQUEST_TAKE_VIDEO)
         }
     }
