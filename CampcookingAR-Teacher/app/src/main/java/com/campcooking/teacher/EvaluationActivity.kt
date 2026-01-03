@@ -38,6 +38,12 @@ class EvaluationActivity : AppCompatActivity() {
     private val evaluationData = mutableMapOf<String, StageEvaluation>()
     private val gson = Gson()
     private lateinit var storageManager: EvaluationStorageManager
+
+    // 分页相关
+    private var currentPage = 1
+    private var totalPages = 1
+    private var totalCount = 0
+    private val pageSize = 5
     
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -91,19 +97,32 @@ class EvaluationActivity : AppCompatActivity() {
         binding.saveButton.setOnClickListener {
             saveEvaluation()
         }
+
+        // 分页按钮
+        binding.prevPageButton.setOnClickListener {
+            if (currentPage > 1) {
+                loadTeams(currentPage - 1)
+            }
+        }
+
+        binding.nextPageButton.setOnClickListener {
+            if (currentPage < totalPages) {
+                loadTeams(currentPage + 1)
+            }
+        }
     }
 
     /**
-     * 加载团队列表（使用新的API接口）
+     * 加载团队列表（使用新的API接口，支持分页）
      */
-    private fun loadTeams() {
+    private fun loadTeams(page: Int = 1) {
         val serverUrl = getServerUrl()
         if (serverUrl.isEmpty()) {
             Toast.makeText(this, "请先配置服务器地址", Toast.LENGTH_LONG).show()
             return
         }
 
-        val url = "$serverUrl/api/evaluation/teams"
+        val url = "$serverUrl/api/evaluation/teams?page=$page&page_size=$pageSize"
         val request = Request.Builder()
             .url(url)
             .get()
@@ -127,9 +146,27 @@ class EvaluationActivity : AppCompatActivity() {
                 try {
                     val responseBody = response.body?.string() ?: return
                     val json = gson.fromJson(responseBody, Map::class.java) as Map<*, *>
+
+                    if (json["status"] != "success") {
+                        runOnUiThread {
+                            Toast.makeText(this@EvaluationActivity, "加载失败: ${json["message"]}", Toast.LENGTH_LONG).show()
+                        }
+                        return
+                    }
+
                     val teamsData = json["teams"] as? List<Map<*, *>> ?: emptyList()
 
-                    android.util.Log.d("EvaluationActivity", "加载团队列表 - 收到 ${teamsData.size} 个团队")
+                    // 解析分页信息
+                    val pagination = json["pagination"] as? Map<*, *>
+                    if (pagination != null) {
+                        currentPage = (pagination["currentPage"] as? Double)?.toInt() ?: 1
+                        totalPages = (pagination["totalPages"] as? Double)?.toInt() ?: 1
+                        totalCount = (pagination["totalCount"] as? Double)?.toInt() ?: 0
+
+                        android.util.Log.d("EvaluationActivity", "分页信息: 第${currentPage}/${totalPages}页, 共${totalCount}个团队")
+                    }
+
+                    android.util.Log.d("EvaluationActivity", "加载团队列表 (第${currentPage}页) - 收到 ${teamsData.size} 个团队")
 
                     val teamList = teamsData.map { data ->
                         val teamData = data as Map<String, Any?>
@@ -142,6 +179,9 @@ class EvaluationActivity : AppCompatActivity() {
                         teams.clear()
                         teams.addAll(teamList)
                         teamAdapter.updateTeams(teams)
+
+                        // 更新分页UI
+                        updatePaginationUI()
 
                         android.util.Log.d("EvaluationActivity", "成功加载 ${teams.size} 个团队")
 
@@ -157,6 +197,21 @@ class EvaluationActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    /**
+     * 更新分页UI
+     */
+    private fun updatePaginationUI() {
+        binding.pageInfoText.text = "第 $currentPage 页 / 共 $totalPages 页"
+
+        // 更新按钮状态
+        binding.prevPageButton.isEnabled = currentPage > 1
+        binding.nextPageButton.isEnabled = currentPage < totalPages
+
+        // 调整按钮透明度
+        binding.prevPageButton.alpha = if (currentPage > 1) 1.0f else 0.5f
+        binding.nextPageButton.alpha = if (currentPage < totalPages) 1.0f else 0.5f
     }
 
     /**

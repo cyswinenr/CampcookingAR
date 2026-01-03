@@ -567,14 +567,34 @@ class DataStorage:
             logger.error(f"获取教师评价V2失败: {str(e)}", exc_info=True)
             return None
     
-    def get_all_evaluation_teams(self) -> List[Dict[str, Any]]:
-        """获取所有可评价的团队列表（从teams表读取所有已提交数据的团队）"""
+    def get_all_evaluation_teams(self, page: int = 1, page_size: int = 5) -> Dict[str, Any]:
+        """
+        获取所有可评价的团队列表（从teams表读取所有已提交数据的团队）
+
+        Args:
+            page: 页码（从1开始）
+            page_size: 每页数量（默认5个）
+
+        Returns:
+            包含团队列表和分页信息的字典
+        """
         try:
-            # 从 teams 表读取所有团队（而不是 teacher_evaluation_teams 表）
-            # 这样即使还没有评价数据，也能看到所有已提交数据的团队
+            import re
+
+            # 从 teams 表读取所有团队
             teams = self.db_manager.get_all_teams()
 
-            result = []
+            # 提取炉号数字并排序
+            def extract_stove_number(team):
+                """从炉号中提取数字，如 '1号炉' -> 1"""
+                match = re.search(r'(\d+)', team.stove_number)
+                return int(match.group(1)) if match else 999
+
+            # 按炉号数字排序
+            teams.sort(key=extract_stove_number)
+
+            # 构建完整团队信息
+            all_teams = []
             for team in teams:
                 # 获取团队分工信息
                 division = self.db_manager.get_team_division(team.team_id)
@@ -583,7 +603,7 @@ class DataStorage:
                 # 构建显示名称（学校 + 年级 + 班级 + 炉号）
                 display_name = f"{team.school} {team.grade}{team.class_name} {team.stove_number}"
 
-                result.append({
+                all_teams.append({
                     'id': team.team_id,
                     'teamId': team.team_id,
                     'teamName': display_name,
@@ -604,8 +624,37 @@ class DataStorage:
                     } if division else None
                 })
 
-            return result
+            # 分页处理
+            total_count = len(all_teams)
+            total_pages = (total_count + page_size - 1) // page_size  # 向上取整
+            page = max(1, min(page, total_pages)) if total_pages > 0 else 1  # 确保页码有效
+
+            start_idx = (page - 1) * page_size
+            end_idx = min(start_idx + page_size, total_count)
+            page_teams = all_teams[start_idx:end_idx]
+
+            return {
+                'teams': page_teams,
+                'pagination': {
+                    'currentPage': page,
+                    'pageSize': page_size,
+                    'totalPages': total_pages,
+                    'totalCount': total_count,
+                    'hasNext': page < total_pages,
+                    'hasPrev': page > 1
+                }
+            }
         except Exception as e:
             logger.error(f"获取评价团队列表失败: {str(e)}", exc_info=True)
-            return []
+            return {
+                'teams': [],
+                'pagination': {
+                    'currentPage': 1,
+                    'pageSize': page_size,
+                    'totalPages': 0,
+                    'totalCount': 0,
+                    'hasNext': False,
+                    'hasPrev': False
+                }
+            }
 

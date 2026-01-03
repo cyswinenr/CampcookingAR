@@ -316,12 +316,20 @@ def save_student_evaluation(student_id: str):
 
 @app.route('/api/evaluation/teams', methods=['GET'])
 def get_evaluation_teams():
-    """获取可评价的团队列表（新版本，高性能）"""
+    """获取可评价的团队列表（支持分页和炉号排序）"""
     try:
-        teams = storage.get_all_evaluation_teams()
+        # 获取分页参数
+        page = request.args.get('page', 1, type=int)
+        page_size = request.args.get('page_size', 5, type=int)
+
+        # 限制每页数量范围（1-20）
+        page_size = max(1, min(page_size, 20))
+
+        result = storage.get_all_evaluation_teams(page=page, page_size=page_size)
+
         return jsonify({
             'status': 'success',
-            'teams': teams
+            **result  # 包含 teams 和 pagination
         }), 200
     except Exception as e:
         logger.error(f"获取评价团队列表失败: {str(e)}", exc_info=True)
