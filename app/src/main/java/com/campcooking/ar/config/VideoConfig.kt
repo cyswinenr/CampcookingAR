@@ -42,49 +42,58 @@ object VideoConfig {
                 category = "基础技能",
                 order = 1
             ),
-            
-            // 视频2：砍鸡的方法
+            // 视频1：生火技巧
             Video(
                 id = 2,
+                title = "煮饭技巧",
+                description = "如何正确的煮柴火饭。",
+                duration = "1:00",
+                fileName = "煮饭.mp4",
+                category = "基础技能",
+                order = 2
+            ),
+            // 视频2：砍鸡的方法
+            Video(
+                id = 3,
                 title = "砍鸡的方法",
                 description = "学习如何正确砍鸡",
                 duration = "1:00",
                 fileName = "video_cut_chicken.mp4",
                 category = "基础技能",
-                order = 2
+                order = 3
             ),
             
             // 视频3：砍排骨方法
             Video(
-                id = 3,
+                id = 4,
                 title = "砍排骨方法",
                 description = "砍排骨方法",
                 duration = "1:00",
                 fileName = "video_chop_ribs.mp4",
                 category = "基础技能",
-                order = 3
+                order = 4
             ),
             
             // 视频4：野炊砍柴方法
             Video(
-                id = 4,
+                id = 5,
                 title = "野炊砍柴方法",
                 description = "野炊砍柴方法",
                 duration = "1:00",
                 fileName = "野炊砍柴.mp4",
                 category = "基础技能",
-                order = 4
+                order = 5
             ),
             
             // 视频5：番茄炒鸡蛋
             Video(
-                id = 5,
+                id = 6,
                 title = "番茄炒鸡蛋",
                 description = "番茄炒鸡蛋",
                 duration = "1:00",
                 fileName = "番茄炒鸡蛋.mp4",
                 category = "菜式",
-                order = 5
+                order = 6
             )
         )
     }
