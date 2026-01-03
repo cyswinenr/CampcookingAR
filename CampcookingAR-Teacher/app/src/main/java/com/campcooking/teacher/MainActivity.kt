@@ -26,7 +26,18 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         
         setupWebView()
+        setupListeners()
         loadServerUrl()
+    }
+    
+    /**
+     * 设置监听器
+     */
+    private fun setupListeners() {
+        binding.evaluationButton.setOnClickListener {
+            val intent = android.content.Intent(this, EvaluationActivity::class.java)
+            startActivity(intent)
+        }
     }
     
     /**

@@ -313,6 +313,88 @@ def save_student_evaluation(student_id: str):
         }), 500
 
 
+@app.route('/api/evaluation', methods=['POST'])
+def save_evaluation():
+    """保存完整的教师评价数据（包含所有环节）"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': '未收到数据'
+            }), 400
+        
+        # 验证必要字段
+        if 'teamId' not in data:
+            return jsonify({
+                'status': 'error',
+                'message': '缺少团队ID'
+            }), 400
+        
+        team_id = data['teamId']
+        evaluations = data.get('evaluations', {})
+        
+        # 保存每个环节的评价
+        for stage, stage_eval in evaluations.items():
+            if isinstance(stage_eval, dict):
+                # 创建TeacherEvaluation对象
+                evaluation = TeacherEvaluation({
+                    'team_id': team_id,
+                    'stage': stage,
+                    'rating': 0,  # 评价数据中没有rating，设为0
+                    'comment': stage_eval.get('otherComment', ''),
+                    'strengths': ', '.join(stage_eval.get('positiveTags', [])),
+                    'improvements': ', '.join(stage_eval.get('improvementTags', []))
+                })
+                
+                # 保存评价
+                storage.save_student_evaluation(team_id, evaluation)
+                logger.info(f"✅ 保存评价: {team_id} - {stage}")
+        
+        return jsonify({
+            'status': 'success',
+            'message': '评价保存成功'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"保存评价失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+@app.route('/api/evaluation/<team_id>', methods=['GET'])
+def get_evaluation(team_id: str):
+    """获取指定团队的完整评价数据"""
+    try:
+        # 获取所有环节的评价
+        all_evaluations = storage.get_all_student_evaluations(team_id)
+        
+        # 转换为前端需要的格式
+        evaluations = {}
+        for stage, eval_data in all_evaluations.items():
+            evaluations[stage] = {
+                'positiveTags': eval_data.get('strengths', '').split(', ') if eval_data.get('strengths') else [],
+                'improvementTags': eval_data.get('improvements', '').split(', ') if eval_data.get('improvements') else [],
+                'otherComment': eval_data.get('comment', '')
+            }
+        
+        return jsonify({
+            'status': 'success',
+            'teamId': team_id,
+            'evaluations': evaluations
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"获取评价失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
 @app.route('/api/student/<student_id>/evaluation/media/upload', methods=['POST'])
 def upload_evaluation_media(student_id: str):
     """上传教师评价的媒体文件（照片/视频）"""
