@@ -786,21 +786,39 @@ def get_media_file(student_id: str, filename: str):
 def export_all_data():
     """导出所有数据为ZIP文件（包含数据库、媒体文件、学生数据、评价数据等）"""
     try:
+        logger.info("开始处理导出请求...")
         zip_path = storage.export_all_data()
         
-        if not zip_path or not os.path.exists(zip_path):
+        if not zip_path:
+            logger.error("导出失败：storage.export_all_data() 返回 None")
             return jsonify({
                 'status': 'error',
-                'message': '导出失败'
+                'message': '导出失败：无法创建导出文件'
             }), 500
         
-        return send_file(zip_path, as_attachment=True, download_name=f'野炊教学数据导出_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
+        if not os.path.exists(zip_path):
+            logger.error(f"导出失败：文件不存在: {zip_path}")
+            return jsonify({
+                'status': 'error',
+                'message': f'导出失败：文件不存在: {zip_path}'
+            }), 500
+        
+        file_size = os.path.getsize(zip_path)
+        logger.info(f"导出文件准备就绪: {zip_path}, 大小: {file_size / 1024 / 1024:.2f} MB")
+        
+        # 使用 send_file 发送文件，设置 mimetype
+        return send_file(
+            zip_path,
+            as_attachment=True,
+            download_name=f'野炊教学数据导出_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip',
+            mimetype='application/zip'
+        )
         
     except Exception as e:
         logger.error(f"导出数据失败: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': f'导出失败: {str(e)}'
         }), 500
 
 

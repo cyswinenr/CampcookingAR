@@ -2169,42 +2169,53 @@
             btn.textContent = '导出中...';
 
             try {
-                const response = await fetch(`${API_BASE}/api/export?t=${Date.now()}`, {
-                    method: 'GET',
+                const startTime = Date.now();
+                console.log('开始导出数据...');
+
+                const exportUrl = `${API_BASE}/api/export?t=${Date.now()}`;
+                
+                // 使用最简单直接的方式：直接打开下载链接
+                // 这种方式最可靠，浏览器会自动处理下载
+                const link = document.createElement('a');
+                link.href = exportUrl;
+                link.download = '野炊教学数据导出.zip';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                
+                // 延迟清理
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                }, 1000);
+
+                // 同时使用 fetch 检查是否成功（但不阻塞）
+                fetch(exportUrl, {
+                    method: 'HEAD', // 只获取头部，不下载内容
                     cache: 'no-store'
+                }).then(response => {
+                    if (response.ok) {
+                        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                        console.log('导出请求成功，耗时:', elapsed, '秒');
+                        btn.disabled = false;
+                        btn.textContent = originalText;
+                        // 不显示 alert，让浏览器自然下载
+                    } else {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                }).catch(error => {
+                    console.error('检查导出状态失败:', error);
+                    // 即使检查失败，也可能下载已经开始了，所以不显示错误
+                    btn.disabled = false;
+                    btn.textContent = originalText;
                 });
 
-                if (response.ok) {
-                    // 获取文件名
-                    const contentDisposition = response.headers.get('Content-Disposition');
-                    let filename = '野炊教学数据导出.zip';
-                    if (contentDisposition) {
-                        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-                        if (filenameMatch && filenameMatch[1]) {
-                            filename = filenameMatch[1].replace(/['"]/g, '');
-                        }
-                    }
-
-                    // 下载文件
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
-
-                    alert('✅ 数据导出成功！\n\n文件已下载到您的下载文件夹。');
-                } else {
-                    const result = await response.json();
-                    alert('❌ 导出失败：' + (result.message || '未知错误'));
-                }
             } catch (error) {
                 console.error('导出数据失败:', error);
-                alert('❌ 导出失败：网络错误\n' + error.message);
-            } finally {
+                let errorMsg = error.message;
+                if (error.message.includes('Failed to fetch')) {
+                    errorMsg = '网络连接失败，请检查：\n1. 服务器是否正在运行\n2. 网络连接是否正常\n3. 防火墙是否阻止了连接\n\n提示：也可以直接在浏览器地址栏访问：\n' + `${API_BASE}/api/export`;
+                }
+                alert('❌ 导出失败：' + errorMsg);
                 btn.disabled = false;
                 btn.textContent = originalText;
             }
