@@ -13,7 +13,7 @@ class ServerConfigManager(context: Context) {
         private const val PREF_NAME = "server_config_prefs"
         private const val KEY_SERVER_IP = "server_ip"
         private const val KEY_SERVER_PORT = "server_port"
-        private const val DEFAULT_SERVER_IP = "192.168.1.100"  // 默认IP
+        private const val DEFAULT_SERVER_IP = "172.16.70.101"  // 默认IP
         private const val DEFAULT_PORT = 5000  // 默认端口
     }
     

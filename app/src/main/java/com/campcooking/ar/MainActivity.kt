@@ -515,7 +515,21 @@ class MainActivity : AppCompatActivity() {
             }
             
             Toast.makeText(this, "已恢复上次保存的信息", Toast.LENGTH_SHORT).show()
+        } else {
+            // 如果没有保存的数据，设置默认值
+            setDefaultValues()
         }
+    }
+    
+    /**
+     * 设置默认值
+     */
+    private fun setDefaultValues() {
+        // 设置默认学校名称
+        binding.schoolInput.setText("黄埔区开元学校")
+        
+        // 设置默认年级为"高二"（索引2：0=请选择，1=高一，2=高二）
+        binding.gradeSpinner.setSelection(2)
     }
     
     /**

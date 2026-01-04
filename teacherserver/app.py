@@ -199,11 +199,17 @@ def submit_menu():
                 'message': '缺少菜单数据'
             }), 400
         
-        # 生成团队ID
+        # 生成团队ID（使用与Team模型相同的格式）
         team_info = data.get('teamInfo', {})
-        team_id = f"{team_info.get('school', '')}_{team_info.get('grade', '')}_{team_info.get('className', '')}_{team_info.get('stoveNumber', '')}"
+        # 从teamInfo中提取字段（使用驼峰命名，但转换为下划线命名用于生成team_id）
+        school = team_info.get('school', '')
+        grade = team_info.get('grade', '')
+        class_name = team_info.get('className', '')  # 从className读取，但变量名用class_name
+        stove_number = team_info.get('stoveNumber', '')  # 从stoveNumber读取，但变量名用stove_number
+        team_id = f"{school}_{grade}_{class_name}_{stove_number}"
         
         logger.info(f"收到菜单数据提交: {team_id}")
+        logger.info(f"团队信息: school={school}, grade={grade}, className={class_name}, stoveNumber={stove_number}")
         
         # 解析菜单数据
         menu_data = data.get('menuData', {})
@@ -245,6 +251,29 @@ def get_students():
             if stage_ratings:
                 logger.debug(f"学生 {student['id']} 的评分数据: {stage_ratings}")
             
+            # 获取菜单数据
+            student_id = student['id']
+            menu = None
+            try:
+                from db_manager import DatabaseManager
+                db_manager = DatabaseManager()
+                menu = db_manager.get_menu(student_id)
+                if menu:
+                    logger.debug(f"✅ 找到菜单: {student_id}, 汤: {menu.soup}, 菜数: {len(menu.dishes)}")
+                else:
+                    logger.debug(f"⚠️ 未找到菜单: {student_id}")
+            except Exception as e:
+                logger.warning(f"获取菜单失败 {student_id}: {str(e)}")
+            
+            # 构建菜单数据
+            menu_data = None
+            if menu:
+                menu_data = {
+                    'soup': menu.soup,
+                    'dishes': menu.dishes
+                }
+                logger.debug(f"菜单数据已构建: {student_id}, soup={menu.soup}, dishes={menu.dishes}")
+            
             result.append({
                 'id': student['id'],
                 'teamName': student['teamName'],
@@ -260,7 +289,8 @@ def get_students():
                 'hasSummary': student['hasSummary'],
                 'completedStages': student['completedStages'],
                 'totalStages': student['totalStages'],
-                'stageRatings': stage_ratings  # 每个阶段的评分
+                'stageRatings': stage_ratings,  # 每个阶段的评分
+                'menu': menu_data  # 菜单数据（汤和菜名列表）
             })
         
         return jsonify({
