@@ -816,6 +816,38 @@
             'COMPLETED': '整体表现'
         };
         const STAGE_ORDER = ['PREPARATION', 'FIRE_MAKING', 'COOKING_RICE', 'COOKING_DISHES', 'SHOWCASE', 'CLEANING', 'COMPLETED'];
+        
+        // 各阶段的评价标签定义（与学生端 RecordConfig.kt 保持一致）
+        const STAGE_TAGS = {
+            'PREPARATION': {
+                positive: ['准备充分', '分工明确', '工具齐全', '检查仔细'],
+                problems: ['准备不足', '工具缺失', '分工不清']
+            },
+            'FIRE_MAKING': {
+                positive: ['速度很快', '柴火摆放好', '通风良好', '安全操作', '火势稳定'],
+                problems: ['多次点火', '柴火潮湿', '烟雾太大', '火势不稳']
+            },
+            'COOKING_RICE': {
+                positive: ['水量正确', '火候控制好', '有及时退火', '没频繁掀盖', '软硬适中'],
+                problems: ['煮糊了', '夹生', '水放多了', '水放少了']
+            },
+            'COOKING_DISHES': {
+                positive: ['刀工整齐', '调味恰当', '火候适中', '色香味好', '摆盘美观'],
+                problems: ['炒糊了', '太咸/太淡', '不熟', '火候不对']
+            },
+            'SHOWCASE': {
+                positive: ['展示精彩', '分享到位', '讲解清晰', '成果突出', '团队协作'],
+                problems: ['展示不足', '讲解不清', '准备不充分']
+            },
+            'CLEANING': {
+                positive: ['收拾干净', '分类整理', '工具归位', '场地整洁', '垃圾分类'],
+                problems: ['收拾不及时', '场地脏乱', '工具散乱', '垃圾未清理']
+            },
+            'COMPLETED': {
+                positive: ['整体表现好', '团队配合好', '流程顺畅', '完成度高', '表现优秀'],
+                problems: ['配合不足', '流程混乱', '完成度低']
+            }
+        };
 
         // 页面加载时获取数据
         window.onload = function() {
@@ -1330,14 +1362,38 @@
                                                 <div style="color: #333; line-height: 1.5; font-size: 26px;">${escapeHtml(problemNotes)}</div>
                                             </div>
                                         ` : ''}
-                                        ${selectedTags && selectedTags.length > 0 ? `
-                                            <div style="margin: 8px 0;">
-                                                <div style="color: #666; font-size: 24px; margin-bottom: 6px;">选择的标签:</div>
-                                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                                    ${selectedTags.map(tag => `<span class="division-tag">${escapeHtml(tag)}</span>`).join('')}
-                                                </div>
-                                            </div>
-                                        ` : ''}
+                                        ${selectedTags && selectedTags.length > 0 ? (() => {
+                                            // 根据阶段标签定义，将选中的标签分类
+                                            const stageTagDef = STAGE_TAGS[stageKey] || { positive: [], problems: [] };
+                                            const positiveTags = selectedTags.filter(tag => stageTagDef.positive.includes(tag));
+                                            const problemsTags = selectedTags.filter(tag => stageTagDef.problems.includes(tag));
+                                            
+                                            let tagsHtml = '';
+                                            
+                                            // 显示 positive 标签（绿色，一行）
+                                            if (positiveTags.length > 0) {
+                                                tagsHtml += `
+                                                    <div style="margin: 8px 0;">
+                                                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                            ${positiveTags.map(tag => `<span class="division-tag" style="background: #e8f5e9; color: #2e7d32; border: 1px solid #4CAF50;">${escapeHtml(tag)}</span>`).join('')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }
+                                            
+                                            // 显示 problems 标签（粉红色，一行）
+                                            if (problemsTags.length > 0) {
+                                                tagsHtml += `
+                                                    <div style="margin: 8px 0;">
+                                                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                            ${problemsTags.map(tag => `<span class="division-tag" style="background: #FCE4EC; color: #E91E63; border: 1px solid #F06292;">${escapeHtml(tag)}</span>`).join('')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }
+                                            
+                                            return tagsHtml;
+                                        })() : ''}
                                         ${mediaItems && mediaItems.length > 0 ? `
                                             <div style="margin-top: 8px;">
                                                 <div style="color: #666; font-size: 24px; margin-bottom: 6px;">媒体文件 (${mediaItems.length} 个):</div>
@@ -1740,13 +1796,38 @@
                                                 <div style="color: #333; margin-top: 4px;">${escapeHtml(stage.problemNotes)}</div>
                                             </div>
                                         ` : ''}
-                                        ${stage.selectedTags && stage.selectedTags.length > 0 ? `
-                                            <div style="margin: 8px 0;">
-                                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
-                                                    ${stage.selectedTags.map(tag => `<span class="division-tag">${escapeHtml(tag)}</span>`).join('')}
-                                                </div>
-                                            </div>
-                                        ` : ''}
+                                        ${stage.selectedTags && stage.selectedTags.length > 0 ? (() => {
+                                            // 根据阶段标签定义，将选中的标签分类
+                                            const stageTagDef = STAGE_TAGS[stageKey] || { positive: [], problems: [] };
+                                            const positiveTags = stage.selectedTags.filter(tag => stageTagDef.positive.includes(tag));
+                                            const problemsTags = stage.selectedTags.filter(tag => stageTagDef.problems.includes(tag));
+                                            
+                                            let tagsHtml = '';
+                                            
+                                            // 显示 positive 标签（绿色，一行）
+                                            if (positiveTags.length > 0) {
+                                                tagsHtml += `
+                                                    <div style="margin: 8px 0;">
+                                                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                            ${positiveTags.map(tag => `<span class="division-tag" style="background: #e8f5e9; color: #2e7d32; border: 1px solid #4CAF50;">${escapeHtml(tag)}</span>`).join('')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }
+                                            
+                                            // 显示 problems 标签（粉红色，一行）
+                                            if (problemsTags.length > 0) {
+                                                tagsHtml += `
+                                                    <div style="margin: 8px 0;">
+                                                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                            ${problemsTags.map(tag => `<span class="division-tag" style="background: #FCE4EC; color: #E91E63; border: 1px solid #F06292;">${escapeHtml(tag)}</span>`).join('')}
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }
+                                            
+                                            return tagsHtml;
+                                        })() : ''}
                                         ${stage.mediaItems && stage.mediaItems.length > 0 ? `
                                             <div class="media-grid" style="margin-top: 12px;">
                                                     ${stage.mediaItems.map(item => {
