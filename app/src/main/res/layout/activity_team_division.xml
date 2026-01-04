@@ -137,8 +137,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/group_leader_light">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -160,7 +160,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="项目组长"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="@color/group_leader_color"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
 
@@ -267,8 +267,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/group_cooking_light">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -290,7 +290,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="烹饪组"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="@color/group_cooking_color"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
 
@@ -397,8 +397,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/group_soup_rice_light">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -420,7 +420,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="汤饭组"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="@color/group_soup_rice_color"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
 
@@ -527,8 +527,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/group_fire_light">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -550,7 +550,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="生火组"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="@color/group_fire_color"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
 
@@ -657,8 +657,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
                         app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="@color/group_health_light">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -680,7 +680,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
                                     android:text="卫生组"
-                                    android:textColor="@color/text_primary"
+                                    android:textColor="@color/group_health_color"
                                     android:textSize="22sp"
                                     android:textStyle="bold" />
 

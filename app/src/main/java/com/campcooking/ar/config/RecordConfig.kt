@@ -37,7 +37,7 @@ object RecordConfig {
         ),
         
         CookingStage.COOKING_RICE to TagGroup(
-            positive = listOf("水量正确", "火候控制好", "及时翻动", "软硬适中"),
+            positive = listOf("水量正确", "火候控制好", "有及时退火", "没频繁掀盖", "软硬适中"),
             problems = listOf("煮糊了", "夹生", "水放多了", "水放少了")
         ),
         
