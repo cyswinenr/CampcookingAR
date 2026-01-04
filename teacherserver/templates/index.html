@@ -417,7 +417,7 @@
             background: #0D47A1;
         }
 
-        .refresh-btn, .clear-db-btn {
+        .refresh-btn, .export-btn, .import-btn, .clear-db-btn {
             background: #667eea;
             color: white;
             border: none;
@@ -433,6 +433,36 @@
         }
 
         .refresh-btn:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .export-btn {
+            background: #4CAF50;
+            margin-left: 10px;
+        }
+
+        .export-btn:hover:not(:disabled) {
+            background: #45a049;
+        }
+
+        .export-btn:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .import-btn {
+            background: #2196F3;
+            margin-left: 10px;
+        }
+
+        .import-btn:hover:not(:disabled) {
+            background: #1976D2;
+        }
+
+        .import-btn:disabled {
             background: #9e9e9e;
             cursor: not-allowed;
             opacity: 0.7;
@@ -763,6 +793,8 @@
                 <div class="status-indicator"></div>
                 <span id="serverStatus">运行中</span>
                 <button class="refresh-btn" onclick="loadData()">刷新</button>
+                <button class="export-btn" onclick="exportData()">导出数据</button>
+                <button class="import-btn" onclick="importData()">导入数据</button>
                 <button class="clear-db-btn" onclick="clearDatabase()">清空数据库</button>
             </div>
         </div>
@@ -2127,6 +2159,155 @@
                 document.removeEventListener('keydown', escapeKeyHandler);
                 escapeKeyHandler = null;
             }
+        }
+
+        // 导出所有数据
+        async function exportData() {
+            const btn = document.querySelector('.export-btn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '导出中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/export?t=${Date.now()}`, {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+
+                if (response.ok) {
+                    // 获取文件名
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    let filename = '野炊教学数据导出.zip';
+                    if (contentDisposition) {
+                        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                        if (filenameMatch && filenameMatch[1]) {
+                            filename = filenameMatch[1].replace(/['"]/g, '');
+                        }
+                    }
+
+                    // 下载文件
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    alert('✅ 数据导出成功！\n\n文件已下载到您的下载文件夹。');
+                } else {
+                    const result = await response.json();
+                    alert('❌ 导出失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('导出数据失败:', error);
+                alert('❌ 导出失败：网络错误\n' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        // 导入所有数据
+        async function importData() {
+            // 确认操作
+            if (!confirm('⚠️ 警告：导入数据将覆盖现有数据！\n\n请确保已备份当前数据。\n\n是否继续？')) {
+                return;
+            }
+
+            // 选择导入模式
+            const mergeMode = confirm('选择导入模式：\n\n点击"确定" = 合并模式（保留现有数据，只添加新数据）\n点击"取消" = 覆盖模式（替换所有数据）');
+
+            // 创建文件输入元素
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.zip';
+            input.style.display = 'none';
+
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    return;
+                }
+
+                // 验证文件类型
+                if (!file.name.toLowerCase().endsWith('.zip')) {
+                    alert('❌ 只支持 ZIP 格式文件！');
+                    return;
+                }
+
+                // 再次确认
+                if (!confirm(`即将导入文件：${file.name}\n\n导入模式：${mergeMode ? '合并' : '覆盖'}\n\n确定要继续吗？`)) {
+                    return;
+                }
+
+                const btn = document.querySelector('.import-btn');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.textContent = '导入中...';
+
+                try {
+                    // 创建 FormData
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('merge_mode', mergeMode ? 'true' : 'false');
+
+                    const response = await fetch(`${API_BASE}/api/import?t=${Date.now()}`, {
+                        method: 'POST',
+                        body: formData,
+                        cache: 'no-store'
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        let message = '✅ 数据导入成功！\n\n';
+                        if (result.imported_items) {
+                            message += '导入内容：\n';
+                            if (result.imported_items.database) {
+                                message += '  ✓ 数据库\n';
+                            }
+                            message += `  ✓ 学生数据: ${result.imported_items.students || 0} 个文件\n`;
+                            message += `  ✓ 评价数据: ${result.imported_items.evaluations || 0} 个文件\n`;
+                            message += `  ✓ 媒体文件: ${result.imported_items.media || 0} 个文件\n`;
+                        }
+                        
+                        if (result.errors && result.errors.length > 0) {
+                            message += '\n⚠️ 警告：导入过程中有错误：\n';
+                            result.errors.forEach((err, idx) => {
+                                message += `  ${idx + 1}. ${err}\n`;
+                            });
+                        }
+
+                        alert(message);
+
+                        // 刷新数据
+                        await loadData();
+                    } else {
+                        let errorMsg = '❌ 导入失败：' + (result.message || '未知错误');
+                        if (result.errors && result.errors.length > 0) {
+                            errorMsg += '\n\n错误详情：\n';
+                            result.errors.forEach((err, idx) => {
+                                errorMsg += `  ${idx + 1}. ${err}\n`;
+                            });
+                        }
+                        alert(errorMsg);
+                    }
+                } catch (error) {
+                    console.error('导入数据失败:', error);
+                    alert('❌ 导入失败：网络错误\n' + error.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            };
+
+            // 触发文件选择
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
         }
 
         async function clearDatabase() {

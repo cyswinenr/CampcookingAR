@@ -5,6 +5,18 @@
 """
 
 import os
+import sys
+
+def get_base_dir():
+    """获取应用基础目录（支持打包后的环境）"""
+    if getattr(sys, 'frozen', False):
+        # 打包后的环境（PyInstaller）
+        # exe 文件所在目录作为基础目录
+        base_dir = os.path.dirname(sys.executable)
+    else:
+        # 开发环境
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+    return base_dir
 
 class Config:
     """服务器配置"""
@@ -15,7 +27,7 @@ class Config:
     HOST = '0.0.0.0'  # 监听所有网络接口
     
     # 数据存储配置
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = get_base_dir()
     DATA_DIR = os.path.join(BASE_DIR, 'data', 'students')  # 学生数据目录
     MEDIA_DIR = os.path.join(BASE_DIR, 'data', 'media')  # 媒体文件目录
     EVALUATION_DIR = os.path.join(BASE_DIR, 'data', 'evaluations')  # 评价数据目录

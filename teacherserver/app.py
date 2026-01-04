@@ -9,6 +9,7 @@ from flask import Flask, request, jsonify, send_file, render_template_string
 from flask_cors import CORS
 import json
 import os
+import sys
 import socket
 import shutil
 from datetime import datetime
@@ -783,7 +784,7 @@ def get_media_file(student_id: str, filename: str):
 
 @app.route('/api/export', methods=['GET'])
 def export_all_data():
-    """导出所有数据为ZIP文件"""
+    """导出所有数据为ZIP文件（包含数据库、媒体文件、学生数据、评价数据等）"""
     try:
         zip_path = storage.export_all_data()
         
@@ -793,13 +794,81 @@ def export_all_data():
                 'message': '导出失败'
             }), 500
         
-        return send_file(zip_path, as_attachment=True, download_name=f'学生数据导出_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
+        return send_file(zip_path, as_attachment=True, download_name=f'野炊教学数据导出_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
         
     except Exception as e:
         logger.error(f"导出数据失败: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
             'message': str(e)
+        }), 500
+
+
+@app.route('/api/import', methods=['POST'])
+def import_all_data():
+    """从ZIP文件导入所有数据"""
+    try:
+        # 检查是否有文件上传
+        if 'file' not in request.files:
+            return jsonify({
+                'status': 'error',
+                'message': '未找到上传文件'
+            }), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({
+                'status': 'error',
+                'message': '未选择文件'
+            }), 400
+        
+        # 检查文件扩展名
+        if not file.filename.lower().endswith('.zip'):
+            return jsonify({
+                'status': 'error',
+                'message': '只支持 ZIP 格式文件'
+            }), 400
+        
+        # 获取合并模式参数
+        merge_mode = request.form.get('merge_mode', 'false').lower() == 'true'
+        
+        # 保存上传的文件到临时目录
+        import tempfile
+        temp_dir = tempfile.gettempdir()
+        temp_zip_path = os.path.join(temp_dir, f'import_{datetime.now().strftime("%Y%m%d_%H%M%S")}.zip')
+        
+        file.save(temp_zip_path)
+        logger.info(f"收到导入文件: {file.filename}, 保存到: {temp_zip_path}, 合并模式: {merge_mode}")
+        
+        # 执行导入
+        result = storage.import_all_data(temp_zip_path, merge_mode=merge_mode)
+        
+        # 清理临时文件
+        try:
+            if os.path.exists(temp_zip_path):
+                os.remove(temp_zip_path)
+        except Exception as e:
+            logger.warning(f"清理临时文件失败: {str(e)}")
+        
+        if result['success']:
+            return jsonify({
+                'status': 'success',
+                'message': result['message'],
+                'imported_items': result['imported_items']
+            }), 200
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': result['message'],
+                'errors': result.get('errors', []),
+                'imported_items': result.get('imported_items', {})
+            }), 500
+        
+    except Exception as e:
+        logger.error(f"导入数据失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'导入失败: {str(e)}'
         }), 500
 
 
@@ -887,7 +956,13 @@ def index():
     """Web管理界面"""
     try:
         # 读取HTML模板文件
-        template_path = os.path.join(os.path.dirname(__file__), 'templates', 'index.html')
+        # 获取模板路径（支持打包后的环境）
+        if getattr(sys, 'frozen', False):
+            # 打包后的环境：模板在 exe 同目录的 templates 文件夹中
+            template_path = os.path.join(os.path.dirname(sys.executable), 'templates', 'index.html')
+        else:
+            # 开发环境：模板在项目目录中
+            template_path = os.path.join(os.path.dirname(__file__), 'templates', 'index.html')
         if os.path.exists(template_path):
             with open(template_path, 'r', encoding='utf-8') as f:
                 html = f.read()

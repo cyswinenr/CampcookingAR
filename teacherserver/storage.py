@@ -462,35 +462,247 @@ class DataStorage:
             return None
     
     def export_all_data(self) -> Optional[str]:
-        """导出所有数据为ZIP文件"""
+        """导出所有数据为ZIP文件（包含数据库、媒体文件、学生数据、评价数据等）"""
         try:
+            from config import Config
+            
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            zip_filename = f'export_{timestamp}.zip'
+            zip_filename = f'campcooking_export_{timestamp}.zip'
             zip_path = os.path.join(self.export_dir, zip_filename)
             
+            logger.info(f"开始导出所有数据到: {zip_path}")
+            
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                # 添加学生数据
+                # 1. 添加数据库文件
+                db_path = Config.DATABASE_PATH
+                if os.path.exists(db_path):
+                    zipf.write(db_path, 'campcooking.db')
+                    logger.info(f"✅ 已添加数据库文件: {db_path}")
+                else:
+                    logger.warning(f"⚠️ 数据库文件不存在: {db_path}")
+                
+                # 2. 添加学生数据目录
                 if os.path.exists(self.data_dir):
+                    student_count = 0
                     for root, dirs, files in os.walk(self.data_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
-                            arcname = os.path.relpath(file_path, self.data_dir)
+                            arcname = os.path.join('students', os.path.relpath(file_path, self.data_dir))
                             zipf.write(file_path, arcname)
+                            student_count += 1
+                    logger.info(f"✅ 已添加 {student_count} 个学生数据文件")
                 
-                # 添加评价数据
+                # 3. 添加评价数据
                 if os.path.exists(self.evaluation_dir):
+                    eval_count = 0
                     for file in os.listdir(self.evaluation_dir):
                         file_path = os.path.join(self.evaluation_dir, file)
                         if os.path.isfile(file_path):
                             arcname = os.path.join('evaluations', file)
                             zipf.write(file_path, arcname)
+                            eval_count += 1
+                    logger.info(f"✅ 已添加 {eval_count} 个评价文件")
+                
+                # 4. 添加媒体文件（照片和视频）
+                if os.path.exists(self.media_dir):
+                    media_count = 0
+                    total_size = 0
+                    for root, dirs, files in os.walk(self.media_dir):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            arcname = os.path.join('media', os.path.relpath(file_path, self.media_dir))
+                            zipf.write(file_path, arcname)
+                            media_count += 1
+                            total_size += os.path.getsize(file_path)
+                    logger.info(f"✅ 已添加 {media_count} 个媒体文件 (总大小: {total_size / 1024 / 1024:.2f} MB)")
+                
+                # 5. 添加元数据文件（导出信息）
+                metadata = {
+                    'export_time': datetime.now().isoformat(),
+                    'export_version': '1.0',
+                    'database_path': 'campcooking.db',
+                    'students_dir': 'students',
+                    'evaluations_dir': 'evaluations',
+                    'media_dir': 'media',
+                    'description': '野炊教学数据管理系统 - 完整数据导出'
+                }
+                metadata_json = json.dumps(metadata, ensure_ascii=False, indent=2)
+                zipf.writestr('metadata.json', metadata_json.encode('utf-8'))
+                logger.info("✅ 已添加元数据文件")
             
-            logger.info(f"导出数据: {zip_path}")
+            file_size = os.path.getsize(zip_path)
+            logger.info(f"✅ 导出完成: {zip_path} (大小: {file_size / 1024 / 1024:.2f} MB)")
             return zip_path
             
         except Exception as e:
             logger.error(f"导出数据失败: {str(e)}", exc_info=True)
             return None
+    
+    def import_all_data(self, zip_path: str, merge_mode: bool = False) -> Dict[str, Any]:
+        """
+        从ZIP文件导入所有数据
+        
+        Args:
+            zip_path: ZIP文件路径
+            merge_mode: 是否合并模式（True=合并数据，False=覆盖数据）
+        
+        Returns:
+            导入结果字典，包含成功/失败信息
+        """
+        try:
+            from config import Config
+            
+            result = {
+                'success': False,
+                'message': '',
+                'imported_items': {
+                    'database': False,
+                    'students': 0,
+                    'evaluations': 0,
+                    'media': 0
+                },
+                'errors': []
+            }
+            
+            if not os.path.exists(zip_path):
+                result['message'] = f'ZIP文件不存在: {zip_path}'
+                return result
+            
+            logger.info(f"开始导入数据从: {zip_path}")
+            
+            with zipfile.ZipFile(zip_path, 'r') as zipf:
+                # 读取元数据
+                metadata = None
+                if 'metadata.json' in zipf.namelist():
+                    try:
+                        metadata_json = zipf.read('metadata.json').decode('utf-8')
+                        metadata = json.loads(metadata_json)
+                        logger.info(f"读取元数据: {metadata.get('export_time', '未知时间')}")
+                    except Exception as e:
+                        logger.warning(f"读取元数据失败: {str(e)}")
+                
+                # 1. 导入数据库
+                if 'campcooking.db' in zipf.namelist():
+                    try:
+                        if not merge_mode:
+                            # 覆盖模式：备份现有数据库
+                            if os.path.exists(Config.DATABASE_PATH):
+                                backup_path = Config.DATABASE_PATH + f'.backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}'
+                                shutil.copy2(Config.DATABASE_PATH, backup_path)
+                                logger.info(f"已备份现有数据库到: {backup_path}")
+                            
+                            # 提取数据库文件
+                            os.makedirs(os.path.dirname(Config.DATABASE_PATH), exist_ok=True)
+                            with zipf.open('campcooking.db') as db_file:
+                                with open(Config.DATABASE_PATH, 'wb') as out_file:
+                                    out_file.write(db_file.read())
+                            result['imported_items']['database'] = True
+                            logger.info("✅ 数据库导入成功")
+                        else:
+                            # 合并模式：需要更复杂的处理，暂时跳过
+                            logger.warning("⚠️ 合并模式暂不支持数据库导入，跳过")
+                            result['errors'].append("合并模式暂不支持数据库导入")
+                    except Exception as e:
+                        error_msg = f"数据库导入失败: {str(e)}"
+                        logger.error(error_msg, exc_info=True)
+                        result['errors'].append(error_msg)
+                
+                # 2. 导入学生数据
+                student_files = [f for f in zipf.namelist() if f.startswith('students/') and not f.endswith('/')]
+                if student_files:
+                    try:
+                        for file_info in student_files:
+                            # 提取相对路径
+                            rel_path = file_info[len('students/'):]
+                            target_path = os.path.join(self.data_dir, rel_path)
+                            
+                            # 创建目录
+                            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                            
+                            # 提取文件
+                            with zipf.open(file_info) as src_file:
+                                with open(target_path, 'wb') as dst_file:
+                                    dst_file.write(src_file.read())
+                            
+                            result['imported_items']['students'] += 1
+                        
+                        logger.info(f"✅ 已导入 {result['imported_items']['students']} 个学生数据文件")
+                    except Exception as e:
+                        error_msg = f"学生数据导入失败: {str(e)}"
+                        logger.error(error_msg, exc_info=True)
+                        result['errors'].append(error_msg)
+                
+                # 3. 导入评价数据
+                eval_files = [f for f in zipf.namelist() if f.startswith('evaluations/') and not f.endswith('/')]
+                if eval_files:
+                    try:
+                        for file_info in eval_files:
+                            filename = os.path.basename(file_info)
+                            target_path = os.path.join(self.evaluation_dir, filename)
+                            
+                            # 合并模式：如果文件已存在，跳过
+                            if merge_mode and os.path.exists(target_path):
+                                continue
+                            
+                            with zipf.open(file_info) as src_file:
+                                with open(target_path, 'wb') as dst_file:
+                                    dst_file.write(src_file.read())
+                            
+                            result['imported_items']['evaluations'] += 1
+                        
+                        logger.info(f"✅ 已导入 {result['imported_items']['evaluations']} 个评价文件")
+                    except Exception as e:
+                        error_msg = f"评价数据导入失败: {str(e)}"
+                        logger.error(error_msg, exc_info=True)
+                        result['errors'].append(error_msg)
+                
+                # 4. 导入媒体文件
+                media_files = [f for f in zipf.namelist() if f.startswith('media/') and not f.endswith('/')]
+                if media_files:
+                    try:
+                        for file_info in media_files:
+                            # 提取相对路径
+                            rel_path = file_info[len('media/'):]
+                            target_path = os.path.join(self.media_dir, rel_path)
+                            
+                            # 合并模式：如果文件已存在，跳过
+                            if merge_mode and os.path.exists(target_path):
+                                continue
+                            
+                            # 创建目录
+                            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                            
+                            # 提取文件
+                            with zipf.open(file_info) as src_file:
+                                with open(target_path, 'wb') as dst_file:
+                                    dst_file.write(src_file.read())
+                            
+                            result['imported_items']['media'] += 1
+                        
+                        logger.info(f"✅ 已导入 {result['imported_items']['media']} 个媒体文件")
+                    except Exception as e:
+                        error_msg = f"媒体文件导入失败: {str(e)}"
+                        logger.error(error_msg, exc_info=True)
+                        result['errors'].append(error_msg)
+            
+            result['success'] = len(result['errors']) == 0
+            result['message'] = f"导入完成: 数据库={result['imported_items']['database']}, 学生数据={result['imported_items']['students']}, 评价={result['imported_items']['evaluations']}, 媒体={result['imported_items']['media']}"
+            
+            logger.info(f"✅ 导入完成: {result['message']}")
+            if result['errors']:
+                logger.warning(f"⚠️ 导入过程中有 {len(result['errors'])} 个错误")
+            
+            return result
+            
+        except Exception as e:
+            error_msg = f"导入数据失败: {str(e)}"
+            logger.error(error_msg, exc_info=True)
+            return {
+                'success': False,
+                'message': error_msg,
+                'imported_items': {},
+                'errors': [error_msg]
+            }
     
     def get_statistics(self) -> Dict[str, Any]:
         """获取统计数据（从数据库）"""
