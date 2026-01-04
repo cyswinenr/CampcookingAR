@@ -751,7 +751,75 @@ class TeacherEvaluationV2(BaseModel):
         self.updated_at = int(datetime.now().timestamp() * 1000)
 
 
-# ==================== 9. teacher_evaluation_teams - 教师评价团队表 ====================
+# ==================== 9. menus - 菜单表 ====================
+class Menu(BaseModel):
+    """菜单表"""
+    
+    def __init__(self, data: Optional[Dict[str, Any]] = None):
+        super().__init__()
+        # 先初始化所有属性
+        self.team_id = ''
+        self.soup = ''
+        self.dishes: List[str] = []
+        
+        if data:
+            self.from_dict(data)
+    
+    def from_dict(self, data: Dict[str, Any]):
+        """从字典创建（兼容Android端格式）"""
+        # 兼容Android端的Menu格式
+        if 'menuData' in data:
+            menu_data = data['menuData']
+            self.soup = menu_data.get('soup', '')
+            self.dishes = menu_data.get('dishes', [])
+        else:
+            # 数据库格式
+            self.team_id = data.get('team_id', '')
+            self.soup = data.get('soup', '')
+            # dishes在数据库中存储为JSON字符串
+            dishes_str = data.get('dishes', '[]')
+            if isinstance(dishes_str, str):
+                try:
+                    self.dishes = json.loads(dishes_str)
+                except:
+                    self.dishes = []
+            else:
+                self.dishes = dishes_str or []
+        
+        # 数据库字段
+        if 'id' in data:
+            self.id = data['id']
+        if 'created_at' in data:
+            self.created_at = data['created_at']
+        if 'updated_at' in data:
+            self.updated_at = data['updated_at']
+        if 'schema_version' in data:
+            self.schema_version = data['schema_version']
+        if 'extra_data' in data:
+            self.extra_data = data['extra_data']
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """转换为字典（数据库格式）"""
+        return {
+            'id': self.id,
+            'team_id': self.team_id,
+            'soup': self.soup,
+            'dishes': json.dumps(self.dishes, ensure_ascii=False),
+            'created_at': self.created_at,
+            'updated_at': self.updated_at,
+            'schema_version': self.schema_version,
+            'extra_data': self.extra_data
+        }
+    
+    def to_android_dict(self) -> Dict[str, Any]:
+        """转换为Android端格式"""
+        return {
+            'soup': self.soup,
+            'dishes': self.dishes
+        }
+
+
+# ==================== 10. teacher_evaluation_teams - 教师评价团队表 ====================
 class TeacherEvaluationTeam(BaseModel):
     """教师评价团队表"""
     

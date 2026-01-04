@@ -72,6 +72,14 @@ class NavigationActivity : AppCompatActivity() {
             overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
         
+        // 菜单区域点击
+        binding.menuSection.setOnClickListener {
+            val intent = Intent(this, MenuActivity::class.java)
+            intent.putExtra("teamName", binding.teamNameText.text.toString())
+            startActivity(intent)
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        }
+        
         // 过程记录区域点击
         binding.recordSection.setOnClickListener {
             val intent = Intent(this, RecordActivity::class.java)

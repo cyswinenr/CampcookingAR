@@ -83,6 +83,13 @@
             android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustPan|stateHidden" />
         
+        <!-- 菜单页 Activity -->
+        <activity
+            android:name=".MenuActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+        
         <!-- FileProvider配置（用于拍照） -->
         <provider
             android:name="androidx.core.content.FileProvider"

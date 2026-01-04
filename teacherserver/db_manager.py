@@ -15,7 +15,7 @@ from datetime import datetime
 
 from models import (
     Team, TeamDivision, ProcessRecord, StageRecord,
-    SummaryData, TeacherEvaluation, TeacherEvaluationV2, TeacherEvaluationTeam, MediaItem, STAGE_ORDER
+    SummaryData, TeacherEvaluation, TeacherEvaluationV2, TeacherEvaluationTeam, MediaItem, Menu, STAGE_ORDER
 )
 from config import Config
 
@@ -541,6 +541,63 @@ class DatabaseManager:
             return None
         except Exception as e:
             logger.error(f"获取课后总结失败: {str(e)}", exc_info=True)
+            return None
+    
+    # ==================== Menu 操作 ====================
+    
+    def save_menu(self, menu: Menu) -> int:
+        """保存或更新菜单（每个团队只能有一份菜单，如果已存在则覆盖）"""
+        try:
+            team_id = menu.team_id
+            if not team_id:
+                raise ValueError("team_id 不能为空")
+            
+            # 检查是否已存在
+            existing = self._fetch_one("SELECT id FROM menus WHERE team_id = ?", (team_id,))
+            
+            if existing:
+                # 更新（覆盖）
+                menu.update_timestamp()
+                self._execute("""
+                    UPDATE menus SET
+                        soup = ?, dishes = ?,
+                        updated_at = ?, schema_version = ?, extra_data = ?
+                    WHERE team_id = ?
+                """, (
+                    menu.soup, json.dumps(menu.dishes, ensure_ascii=False),
+                    menu.updated_at, menu.schema_version, menu.extra_data,
+                    team_id
+                ))
+                menu.id = existing['id']
+                logger.info(f"更新菜单: {team_id}")
+            else:
+                # 插入
+                cursor = self._execute("""
+                    INSERT INTO menus (
+                        team_id, soup, dishes,
+                        created_at, updated_at, schema_version, extra_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    team_id, menu.soup, json.dumps(menu.dishes, ensure_ascii=False),
+                    menu.created_at, menu.updated_at, menu.schema_version, menu.extra_data
+                ))
+                menu.id = cursor.lastrowid
+                logger.info(f"插入菜单: {team_id}")
+            
+            return menu.id
+        except Exception as e:
+            logger.error(f"保存菜单失败: {str(e)}", exc_info=True)
+            raise
+    
+    def get_menu(self, team_id: str) -> Optional[Menu]:
+        """获取菜单"""
+        try:
+            row = self._fetch_one("SELECT * FROM menus WHERE team_id = ?", (team_id,))
+            if row:
+                return Menu(row)
+            return None
+        except Exception as e:
+            logger.error(f"获取菜单失败: {str(e)}", exc_info=True)
             return None
     
     # ==================== Teacher Evaluations 操作 ====================

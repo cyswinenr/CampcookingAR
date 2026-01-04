@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 import logging
 
-from models import StudentDataPackage, TeacherEvaluation
+from models import StudentDataPackage, TeacherEvaluation, Menu
 from storage import DataStorage
 from config import Config
 from db_init import init_database
@@ -167,6 +167,64 @@ def submit_student_data():
         
     except Exception as e:
         logger.error(f"处理提交失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'服务器错误: {str(e)}'
+        }), 500
+
+
+@app.route('/api/submit_menu', methods=['POST'])
+def submit_menu():
+    """接收学生端提交的菜单数据"""
+    try:
+        # 获取JSON数据
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': '未收到数据'
+            }), 400
+        
+        # 验证数据格式
+        if 'teamInfo' not in data:
+            return jsonify({
+                'status': 'error',
+                'message': '缺少团队信息'
+            }), 400
+        
+        if 'menuData' not in data:
+            return jsonify({
+                'status': 'error',
+                'message': '缺少菜单数据'
+            }), 400
+        
+        # 生成团队ID
+        team_info = data.get('teamInfo', {})
+        team_id = f"{team_info.get('school', '')}_{team_info.get('grade', '')}_{team_info.get('className', '')}_{team_info.get('stoveNumber', '')}"
+        
+        logger.info(f"收到菜单数据提交: {team_id}")
+        
+        # 解析菜单数据
+        menu_data = data.get('menuData', {})
+        menu = Menu({'menuData': menu_data})
+        menu.team_id = team_id
+        
+        # 保存菜单到数据库（如果已存在则覆盖）
+        from db_manager import DatabaseManager
+        db_manager = DatabaseManager()
+        db_manager.save_menu(menu)
+        
+        logger.info(f"✅ 菜单已保存: {team_id}, 汤: {menu.soup}, 菜数: {len(menu.dishes)}")
+        
+        return jsonify({
+            'status': 'success',
+            'teamId': team_id,
+            'message': '菜单保存成功'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"处理菜单提交失败: {str(e)}", exc_info=True)
         return jsonify({
             'status': 'error',
             'message': f'服务器错误: {str(e)}'

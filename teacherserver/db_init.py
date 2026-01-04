@@ -213,7 +213,23 @@ class DatabaseInitializer:
             )
         """)
         
-        # 10. 创建 data_versions 表
+        # 10. 创建 menus 表（菜单表）
+        self.execute_sql("""
+            CREATE TABLE IF NOT EXISTS menus (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                team_id TEXT NOT NULL,
+                soup TEXT,
+                dishes TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL,
+                schema_version INTEGER NOT NULL DEFAULT 1,
+                extra_data TEXT,
+                FOREIGN KEY (team_id) REFERENCES teams(team_id) ON DELETE CASCADE,
+                UNIQUE(team_id)
+            )
+        """)
+        
+        # 11. 创建 data_versions 表
         self.execute_sql("""
             CREATE TABLE IF NOT EXISTS data_versions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -264,6 +280,9 @@ class DatabaseInitializer:
         # teacher_evaluations_v2 表索引
         self.execute_sql("CREATE INDEX IF NOT EXISTS idx_teacher_evaluations_v2_team_id ON teacher_evaluations_v2(team_id)")
         
+        # menus 表索引
+        self.execute_sql("CREATE INDEX IF NOT EXISTS idx_menus_team_id ON menus(team_id)")
+        
         # data_versions 表索引
         self.execute_sql("CREATE INDEX IF NOT EXISTS idx_data_versions_table ON data_versions(table_name)")
         
@@ -280,7 +299,7 @@ class DatabaseInitializer:
             WHERE type='table' AND name IN (
                 'teams', 'team_divisions', 'process_records', 'stage_records',
                 'media_items', 'summary_data', 'teacher_evaluations', 
-                'teacher_evaluation_teams', 'teacher_evaluations_v2', 'data_versions'
+                'teacher_evaluation_teams', 'teacher_evaluations_v2', 'menus', 'data_versions'
             )
         """)
         tables = [row[0] for row in cursor.fetchall()]
@@ -288,7 +307,7 @@ class DatabaseInitializer:
         required_tables = [
             'teams', 'team_divisions', 'process_records', 'stage_records',
             'media_items', 'summary_data', 'teacher_evaluations',
-            'teacher_evaluation_teams', 'teacher_evaluations_v2', 'data_versions'
+            'teacher_evaluation_teams', 'teacher_evaluations_v2', 'menus', 'data_versions'
         ]
         
         missing_tables = set(required_tables) - set(tables)
