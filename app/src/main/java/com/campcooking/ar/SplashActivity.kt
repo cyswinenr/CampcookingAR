@@ -61,13 +61,42 @@ class SplashActivity : AppCompatActivity() {
      */
     private fun showClearDataDialog() {
         val cleaner = DataCleaner(this)
-        val dataSummary = cleaner.getDataSummary()
+        
+        // 先显示清理模式选择对话框
+        val options = arrayOf(
+            "仅清理应用内数据（文件保留在平板）",
+            "完全清理（删除用户拍摄的照片和视频）"
+        )
         
         AlertDialog.Builder(this)
-            .setTitle("🗑️ 清理所有数据")
-            .setMessage("确定要清理所有应用数据吗？\n\n$dataSummary\n\n⚠️ 此操作无法恢复！")
+            .setTitle("🗑️ 选择清理方式")
+            .setItems(options) { _, which ->
+                val mode = when (which) {
+                    0 -> DataCleaner.ClearMode.APP_ONLY
+                    1 -> DataCleaner.ClearMode.FULL_DELETE
+                    else -> DataCleaner.ClearMode.APP_ONLY
+                }
+                showConfirmDialog(cleaner, mode)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    /**
+     * 显示确认清理对话框
+     */
+    private fun showConfirmDialog(cleaner: DataCleaner, mode: DataCleaner.ClearMode) {
+        val dataSummary = cleaner.getDataSummary(mode)
+        val modeText = when (mode) {
+            DataCleaner.ClearMode.APP_ONLY -> "仅清理应用内数据"
+            DataCleaner.ClearMode.FULL_DELETE -> "完全清理（删除用户文件）"
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("🗑️ $modeText")
+            .setMessage(dataSummary)
             .setPositiveButton("确定清理") { _, _ ->
-                clearAllData()
+                clearAllData(mode)
             }
             .setNegativeButton("取消", null)
             .show()
@@ -76,12 +105,18 @@ class SplashActivity : AppCompatActivity() {
     /**
      * 执行清理所有数据
      */
-    private fun clearAllData() {
+    private fun clearAllData(mode: DataCleaner.ClearMode) {
         val cleaner = DataCleaner(this)
-        val success = cleaner.clearAllData()
+        val success = cleaner.clearAllData(mode)
         
         if (success) {
-            Toast.makeText(this, "✅ 所有数据已清理完成，应用已复原", Toast.LENGTH_LONG).show()
+            val message = when (mode) {
+                DataCleaner.ClearMode.APP_ONLY -> 
+                    "✅ 应用数据已清理完成\n\n文件仍保留在平板中\n教学视频不会被删除"
+                DataCleaner.ClearMode.FULL_DELETE -> 
+                    "✅ 所有数据已清理完成，应用已复原\n\n用户拍摄的照片和视频已删除\n教学视频（Documents/CampcookingAR/Videos/）已保留"
+            }
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
         } else {
             Toast.makeText(this, "❌ 清理数据时出错，请重试", Toast.LENGTH_SHORT).show()
         }

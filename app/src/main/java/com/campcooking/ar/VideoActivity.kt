@@ -166,12 +166,14 @@ class VideoActivity : AppCompatActivity() {
     
     /**
      * 检查视频文件夹是否存在，不存在则创建
+     * 同时创建 .nomedia 文件，防止视频出现在相册中
      */
     private fun checkVideoFolder() {
         try {
             val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
             val videoFolder = File(documentsDir, VideoConfig.VIDEO_FOLDER)
             
+            // 创建文件夹（如果不存在）
             if (!videoFolder.exists()) {
                 if (videoFolder.mkdirs()) {
                     Toast.makeText(
@@ -179,6 +181,17 @@ class VideoActivity : AppCompatActivity() {
                         "已创建视频文件夹：\n${videoFolder.absolutePath}",
                         Toast.LENGTH_LONG
                     ).show()
+                }
+            }
+            
+            // 创建 .nomedia 文件，防止视频出现在相册中
+            val nomediaFile = File(videoFolder, ".nomedia")
+            if (!nomediaFile.exists()) {
+                try {
+                    nomediaFile.createNewFile()
+                    android.util.Log.d("VideoActivity", "已创建 .nomedia 文件，视频将不会出现在相册中")
+                } catch (e: Exception) {
+                    android.util.Log.e("VideoActivity", "创建 .nomedia 文件失败: ${e.message}", e)
                 }
             }
         } catch (e: Exception) {
