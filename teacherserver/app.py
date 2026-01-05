@@ -5,12 +5,14 @@
 运行在笔记本上，接收学生端提交的数据，并提供教师端API接口
 """
 
-from flask import Flask, request, jsonify, send_file, render_template_string
+from flask import Flask, request, jsonify, send_file, render_template_string, Response
 from flask_cors import CORS
 import json
 import os
 import socket
 import shutil
+import io
+import csv
 from datetime import datetime
 from typing import Dict, List, Optional
 import logging
@@ -849,6 +851,280 @@ def clear_database():
         return jsonify({
             'status': 'error',
             'message': f'清空失败: {str(e)}'
+        }), 500
+
+
+@app.route('/api/student_list/upload', methods=['POST'])
+def upload_student_list():
+    """上传学生名单（按炉号）- 支持JSON和CSV格式"""
+    try:
+        data = None
+        
+        # 检查是否有文件上传（CSV格式）
+        if 'file' in request.files:
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({
+                    'status': 'error',
+                    'message': '文件名为空'
+                }), 400
+            
+            # 检查文件类型
+            filename = file.filename.lower()
+            if filename.endswith('.csv'):
+                # 解析CSV文件
+                # 读取文件内容
+                file_content = file.read().decode('utf-8-sig')  # 处理BOM
+                csv_reader = csv.reader(io.StringIO(file_content))
+                
+                # 转换为JSON格式
+                data = {}
+                rows = list(csv_reader)
+                
+                if len(rows) < 2:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'CSV文件至少需要2行（表头+数据）'
+                    }), 400
+                
+                # 跳过表头，从第二行开始读取数据
+                for row in rows[1:]:
+                    if not row or len(row) == 0:
+                        continue
+                    
+                    # 第一列是炉号
+                    stove_value = row[0].strip() if len(row) > 0 else ''
+                    if not stove_value:
+                        continue
+                    
+                    # 提取炉号数字，格式化为"X号炉"
+                    import re
+                    stove_num_match = re.search(r'(\d+)', stove_value)
+                    if stove_num_match:
+                        stove_num = stove_num_match.group(1)
+                        stove_key = f"{stove_num}号炉"
+                    else:
+                        # 如果已经是"X号炉"格式，直接使用
+                        stove_key = stove_value
+                    
+                    # 后续列是学生姓名
+                    names = []
+                    for i in range(1, len(row)):
+                        name = row[i].strip() if i < len(row) else ''
+                        if name:
+                            names.append(name)
+                    
+                    if stove_key and names:
+                        data[stove_key] = names
+                
+                if not data:
+                    return jsonify({
+                        'status': 'error',
+                        'message': 'CSV文件格式错误或为空，请检查文件格式'
+                    }), 400
+                    
+            elif filename.endswith('.json'):
+                # JSON文件
+                file_content = file.read().decode('utf-8')
+                data = json.loads(file_content)
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': '不支持的文件格式，请上传CSV或JSON文件'
+                }), 400
+        else:
+            # 直接JSON数据
+            data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'status': 'error',
+                'message': '未收到数据'
+            }), 400
+        
+        # 验证数据格式
+        if not isinstance(data, dict):
+            return jsonify({
+                'status': 'error',
+                'message': '数据格式错误，应为JSON对象'
+            }), 400
+        
+        # 学生名单存储路径
+        student_list_file = os.path.join(Config.BASE_DIR, 'data', 'student_list.json')
+        
+        # 确保目录存在
+        os.makedirs(os.path.dirname(student_list_file), exist_ok=True)
+        
+        # 保存到文件
+        with open(student_list_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        
+        logger.info(f"✅ 学生名单已上传，包含 {len(data)} 个炉号")
+        
+        return jsonify({
+            'status': 'success',
+            'message': f'学生名单上传成功，包含 {len(data)} 个炉号',
+            'stove_count': len(data)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"上传学生名单失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'上传失败: {str(e)}'
+        }), 500
+
+
+@app.route('/api/student_list', methods=['GET'])
+def get_student_list():
+    """获取所有学生名单"""
+    try:
+        student_list_file = os.path.join(Config.BASE_DIR, 'data', 'student_list.json')
+        
+        if not os.path.exists(student_list_file):
+            return jsonify({
+                'status': 'success',
+                'studentList': {},
+                'message': '学生名单文件不存在'
+            }), 200
+        
+        with open(student_list_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        return jsonify({
+            'status': 'success',
+            'studentList': data
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"获取学生名单失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'获取失败: {str(e)}'
+        }), 500
+
+
+@app.route('/api/student_list/<stove_number>', methods=['GET'])
+def get_student_list_by_stove(stove_number: str):
+    """根据炉号获取学生名单"""
+    try:
+        student_list_file = os.path.join(Config.BASE_DIR, 'data', 'student_list.json')
+        
+        if not os.path.exists(student_list_file):
+            return jsonify({
+                'status': 'error',
+                'message': '学生名单文件不存在'
+            }), 404
+        
+        with open(student_list_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        # 查找对应的炉号（支持"1号炉"、"1"等格式）
+        import re
+        names = None
+        matched_key = None
+        
+        for key, value in data.items():
+            # 提取炉号数字进行比较
+            key_num = re.search(r'(\d+)', key)
+            stove_num = re.search(r'(\d+)', stove_number)
+            if key_num and stove_num and key_num.group(1) == stove_num.group(1):
+                names = value
+                matched_key = key
+                break
+        
+        if names is None:
+            return jsonify({
+                'status': 'error',
+                'message': f'未找到炉号 {stove_number} 对应的学生名单'
+            }), 404
+        
+        return jsonify({
+            'status': 'success',
+            'stoveNumber': stove_number,
+            'matchedKey': matched_key,
+            'names': names,
+            'count': len(names)
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"获取学生名单失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'获取失败: {str(e)}'
+        }), 500
+
+
+@app.route('/api/student_list/template', methods=['GET'])
+def get_student_list_template():
+    """下载学生名单文件样板（JSON格式）"""
+    try:
+        # 创建样板数据
+        template_data = {
+            "1号炉": [
+                "学生1",
+                "学生2",
+                "学生3",
+                "学生4",
+                "学生5",
+                "学生6",
+                "学生7",
+                "学生8",
+                "学生9",
+                "学生10"
+            ],
+            "2号炉": [
+                "学生1",
+                "学生2",
+                "学生3",
+                "学生4",
+                "学生5"
+            ]
+        }
+        
+        # 返回JSON格式的样板（确保中文字符不被转义）
+        json_str = json.dumps(template_data, ensure_ascii=False, indent=2)
+        response = Response(json_str, mimetype='application/json; charset=utf-8')
+        response.headers['Content-Disposition'] = 'attachment; filename="student_list_template.json"'
+        return response, 200
+        
+    except Exception as e:
+        logger.error(f"生成样板失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'生成样板失败: {str(e)}'
+        }), 500
+
+
+@app.route('/api/student_list/template_csv', methods=['GET'])
+def get_student_list_template_csv():
+    """下载学生名单CSV文件样板"""
+    try:
+        # 创建CSV内容
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # 写入表头
+        writer.writerow(['炉号', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
+        
+        # 写入示例数据
+        writer.writerow(['1', '学生1', '学生2', '学生3', '学生4', '学生5', '学生6', '学生7', '学生8', '学生9', '学生10'])
+        writer.writerow(['2', '学生1', '学生2', '学生3', '学生4', '学生5', '', '', '', '', ''])
+        writer.writerow(['3', '学生1', '学生2', '学生3', '学生4', '学生5', '学生6', '', '', '', ''])
+        
+        # 转换为字节
+        csv_content = output.getvalue()
+        csv_bytes = csv_content.encode('utf-8-sig')  # 添加BOM以便Excel正确识别UTF-8
+        
+        response = Response(csv_bytes, mimetype='text/csv; charset=utf-8')
+        response.headers['Content-Disposition'] = 'attachment; filename="student_list_template.csv"'
+        return response, 200
+        
+    except Exception as e:
+        logger.error(f"生成CSV样板失败: {str(e)}", exc_info=True)
+        return jsonify({
+            'status': 'error',
+            'message': f'生成CSV样板失败: {str(e)}'
         }), 500
 
 

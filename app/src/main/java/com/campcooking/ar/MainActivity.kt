@@ -34,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var teamInfoManager: TeamInfoManager
     private lateinit var dataSubmitManager: DataSubmitManager
     private lateinit var stoveNumberManager: StoveNumberManager
+    private lateinit var studentListManager: com.campcooking.ar.utils.StudentListManager
     
     // 存储动态生成的姓名输入框
     private val memberNameInputs = mutableListOf<TextInputEditText>()
@@ -61,12 +62,14 @@ class MainActivity : AppCompatActivity() {
         teamInfoManager = TeamInfoManager(this)
         dataSubmitManager = DataSubmitManager(this)
         stoveNumberManager = StoveNumberManager(this)
+        studentListManager = com.campcooking.ar.utils.StudentListManager(this)
         
         setupSpinners()
         setupListeners()
         setupServerSettingsButton()
         setupBackButton()
         setupStoveNumberLock()
+        setupLoadStudentListButton()
         
         // 加载保存的数据
         loadSavedData()
@@ -149,7 +152,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         
-        // 炉号下拉框监听 - 检查是否锁定
+        // 炉号下拉框监听 - 检查是否锁定，并自动加载学生名单
         binding.stoveSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (stoveNumberManager.isStoveNumberLocked() && !binding.stoveSpinner.isEnabled) {
@@ -166,6 +169,12 @@ class MainActivity : AppCompatActivity() {
                         }
                         // 显示解锁对话框
                         showUnlockStoveDialog()
+                    }
+                } else if (position > 0) {
+                    // 如果选择了有效的炉号，自动从服务器加载学生名单
+                    val selectedStove = parent?.getItemAtPosition(position)?.toString()
+                    if (selectedStove != null) {
+                        autoLoadStudentList(selectedStove)
                     }
                 }
             }
@@ -718,6 +727,110 @@ class MainActivity : AppCompatActivity() {
         }
         
         return null
+    }
+    
+    /**
+     * 设置从服务器加载学生名单按钮
+     */
+    private fun setupLoadStudentListButton() {
+        // 查找加载按钮（如果存在）
+        val loadButton = binding.root.findViewById<com.google.android.material.button.MaterialButton>(R.id.loadStudentListButton)
+        loadButton?.setOnClickListener {
+            val selectedPosition = binding.stoveSpinner.selectedItemPosition
+            if (selectedPosition > 0) {
+                val selectedStove = binding.stoveSpinner.selectedItem.toString()
+                loadStudentListFromServer(selectedStove)
+            } else {
+                Toast.makeText(this, "请先选择炉号", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
+     * 自动从服务器加载学生名单（选择炉号后自动调用）
+     */
+    private fun autoLoadStudentList(stoveNumber: String) {
+        // 静默加载，不显示加载提示
+        loadStudentListFromServer(stoveNumber, showLoading = false)
+    }
+    
+    /**
+     * 从服务器加载学生名单
+     */
+    private fun loadStudentListFromServer(stoveNumber: String, showLoading: Boolean = true) {
+        if (showLoading) {
+            Toast.makeText(this, "正在从服务器加载学生名单...", Toast.LENGTH_SHORT).show()
+        }
+        
+        studentListManager.getStudentListByStove(stoveNumber) { success, names, error ->
+            if (success && names != null && names.isNotEmpty()) {
+                // 成功获取学生名单
+                // 检查当前是否已设置小组人数
+                val currentCount = getSelectedMemberCount()
+                
+                if (currentCount == 0) {
+                    // 如果还没有设置人数，自动设置为名单人数
+                    if (names.size <= 12) {
+                        binding.memberCountSpinner.setSelection(names.size, false)
+                        generateMemberNameInputs(names.size)
+                        
+                        // 等待输入框生成后填充数据
+                        binding.memberCountSpinner.postDelayed({
+                            fillMemberNames(names)
+                            if (showLoading) {
+                                Toast.makeText(this@MainActivity, "✅ 已自动填充 ${names.size} 名学生姓名", Toast.LENGTH_SHORT).show()
+                            }
+                        }, 200)
+                    } else {
+                        // 人数超过12人，提示用户
+                        Toast.makeText(this@MainActivity, "⚠️ 学生名单有 ${names.size} 人，超过最大人数12人，请手动选择人数", Toast.LENGTH_LONG).show()
+                        // 设置为最大人数12人
+                        binding.memberCountSpinner.setSelection(12, false)
+                        generateMemberNameInputs(12)
+                        binding.memberCountSpinner.postDelayed({
+                            fillMemberNames(names.take(12))
+                            Toast.makeText(this@MainActivity, "已填充前12名学生姓名", Toast.LENGTH_SHORT).show()
+                        }, 200)
+                    }
+                } else {
+                    // 已经设置了人数，直接填充
+                    if (names.size <= currentCount) {
+                        // 名单人数 <= 当前设置的人数，全部填充
+                        fillMemberNames(names)
+                        if (showLoading) {
+                            Toast.makeText(this@MainActivity, "✅ 已填充 ${names.size} 名学生姓名", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        // 名单人数 > 当前设置的人数，只填充前N个
+                        fillMemberNames(names.take(currentCount))
+                        if (showLoading) {
+                            Toast.makeText(this@MainActivity, "⚠️ 名单有 ${names.size} 人，但当前设置为 $currentCount 人，已填充前 $currentCount 人", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            } else {
+                // 获取失败或名单为空
+                if (showLoading) {
+                    val errorMsg = error ?: "未找到该炉号的学生名单"
+                    Toast.makeText(this@MainActivity, "⚠️ $errorMsg", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    /**
+     * 填充成员姓名到输入框
+     */
+    private fun fillMemberNames(names: List<String>) {
+        if (memberNameInputs.isEmpty()) {
+            return
+        }
+        
+        names.forEachIndexed { index, name ->
+            if (index < memberNameInputs.size) {
+                memberNameInputs[index].setText(name)
+            }
+        }
     }
     
     /**

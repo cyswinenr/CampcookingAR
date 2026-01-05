@@ -209,16 +209,40 @@
                 android:orientation="vertical"
                 android:layout_marginStart="20dp">
 
-            <!-- 人员姓名标题 -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- 人员姓名标题和加载按钮 -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/label_member_names"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp"
-                android:layout_marginStart="4dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_member_names"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="4dp" />
+                
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/loadStudentListButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="从服务器加载"
+                    android:textSize="12sp"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    app:cornerRadius="16dp"
+                    app:backgroundTint="@color/fire_orange"
+                    app:icon="@android:drawable/ic_menu_upload"
+                    app:iconSize="16dp"
+                    app:iconTint="@android:color/white" />
+            </LinearLayout>
 
             <!-- 人员姓名输入框容器（动态添加） -->
             <LinearLayout

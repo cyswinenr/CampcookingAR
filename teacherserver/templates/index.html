@@ -417,7 +417,7 @@
             background: #0D47A1;
         }
 
-        .refresh-btn, .export-btn, .import-btn, .clear-db-btn {
+        .refresh-btn, .export-btn, .import-btn, .clear-db-btn, .student-list-btn {
             background: #667eea;
             color: white;
             border: none;
@@ -480,6 +480,21 @@
         .clear-db-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
+        }
+
+        .student-list-btn {
+            background: #FF9800;
+            margin-left: 10px;
+        }
+
+        .student-list-btn:hover:not(:disabled) {
+            background: #F57C00;
+        }
+
+        .student-list-btn:disabled {
+            background: #9e9e9e;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
 
         .loading {
@@ -795,6 +810,7 @@
                 <button class="refresh-btn" onclick="loadData()">刷新</button>
                 <button class="export-btn" onclick="exportData()">导出数据</button>
                 <button class="import-btn" onclick="importData()">导入数据</button>
+                <button class="student-list-btn" onclick="manageStudentList()">学生名单</button>
                 <button class="clear-db-btn" onclick="clearDatabase()">清空数据库</button>
             </div>
         </div>
@@ -2319,6 +2335,166 @@
             document.body.appendChild(input);
             input.click();
             document.body.removeChild(input);
+        }
+
+        // 管理学生名单
+        async function manageStudentList() {
+            const action = prompt('学生名单管理\n\n1. 输入"1" - 下载JSON文件样板\n2. 输入"2" - 下载CSV文件样板\n3. 输入"3" - 导入学生名单（支持JSON/CSV）\n4. 输入"4" - 查看当前名单\n\n请输入选项（1/2/3/4）：');
+            
+            if (!action) {
+                return;
+            }
+            
+            switch(action.trim()) {
+                case '1':
+                    downloadStudentListTemplate('json');
+                    break;
+                case '2':
+                    downloadStudentListTemplate('csv');
+                    break;
+                case '3':
+                    uploadStudentList();
+                    break;
+                case '4':
+                    viewStudentList();
+                    break;
+                default:
+                    alert('❌ 无效的选项，请输入 1、2、3 或 4');
+            }
+        }
+
+        // 下载学生名单文件样板
+        async function downloadStudentListTemplate(format = 'json') {
+            try {
+                const endpoint = format === 'csv' 
+                    ? `${API_BASE}/api/student_list/template_csv?t=${Date.now()}`
+                    : `${API_BASE}/api/student_list/template?t=${Date.now()}`;
+                
+                const response = await fetch(endpoint, {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = format === 'csv' ? 'student_list_template.csv' : 'student_list_template.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    alert(`✅ ${format.toUpperCase()}文件样板已下载\n\n请编辑文件后重新导入`);
+                } else {
+                    const result = await response.json();
+                    alert('❌ 下载失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('下载样板失败:', error);
+                alert('❌ 下载失败：网络错误\n' + error.message);
+            }
+        }
+
+        // 上传学生名单（支持JSON和CSV）
+        async function uploadStudentList() {
+            // 创建文件输入元素
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json,.csv';
+            input.style.display = 'none';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    return;
+                }
+                
+                // 验证文件类型
+                const filename = file.name.toLowerCase();
+                if (!filename.endsWith('.json') && !filename.endsWith('.csv')) {
+                    alert('❌ 只支持 JSON 或 CSV 格式文件！');
+                    return;
+                }
+                
+                // 确认操作
+                if (!confirm(`即将上传文件：${file.name}\n\n确定要继续吗？`)) {
+                    return;
+                }
+                
+                try {
+                    // 使用FormData上传文件
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    // 上传到服务器
+                    const response = await fetch(`${API_BASE}/api/student_list/upload?t=${Date.now()}`, {
+                        method: 'POST',
+                        body: formData,
+                        cache: 'no-store'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        alert(`✅ 学生名单上传成功！\n\n包含 ${result.stove_count} 个炉号`);
+                    } else {
+                        alert('❌ 上传失败：' + (result.message || '未知错误'));
+                    }
+                } catch (error) {
+                    console.error('上传学生名单失败:', error);
+                    alert('❌ 上传失败：' + error.message);
+                }
+            };
+            
+            // 触发文件选择
+            document.body.appendChild(input);
+            input.click();
+            document.body.removeChild(input);
+        }
+
+        // 查看当前学生名单
+        async function viewStudentList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/student_list?t=${Date.now()}`, {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const studentList = result.studentList || {};
+                    const stoveCount = Object.keys(studentList).length;
+                    
+                    if (stoveCount === 0) {
+                        alert('📋 当前没有学生名单\n\n请先上传学生名单');
+                        return;
+                    }
+                    
+                    let message = `📋 当前学生名单（共 ${stoveCount} 个炉号）\n\n`;
+                    let totalStudents = 0;
+                    
+                    for (const [stove, names] of Object.entries(studentList)) {
+                        message += `${stove}: ${names.length} 人\n`;
+                        totalStudents += names.length;
+                        if (names.length <= 5) {
+                            message += `  ${names.join('、')}\n`;
+                        } else {
+                            message += `  ${names.slice(0, 3).join('、')}...等 ${names.length} 人\n`;
+                        }
+                    }
+                    
+                    message += `\n总计: ${totalStudents} 名学生`;
+                    
+                    alert(message);
+                } else {
+                    alert('❌ 获取失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('查看学生名单失败:', error);
+                alert('❌ 获取失败：网络错误\n' + error.message);
+            }
         }
 
         async function clearDatabase() {
