@@ -210,6 +210,15 @@ class DataStorage:
                     except:
                         pass
                     
+                    # 获取菜单数据
+                    menu = self.db_manager.get_menu(student_id)
+                    menu_data = None
+                    if menu:
+                        menu_data = {
+                            'soup': menu.soup,
+                            'dishes': menu.dishes
+                        }
+                    
                     students.append({
                         'id': student_id,
                         'teamName': team.get_display_name(),
@@ -226,7 +235,8 @@ class DataStorage:
                         'hasSummary': has_summary,
                         'completedStages': completed_stages,
                         'totalStages': total_stages,
-                        'stageRatings': stage_ratings  # 每个阶段的评分
+                        'stageRatings': stage_ratings,  # 每个阶段的评分
+                        'menu': menu_data  # 菜单数据
                     })
                     
                     # 记录评分数据摘要

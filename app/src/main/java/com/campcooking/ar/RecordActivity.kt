@@ -27,6 +27,7 @@ import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityRecordBinding
 import com.campcooking.ar.utils.ProcessRecordManager
 import com.campcooking.ar.utils.DataSubmitManager
+import com.campcooking.ar.utils.TeamInfoManager
 import com.google.android.material.chip.Chip
 import java.io.File
 import java.text.SimpleDateFormat
@@ -48,6 +49,7 @@ class RecordActivity : AppCompatActivity() {
     private lateinit var processRecord: ProcessRecord
     private lateinit var processRecordManager: ProcessRecordManager
     private lateinit var dataSubmitManager: DataSubmitManager
+    private lateinit var teamInfoManager: TeamInfoManager
     
     // 适配器
     private lateinit var stageListAdapter: StageListAdapter
@@ -92,10 +94,12 @@ class RecordActivity : AppCompatActivity() {
         // 初始化数据管理器
         processRecordManager = ProcessRecordManager(this)
         dataSubmitManager = DataSubmitManager(this)
+        teamInfoManager = TeamInfoManager(this)
 
-        // 获取团队信息
-        val teamName = intent.getStringExtra("teamName") ?: "野炊小组"
-        binding.teamNameText.text = teamName
+        // 获取团队信息，只显示炉号
+        val teamInfo = teamInfoManager.loadTeamInfo()
+        val stoveNumber = teamInfo?.stoveNumber ?: ""
+        binding.teamNameText.text = if (stoveNumber.isNotEmpty()) stoveNumber else "未设置炉号"
 
         // 初始化或加载记录
         initializeProcessRecord()

@@ -261,7 +261,7 @@ class TeamDivisionActivity : AppCompatActivity() {
         // 快速选择按钮
         val selectButton = MaterialButton(this).apply {
             text = "选择"
-            textSize = 12f
+            textSize = 18f  // 从12f增加到18f（增大50%）
             setPadding(12, 8, 12, 8)
             minimumWidth = 0
             minimumHeight = 0
@@ -294,23 +294,31 @@ class TeamDivisionActivity : AppCompatActivity() {
     }
     
     /**
-     * 显示组选择对话框
+     * 显示组选择对话框（优化样式）
      */
     private fun showGroupSelectionDialog(memberName: String) {
         val groups = listOf(
-            "项目组长" to ::groupLeader,
-            "烹饪组" to ::groupCooking,
-            "汤饭组" to ::groupSoupRice,
-            "生火组" to ::groupFire,
-            "卫生组" to ::groupHealth
+            R.id.groupLeaderItem to ::groupLeader,
+            R.id.groupCookingItem to ::groupCooking,
+            R.id.groupSoupRiceItem to ::groupSoupRice,
+            R.id.groupFireItem to ::groupFire,
+            R.id.groupHealthItem to ::groupHealth
         )
         
-        val groupNames = groups.map { it.first }.toTypedArray()
+        // 创建自定义对话框视图
+        val dialogView = layoutInflater.inflate(R.layout.dialog_group_selection, null)
         
-        AlertDialog.Builder(this)
+        // 创建对话框
+        val dialog = AlertDialog.Builder(this)
             .setTitle("将 $memberName 分配到")
-            .setItems(groupNames) { _, which ->
-                val (_, groupGetter) = groups[which]
+            .setView(dialogView)
+            .setNegativeButton("取消", null)
+            .create()
+        
+        // 设置每个选项的点击事件
+        groups.forEach { (viewId, groupGetter) ->
+            val itemView = dialogView.findViewById<TextView>(viewId)
+            itemView.setOnClickListener {
                 val targetGroup = groupGetter()
                 
                 // 从其他组中移除
@@ -325,14 +333,18 @@ class TeamDivisionActivity : AppCompatActivity() {
                     targetGroup.add(memberName)
                 }
                 
+                // 关闭对话框
+                dialog.dismiss()
+                
                 // 更新显示
                 displayMembers()
                 
                 // 检查分配是否合理
                 checkDivisionValidity()
             }
-            .setNegativeButton("取消", null)
-            .show()
+        }
+        
+        dialog.show()
     }
     
     /**

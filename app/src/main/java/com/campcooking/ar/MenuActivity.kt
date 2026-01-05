@@ -137,7 +137,6 @@ class MenuActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            hint = "请输入菜名"
             textSize = 18f
             setPadding(16, 16, 16, 16)
         }
@@ -199,6 +198,8 @@ class MenuActivity : AppCompatActivity() {
         binding.saveButton.isEnabled = false
         binding.saveButton.text = "保存中..."
         
+        Log.d(TAG, "开始保存菜单，汤: $soup, 菜数量: ${dishes.size}")
+        
         // 在后台线程提交数据
         Thread {
             try {
@@ -229,44 +230,84 @@ class MenuActivity : AppCompatActivity() {
                 
                 Log.d(TAG, "提交菜单数据到: $serverUrl/api/submit_menu")
                 Log.d(TAG, "菜单数据: $json")
+                Log.d(TAG, "当前Activity状态: isFinishing=${this@MenuActivity.isFinishing}, isDestroyed=${this@MenuActivity.isDestroyed}")
                 
                 // 发送请求
                 val response = client.newCall(request).execute()
                 
-                runOnUiThread {
-                    binding.saveButton.isEnabled = true
-                    binding.saveButton.text = "保存"
-                    
+                try {
                     if (response.isSuccessful) {
                         val responseBody = response.body?.string()
                         Log.d(TAG, "提交成功: $responseBody")
-                        Toast.makeText(this, "✅ 菜单已保存并上传", Toast.LENGTH_SHORT).show()
+                        
                         // 保存到本地
                         saveMenuToLocal(menuData)
+                        
+                        // 检查Activity是否还存在
+                        if (!isFinishing && !isDestroyed) {
+                            runOnUiThread {
+                                binding.saveButton.isEnabled = true
+                                binding.saveButton.text = "保存"
+                                Toast.makeText(this@MenuActivity, "✅ 菜单已保存并上传", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Log.w(TAG, "Activity已销毁，无法更新UI")
+                        }
                     } else {
+                        val errorBody = response.body?.string()
                         val errorMsg = "服务器错误: ${response.code}"
-                        Log.e(TAG, errorMsg)
-                        Toast.makeText(this, "保存失败: $errorMsg", Toast.LENGTH_SHORT).show()
+                        Log.e(TAG, "$errorMsg, 响应: $errorBody")
+                        
                         // 即使服务器失败，也保存到本地
                         saveMenuToLocal(menuData)
+                        
+                        // 检查Activity是否还存在
+                        if (!isFinishing && !isDestroyed) {
+                            runOnUiThread {
+                                binding.saveButton.isEnabled = true
+                                binding.saveButton.text = "保存"
+                                Toast.makeText(this@MenuActivity, "保存失败: $errorMsg", Toast.LENGTH_LONG).show()
+                            }
+                        } else {
+                            Log.w(TAG, "Activity已销毁，无法更新UI")
+                        }
                     }
+                } finally {
+                    // 确保关闭响应
+                    response.close()
                 }
                 
             } catch (e: IOException) {
                 Log.e(TAG, "网络错误: ${e.message}", e)
-                runOnUiThread {
-                    binding.saveButton.isEnabled = true
-                    binding.saveButton.text = "保存"
-                    Toast.makeText(this, "网络错误，已保存到本地", Toast.LENGTH_SHORT).show()
-                    // 保存到本地
-                    saveMenuToLocal(menuData)
+                // 保存到本地
+                saveMenuToLocal(menuData)
+                // 检查Activity是否还存在
+                if (!isFinishing && !isDestroyed) {
+                    runOnUiThread {
+                        binding.saveButton.isEnabled = true
+                        binding.saveButton.text = "保存"
+                        Toast.makeText(this@MenuActivity, "⚠️ 网络错误，已保存到本地\n请检查网络连接后重试", Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    Log.w(TAG, "Activity已销毁，无法更新UI")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "保存菜单失败: ${e.message}", e)
-                runOnUiThread {
-                    binding.saveButton.isEnabled = true
-                    binding.saveButton.text = "保存"
-                    Toast.makeText(this, "保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                // 尝试保存到本地
+                try {
+                    saveMenuToLocal(menuData)
+                } catch (saveError: Exception) {
+                    Log.e(TAG, "保存到本地也失败: ${saveError.message}", saveError)
+                }
+                // 检查Activity是否还存在
+                if (!isFinishing && !isDestroyed) {
+                    runOnUiThread {
+                        binding.saveButton.isEnabled = true
+                        binding.saveButton.text = "保存"
+                        Toast.makeText(this@MenuActivity, "保存失败: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    Log.w(TAG, "Activity已销毁，无法更新UI")
                 }
             }
         }.start()

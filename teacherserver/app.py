@@ -262,7 +262,8 @@ def get_students():
                 'hasSummary': student['hasSummary'],
                 'completedStages': student['completedStages'],
                 'totalStages': student['totalStages'],
-                'stageRatings': stage_ratings  # 每个阶段的评分
+                'stageRatings': stage_ratings,  # 每个阶段的评分
+                'menu': student.get('menu')  # 菜单数据
             })
         
         return jsonify({

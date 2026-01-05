@@ -66,6 +66,12 @@ class DataCleaner(private val context: Context) {
         
         // 清理课后总结数据
         SummaryManager(context).clearSummary()
+        
+        // 清理菜单数据
+        context.getSharedPreferences("menu_data", Context.MODE_PRIVATE)
+            .edit()
+            .clear()
+            .apply()
     }
     
     /**
@@ -145,6 +151,7 @@ class DataCleaner(private val context: Context) {
         val hasProcessRecord = ProcessRecordManager(context).hasRecord()
         val hasTeamInfo = TeamInfoManager(context).hasData()
         val hasSummary = SummaryManager(context).hasData()
+        val hasMenu = hasMenuData()
         
         val summary = StringBuilder()
         summary.append("将清理以下数据：\n\n")
@@ -157,6 +164,9 @@ class DataCleaner(private val context: Context) {
         }
         if (hasSummary) {
             summary.append("• 课后总结数据\n")
+        }
+        if (hasMenu) {
+            summary.append("• 菜单内容数据\n")
         }
         if (photoCount > 0) {
             summary.append("• $photoCount 张照片（用户拍摄）")
@@ -202,6 +212,16 @@ class DataCleaner(private val context: Context) {
     private fun getVideoFileCount(): Int {
         val moviesDir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
         return moviesDir?.listFiles()?.size ?: 0
+    }
+    
+    /**
+     * 检查是否有菜单数据
+     */
+    private fun hasMenuData(): Boolean {
+        val prefs = context.getSharedPreferences("menu_data", Context.MODE_PRIVATE)
+        val soup = prefs.getString("soup", "") ?: ""
+        val dishesJson = prefs.getString("dishes", "[]") ?: "[]"
+        return soup.isNotEmpty() || dishesJson != "[]"
     }
 }
 

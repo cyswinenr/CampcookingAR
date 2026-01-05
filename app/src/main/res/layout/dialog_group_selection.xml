@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/groupLeaderItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="👤 项目组长"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:padding="20dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:layout_marginBottom="4dp"
+        android:drawablePadding="12dp" />
+
+    <TextView
+        android:id="@+id/groupCookingItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🍳 烹饪组"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:padding="20dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:layout_marginBottom="4dp"
+        android:drawablePadding="12dp" />
+
+    <TextView
+        android:id="@+id/groupSoupRiceItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🍲 汤饭组"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:padding="20dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:layout_marginBottom="4dp"
+        android:drawablePadding="12dp" />
+
+    <TextView
+        android:id="@+id/groupFireItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🔥 生火组"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:padding="20dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:layout_marginBottom="4dp"
+        android:drawablePadding="12dp" />
+
+    <TextView
+        android:id="@+id/groupHealthItem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🧹 卫生组"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:padding="20dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:drawablePadding="12dp" />
+
+</LinearLayout>
+
