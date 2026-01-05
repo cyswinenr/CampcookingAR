@@ -216,27 +216,41 @@ class SplashActivity : AppCompatActivity() {
         val currentIp = serverConfig.getServerIp()
         val currentPort = serverConfig.getServerPort()
         
-        // 创建对话框视图
-        val dialogView = layoutInflater.inflate(R.layout.dialog_server_settings, null)
-        val ipInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverIpInput)
+        // 创建对话框视图（使用首页专用布局）
+        val dialogView = layoutInflater.inflate(R.layout.dialog_server_settings_splash, null)
+        val ipGroup = dialogView.findViewById<android.widget.RadioGroup>(R.id.serverIpGroup)
+        val ipOption1 = dialogView.findViewById<android.widget.RadioButton>(R.id.serverIpOption1)
+        val ipOption2 = dialogView.findViewById<android.widget.RadioButton>(R.id.serverIpOption2)
         val portInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.serverPortInput)
         
-        // 设置当前值
-        ipInput?.setText(currentIp)
+        // 设置当前选中的IP地址
+        when (currentIp) {
+            "192.168.3.17" -> ipOption1?.isChecked = true
+            "172.16.70.101" -> ipOption2?.isChecked = true
+            else -> {
+                // 如果当前IP不在选项中，默认选择第一个
+                ipOption1?.isChecked = true
+            }
+        }
+        
+        // 设置当前端口
         portInput?.setText(currentPort.toString())
         
         AlertDialog.Builder(this)
             .setTitle("网络设置")
             .setView(dialogView)
             .setPositiveButton("保存") { _, _ ->
-                val newIp = ipInput?.text?.toString()?.trim() ?: ""
-                val newPortStr = portInput?.text?.toString()?.trim() ?: ""
-                
-                // 验证IP地址
-                if (!serverConfig.isValidIp(newIp)) {
-                    Toast.makeText(this, "IP地址格式不正确", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                // 获取选中的IP地址
+                val selectedIp = when (ipGroup?.checkedRadioButtonId) {
+                    R.id.serverIpOption1 -> "192.168.3.17"
+                    R.id.serverIpOption2 -> "172.16.70.101"
+                    else -> {
+                        Toast.makeText(this, "请选择服务器IP地址", Toast.LENGTH_SHORT).show()
+                        return@setPositiveButton
+                    }
                 }
+                
+                val newPortStr = portInput?.text?.toString()?.trim() ?: ""
                 
                 // 验证端口
                 val newPort = try {
@@ -252,8 +266,8 @@ class SplashActivity : AppCompatActivity() {
                 }
                 
                 // 保存配置
-                serverConfig.saveServerConfig(newIp, newPort)
-                Toast.makeText(this, "✅ 网络设置已保存\n地址: http://$newIp:$newPort", Toast.LENGTH_LONG).show()
+                serverConfig.saveServerConfig(selectedIp, newPort)
+                Toast.makeText(this, "✅ 网络设置已保存\n地址: http://$selectedIp:$newPort", Toast.LENGTH_LONG).show()
             }
             .setNegativeButton("取消", null)
             .show()

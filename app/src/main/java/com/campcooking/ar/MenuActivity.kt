@@ -283,9 +283,9 @@ class MenuActivity : AppCompatActivity() {
                 saveMenuToLocal(menuData)
                 // 检查Activity是否还存在
                 if (!isFinishing && !isDestroyed) {
-                    runOnUiThread {
-                        binding.saveButton.isEnabled = true
-                        binding.saveButton.text = "保存"
+                runOnUiThread {
+                    binding.saveButton.isEnabled = true
+                    binding.saveButton.text = "保存"
                         Toast.makeText(this@MenuActivity, "⚠️ 网络错误，已保存到本地\n请检查网络连接后重试", Toast.LENGTH_LONG).show()
                     }
                 } else {
@@ -301,9 +301,9 @@ class MenuActivity : AppCompatActivity() {
                 }
                 // 检查Activity是否还存在
                 if (!isFinishing && !isDestroyed) {
-                    runOnUiThread {
-                        binding.saveButton.isEnabled = true
-                        binding.saveButton.text = "保存"
+                runOnUiThread {
+                    binding.saveButton.isEnabled = true
+                    binding.saveButton.text = "保存"
                         Toast.makeText(this@MenuActivity, "保存失败: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 } else {

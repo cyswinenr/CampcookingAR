@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 首页服务器设置对话框布局（带IP选项） -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="选择服务器IP地址"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="12dp" />
+
+    <RadioGroup
+        android:id="@+id/serverIpGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/serverIpOption1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="192.168.3.17"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:checked="false" />
+
+        <RadioButton
+            android:id="@+id/serverIpOption2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="172.16.70.101"
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:checked="false" />
+    </RadioGroup>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="服务器端口"
+        app:boxBackgroundMode="outline"
+        app:startIconDrawable="@android:drawable/ic_menu_compass"
+        app:startIconTint="@color/fire_orange">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/serverPortInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:textSize="16sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="默认: 192.168.1.100:5000"
+        android:textColor="@color/subtitle_color"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>
+
