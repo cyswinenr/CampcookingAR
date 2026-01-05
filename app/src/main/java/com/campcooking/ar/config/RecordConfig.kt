@@ -93,7 +93,7 @@ object RecordConfig {
         CookingStage.COOKING_RICE to "水量很重要，记得观察火候及时调整！",
         CookingStage.COOKING_DISHES to "掌握好火候，注意翻炒，让菜品色香味俱全！",
         CookingStage.SHOWCASE to "📸 请拍摄小组合照、完成菜品合照，并录制语言表述视频，展示你们的成果！",
-        CookingStage.CLEANING to "记得清理场地，收拾工具，做好垃圾分类，爱护环境！",
+        CookingStage.CLEANING to "做好人员分工，清理场地，收拾工具，做好垃圾分类，清理排水沟！",
         CookingStage.COMPLETED to "回顾整个野炊过程，总结整体表现，给自己一个评价吧！"
     )
 

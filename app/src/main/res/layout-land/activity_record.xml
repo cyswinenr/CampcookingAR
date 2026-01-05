@@ -345,6 +345,238 @@
 
                 </androidx.cardview.widget.CardView>
 
+                <!-- 我们的表现模块 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="3dp"
+                    android:layout_marginBottom="6dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="⭐ 我们的表现"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="10dp" />
+
+                        <!-- 星级评分 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="6dp">
+
+                            <RatingBar
+                                android:id="@+id/selfRatingBar"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:numStars="5"
+                                android:stepSize="1"
+                                android:rating="0"
+                                android:isIndicator="false"
+                                android:progressTint="#FFD700"
+                                android:progressBackgroundTint="#E0E0E0"
+                                android:secondaryProgressTint="#FFEC8B"
+                                style="@style/Widget.AppCompat.RatingBar" />
+
+                            <TextView
+                                android:id="@+id/ratingDescText"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="未评价"
+                                android:textSize="13sp"
+                                android:textColor="@color/fire_orange"
+                                android:textStyle="bold"
+                                android:layout_marginStart="12dp" />
+
+                        </LinearLayout>
+
+                        <!-- 标签选择和自定义输入：左右两列布局 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- 左列：做得好的地方 -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="👍 做得好的地方（可多选）"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_primary"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginBottom="6dp" />
+
+                                <com.google.android.material.chip.ChipGroup
+                                    android:id="@+id/positiveTagsChipGroup"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:chipSpacing="8dp"
+                                    app:singleSelection="false" />
+
+                            </LinearLayout>
+
+                            <!-- 右列：其它 -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="📝 其它"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_primary"
+                                    android:layout_marginTop="8dp"
+                                    android:layout_marginBottom="6dp" />
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:boxBackgroundMode="outline"
+                                    app:boxCornerRadiusBottomStart="8dp"
+                                    app:boxCornerRadiusBottomEnd="8dp"
+                                    app:boxCornerRadiusTopStart="8dp"
+                                    app:boxCornerRadiusTopEnd="8dp"
+                                    app:hintTextColor="@color/fire_orange">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/otherCommentInput"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="请输入其它评价或建议..."
+                                        android:inputType="textMultiLine"
+                                        android:minLines="3"
+                                        android:maxLines="5"
+                                        android:textSize="16sp"
+                                        android:gravity="top|start" />
+
+                                </com.google.android.material.textfield.TextInputLayout>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <!-- 需要改进的地方模块（独立模块） -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="3dp"
+                    android:layout_marginBottom="6dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <!-- 需要改进的地方和其它输入：左右两列布局 -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- 左列：需要改进的地方 -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="💪 需要改进的地方"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_primary"
+                                    android:layout_marginBottom="6dp" />
+
+                                <com.google.android.material.chip.ChipGroup
+                                    android:id="@+id/problemTagsChipGroup"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:chipSpacing="8dp"
+                                    app:singleSelection="false" />
+
+                            </LinearLayout>
+
+                            <!-- 右列：其它 -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="📝 其它"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_primary"
+                                    android:layout_marginBottom="6dp" />
+
+                                <com.google.android.material.textfield.TextInputLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    app:boxBackgroundMode="outline"
+                                    app:boxCornerRadiusBottomStart="8dp"
+                                    app:boxCornerRadiusBottomEnd="8dp"
+                                    app:boxCornerRadiusTopStart="8dp"
+                                    app:boxCornerRadiusTopEnd="8dp"
+                                    app:hintTextColor="@color/fire_orange">
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/problemOtherInput"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:hint="请输入其它需要改进的地方..."
+                                        android:inputType="textMultiLine"
+                                        android:minLines="3"
+                                        android:maxLines="5"
+                                        android:textSize="16sp"
+                                        android:gravity="top|start" />
+
+                                </com.google.android.material.textfield.TextInputLayout>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
                 <!-- 拍照记录模块（紧凑版） -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
@@ -505,221 +737,6 @@
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:padding="2dp" />
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-                <!-- 自我评价卡片（紧凑版） -->
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:cardCornerRadius="10dp"
-                    app:cardElevation="3dp"
-                    android:layout_marginBottom="6dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="⭐ 我们的表现"
-                            android:textSize="15sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary"
-                            android:layout_marginBottom="10dp" />
-
-                        <!-- 星级评分 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="6dp">
-
-                            <RatingBar
-                                android:id="@+id/selfRatingBar"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:numStars="5"
-                                android:stepSize="1"
-                                android:rating="0"
-                                android:isIndicator="false"
-                                android:progressTint="#FFD700"
-                                android:progressBackgroundTint="#E0E0E0"
-                                android:secondaryProgressTint="#FFEC8B"
-                                style="@style/Widget.AppCompat.RatingBar" />
-
-                            <TextView
-                                android:id="@+id/ratingDescText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="未评价"
-                                android:textSize="13sp"
-                                android:textColor="@color/fire_orange"
-                                android:textStyle="bold"
-                                android:layout_marginStart="12dp" />
-
-                        </LinearLayout>
-
-                        <!-- 标签选择和自定义输入：左右两列布局 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-
-                            <!-- 左列：做得好的地方 -->
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:layout_marginEnd="8dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="👍 做得好的地方（可多选）"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/text_primary"
-                                    android:layout_marginTop="8dp"
-                                    android:layout_marginBottom="6dp" />
-
-                                <com.google.android.material.chip.ChipGroup
-                                    android:id="@+id/positiveTagsChipGroup"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    app:chipSpacing="8dp"
-                                    app:singleSelection="false" />
-
-                            </LinearLayout>
-
-                            <!-- 右列：其它 -->
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:layout_marginStart="8dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="📝 其它"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/text_primary"
-                                    android:layout_marginTop="8dp"
-                                    android:layout_marginBottom="6dp" />
-
-                                <com.google.android.material.textfield.TextInputLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    app:boxBackgroundMode="outline"
-                                    app:boxCornerRadiusBottomStart="8dp"
-                                    app:boxCornerRadiusBottomEnd="8dp"
-                                    app:boxCornerRadiusTopStart="8dp"
-                                    app:boxCornerRadiusTopEnd="8dp"
-                                    app:hintTextColor="@color/fire_orange">
-
-                                    <com.google.android.material.textfield.TextInputEditText
-                                        android:id="@+id/otherCommentInput"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:hint="请输入其它评价或建议..."
-                                        android:inputType="textMultiLine"
-                                        android:minLines="3"
-                                        android:maxLines="5"
-                                        android:textSize="16sp"
-                                        android:gravity="top|start" />
-
-                                </com.google.android.material.textfield.TextInputLayout>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <!-- 需要改进的地方和其它输入：左右两列布局 -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:layout_marginTop="8dp">
-
-                            <!-- 左列：需要改进的地方 -->
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:layout_marginEnd="8dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="💪 需要改进的地方"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/text_primary"
-                                    android:layout_marginBottom="6dp" />
-
-                                <com.google.android.material.chip.ChipGroup
-                                    android:id="@+id/problemTagsChipGroup"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    app:chipSpacing="8dp"
-                                    app:singleSelection="false" />
-
-                            </LinearLayout>
-
-                            <!-- 右列：其它 -->
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:orientation="vertical"
-                                android:layout_marginStart="8dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="📝 其它"
-                                    android:textSize="16sp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/text_primary"
-                                    android:layout_marginBottom="6dp" />
-
-                                <com.google.android.material.textfield.TextInputLayout
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    app:boxBackgroundMode="outline"
-                                    app:boxCornerRadiusBottomStart="8dp"
-                                    app:boxCornerRadiusBottomEnd="8dp"
-                                    app:boxCornerRadiusTopStart="8dp"
-                                    app:boxCornerRadiusTopEnd="8dp"
-                                    app:hintTextColor="@color/fire_orange">
-
-                                    <com.google.android.material.textfield.TextInputEditText
-                                        android:id="@+id/problemOtherInput"
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:hint="请输入其它需要改进的地方..."
-                                        android:inputType="textMultiLine"
-                                        android:minLines="3"
-                                        android:maxLines="5"
-                                        android:textSize="16sp"
-                                        android:gravity="top|start" />
-
-                                </com.google.android.material.textfield.TextInputLayout>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
 
                     </LinearLayout>
 

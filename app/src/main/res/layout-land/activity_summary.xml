@@ -243,7 +243,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="哪道菜是你们的&quot;明星产品&quot;？向大家揭秘咱们的&quot;独家秘笈&quot;。"
+                        android:text="哪道菜是你们的&quot;明星产品&quot;？菜品的特色和亮点是什么？可以设计一句推广语去推广我们的菜品。"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
