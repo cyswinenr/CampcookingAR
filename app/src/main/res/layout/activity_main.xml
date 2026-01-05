@@ -20,16 +20,39 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- 顶部标题 -->
-        <TextView
-            android:id="@+id/pageTitle"
-            android:layout_width="wrap_content"
+        <!-- 顶部标题区域（包含返回按钮和标题） -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/team_info_title"
-            android:textColor="@color/title_color"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+            
+            <!-- 返回按钮 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="16dp"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconSize="24dp"
+                app:iconTint="@color/text_primary"
+                app:backgroundTint="@android:color/white"
+                app:cornerRadius="24dp"
+                app:elevation="2dp"
+                android:contentDescription="返回" />
+            
+            <!-- 标题 -->
+            <TextView
+                android:id="@+id/pageTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/team_info_title"
+                android:textColor="@color/title_color"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/pageSubtitle"
@@ -104,14 +127,37 @@
                 android:spinnerMode="dropdown" />
 
             <!-- 炉号下拉框 -->
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/label_stove"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
-                android:layout_marginBottom="6dp"
-                android:layout_marginStart="4dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_stove"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:layout_marginBottom="6dp"
+                    android:layout_marginStart="4dp" />
+                
+                <!-- 解锁按钮（仅在锁定状态显示） -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/unlockStoveButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:visibility="gone"
+                    app:icon="@android:drawable/ic_lock_lock"
+                    app:iconSize="20dp"
+                    app:iconTint="@color/fire_orange"
+                    app:backgroundTint="@android:color/white"
+                    app:cornerRadius="20dp"
+                    app:elevation="2dp"
+                    android:contentDescription="解锁炉号" />
+            </LinearLayout>
 
             <Spinner
                 android:id="@+id/stoveSpinner"

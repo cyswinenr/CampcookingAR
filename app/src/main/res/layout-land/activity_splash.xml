@@ -47,6 +47,54 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 网络设置按钮 - 右上角 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/networkSettingsButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        app:icon="@android:drawable/ic_menu_preferences"
+        app:iconSize="28dp"
+        app:iconTint="@color/text_primary"
+        app:backgroundTint="@android:color/white"
+        app:cornerRadius="28dp"
+        app:elevation="4dp"
+        android:contentDescription="网络设置"
+        app:layout_constraintEnd_toStartOf="@+id/networkTestButton"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 网络测试按钮 - 右上角 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/networkTestButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        app:icon="@android:drawable/ic_menu_info_details"
+        app:iconSize="28dp"
+        app:iconTint="@color/nature_green"
+        app:backgroundTint="@android:color/white"
+        app:cornerRadius="28dp"
+        app:elevation="4dp"
+        android:contentDescription="网络测试"
+        app:layout_constraintEnd_toStartOf="@+id/stoveSettingsButton"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 炉号设置按钮 - 右上角 -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/stoveSettingsButton"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        app:icon="@android:drawable/ic_menu_edit"
+        app:iconSize="28dp"
+        app:iconTint="@color/fire_orange"
+        app:backgroundTint="@android:color/white"
+        app:cornerRadius="28dp"
+        app:elevation="4dp"
+        android:contentDescription="炉号设置"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- 应用标题 - 左上角（在清理按钮右侧） -->
     <TextView
         android:id="@+id/appTitle"
@@ -114,6 +162,27 @@
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- 炉号显示 - 右下角 -->
+    <TextView
+        android:id="@+id/stoveNumberDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="32dp"
+        android:text=""
+        android:textColor="@color/fire_orange"
+        android:textSize="64sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:fontFamily="sans-serif-medium"
+        android:shadowColor="#80000000"
+        android:shadowDx="4"
+        android:shadowDy="4"
+        android:shadowRadius="8"
+        android:background="@drawable/stove_number_background"
+        android:padding="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

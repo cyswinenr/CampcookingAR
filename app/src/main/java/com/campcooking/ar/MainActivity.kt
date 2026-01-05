@@ -3,6 +3,7 @@ package com.campcooking.ar
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ScrollView
@@ -13,6 +14,7 @@ import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityMainBinding
 import com.campcooking.ar.utils.DataSubmitManager
 import com.campcooking.ar.utils.TeamInfoManager
+import com.campcooking.ar.utils.StoveNumberManager
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
@@ -31,9 +33,13 @@ class MainActivity : AppCompatActivity() {
     private val teamInfo = TeamInfo()
     private lateinit var teamInfoManager: TeamInfoManager
     private lateinit var dataSubmitManager: DataSubmitManager
+    private lateinit var stoveNumberManager: StoveNumberManager
     
     // 存储动态生成的姓名输入框
     private val memberNameInputs = mutableListOf<TextInputEditText>()
+    
+    // 炉号适配器引用（用于刷新）
+    private var stoveAdapter: ArrayAdapter<String>? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,10 +60,13 @@ class MainActivity : AppCompatActivity() {
         // 初始化数据管理器
         teamInfoManager = TeamInfoManager(this)
         dataSubmitManager = DataSubmitManager(this)
+        stoveNumberManager = StoveNumberManager(this)
         
         setupSpinners()
         setupListeners()
         setupServerSettingsButton()
+        setupBackButton()
+        setupStoveNumberLock()
         
         // 加载保存的数据
         loadSavedData()
@@ -85,13 +94,29 @@ class MainActivity : AppCompatActivity() {
         classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.classSpinner.adapter = classAdapter
         
-        // 设置炉号下拉框
-        val stoveAdapter = ArrayAdapter.createFromResource(
+        // 设置炉号下拉框（使用自定义适配器以支持颜色变化）
+        stoveAdapter = object : ArrayAdapter<String>(
             this,
-            R.array.stoves,
-            android.R.layout.simple_spinner_item
-        )
-        stoveAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            android.R.layout.simple_spinner_item,
+            resources.getStringArray(R.array.stoves).toList()
+        ) {
+            override fun getView(position: Int, convertView: android.view.View?, parent: ViewGroup): android.view.View {
+                val view = super.getView(position, convertView, parent)
+                val textView = view.findViewById<android.widget.TextView>(android.R.id.text1)
+                // 如果Spinner被禁用（锁定状态），显示红色
+                if (!binding.stoveSpinner.isEnabled && stoveNumberManager.isStoveNumberLocked()) {
+                    textView?.setTextColor(android.graphics.Color.parseColor("#F44336")) // 红色
+                } else {
+                    textView?.setTextColor(resources.getColor(android.R.color.black, theme))
+                }
+                return view
+            }
+            
+            override fun getDropDownView(position: Int, convertView: android.view.View?, parent: ViewGroup): android.view.View {
+                return super.getDropDownView(position, convertView, parent)
+            }
+        }
+        stoveAdapter?.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.stoveSpinner.adapter = stoveAdapter
         
         // 设置小组人数下拉框
@@ -122,6 +147,30 @@ class MainActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 clearMemberNameInputs()
             }
+        }
+        
+        // 炉号下拉框监听 - 检查是否锁定
+        binding.stoveSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (stoveNumberManager.isStoveNumberLocked() && !binding.stoveSpinner.isEnabled) {
+                    // 如果炉号已锁定且Spinner被禁用，说明用户尝试修改，需要密码
+                    val lockedStove = stoveNumberManager.getStoveNumber()
+                    val selectedStove = parent?.getItemAtPosition(position)?.toString()
+                    
+                    if (selectedStove != lockedStove && position > 0) {
+                        // 恢复原选择
+                        val stoveArray = resources.getStringArray(R.array.stoves)
+                        val lockedIndex = stoveArray.indexOf(lockedStove ?: "")
+                        if (lockedIndex >= 0) {
+                            binding.stoveSpinner.setSelection(lockedIndex, false)
+                        }
+                        // 显示解锁对话框
+                        showUnlockStoveDialog()
+                    }
+                }
+            }
+            
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
         
         // 保存按钮点击事件 - 保存当前已填写的信息，不强制验证
@@ -479,11 +528,13 @@ class MainActivity : AppCompatActivity() {
                 binding.classSpinner.setSelection(classIndex)
             }
             
-            // 恢复炉号
-            val stoveArray = resources.getStringArray(R.array.stoves)
-            val stoveIndex = stoveArray.indexOf(savedInfo.stoveNumber)
-            if (stoveIndex >= 0) {
-                binding.stoveSpinner.setSelection(stoveIndex)
+            // 恢复炉号（如果未锁定）
+            if (!stoveNumberManager.isStoveNumberLocked()) {
+                val stoveArray = resources.getStringArray(R.array.stoves)
+                val stoveIndex = stoveArray.indexOf(savedInfo.stoveNumber)
+                if (stoveIndex >= 0) {
+                    binding.stoveSpinner.setSelection(stoveIndex)
+                }
             }
             
             // 恢复小组人数和成员姓名
@@ -572,6 +623,153 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         // 不调用 finish()，保留 MainActivity 在返回栈中
+    }
+    
+    /**
+     * 设置返回按钮
+     */
+    private fun setupBackButton() {
+        binding.backButton?.setOnClickListener {
+            navigateToNavigation()
+        }
+    }
+    
+    /**
+     * 设置炉号锁定
+     * 如果首页已设置炉号，则禁用或限制修改
+     */
+    private fun setupStoveNumberLock() {
+        if (stoveNumberManager.isStoveNumberLocked()) {
+            val lockedStove = stoveNumberManager.getStoveNumber()
+            if (lockedStove != null) {
+                // 设置炉号为已锁定的值
+                val stoveArray = resources.getStringArray(R.array.stoves)
+                val lockedIndex = stoveArray.indexOf(lockedStove)
+                if (lockedIndex >= 0) {
+                    binding.stoveSpinner.setSelection(lockedIndex, false) // false表示不触发监听器
+                }
+                
+                // 禁用炉号下拉框
+                binding.stoveSpinner.isEnabled = false
+                
+                // 刷新适配器以更新文字颜色
+                stoveAdapter?.notifyDataSetChanged()
+                
+                // 使用post确保Spinner已经渲染后设置文字颜色
+                binding.stoveSpinner.post {
+                    setStoveSpinnerTextColor(android.graphics.Color.parseColor("#F44336")) // 红色
+                }
+                
+                // 显示解锁按钮
+                binding.unlockStoveButton?.visibility = View.VISIBLE
+                binding.unlockStoveButton?.setOnClickListener {
+                    showUnlockStoveDialog()
+                }
+            }
+        } else {
+            // 未锁定，正常使用
+            binding.stoveSpinner.isEnabled = true
+            binding.unlockStoveButton?.visibility = View.GONE
+            // 恢复默认文字颜色
+            setStoveSpinnerTextColor(resources.getColor(android.R.color.black, theme))
+        }
+    }
+    
+    /**
+     * 设置炉号Spinner的文字颜色
+     */
+    private fun setStoveSpinnerTextColor(color: Int) {
+        // 使用post确保Spinner已经渲染完成
+        binding.stoveSpinner.post {
+            try {
+                // 获取Spinner的TextView（显示选中项的视图）
+                val spinnerView = binding.stoveSpinner.selectedView
+                if (spinnerView is android.widget.TextView) {
+                    spinnerView.setTextColor(color)
+                } else {
+                    // 如果selectedView不是TextView，尝试查找子视图
+                    val textView = findTextViewInView(spinnerView)
+                    textView?.setTextColor(color)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainActivity", "设置炉号文字颜色失败: ${e.message}", e)
+            }
+        }
+    }
+    
+    /**
+     * 在View中查找TextView
+     */
+    private fun findTextViewInView(view: android.view.View?): android.widget.TextView? {
+        if (view == null) return null
+        
+        if (view is android.widget.TextView) {
+            return view
+        }
+        
+        if (view is android.view.ViewGroup) {
+            for (i in 0 until view.childCount) {
+                val child = view.getChildAt(i)
+                val textView = findTextViewInView(child)
+                if (textView != null) {
+                    return textView
+                }
+            }
+        }
+        
+        return null
+    }
+    
+    /**
+     * 显示解锁炉号对话框
+     */
+    private fun showUnlockStoveDialog() {
+        val lockedStove = stoveNumberManager.getStoveNumber() ?: ""
+        val dialogView = layoutInflater.inflate(R.layout.dialog_password, null)
+        val passwordInput = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.passwordInput)
+        
+        AlertDialog.Builder(this)
+            .setTitle("修改炉号")
+            .setMessage("炉号已锁定: $lockedStove\n\n需要密码才能修改")
+            .setView(dialogView)
+            .setPositiveButton("确定") { _, _ ->
+                val password = passwordInput?.text?.toString()?.trim() ?: ""
+                if (password.isEmpty()) {
+                    Toast.makeText(this, "请输入密码", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                if (stoveNumberManager.verifyPassword(password)) {
+                    // 密码正确，允许修改
+                    binding.stoveSpinner.isEnabled = true
+                    // 刷新适配器以更新文字颜色
+                    stoveAdapter?.notifyDataSetChanged()
+                    // 恢复默认文字颜色
+                    binding.stoveSpinner.post {
+                        setStoveSpinnerTextColor(resources.getColor(android.R.color.black, theme))
+                    }
+                    Toast.makeText(this, "✅ 密码验证成功，可以修改炉号", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "❌ 密码错误", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+    
+    /**
+     * 跳转到导航页面
+     */
+    private fun navigateToNavigation() {
+        val intent = Intent(this, NavigationActivity::class.java)
+        // 获取团队信息并传递
+        collectCurrentInfo()
+        if (teamInfo.isValid()) {
+            intent.putExtra("teamName", teamInfo.getTeamName())
+        }
+        startActivity(intent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        finish()
     }
     
     /**
