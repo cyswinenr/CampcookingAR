@@ -137,6 +137,7 @@ class MenuActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
+            hint = "请输入菜名"
             textSize = 18f
             setPadding(16, 16, 16, 16)
         }
@@ -232,133 +233,40 @@ class MenuActivity : AppCompatActivity() {
                 // 发送请求
                 val response = client.newCall(request).execute()
                 
-                // 在后台线程中读取响应体（避免在UI线程中读取）
-                var responseBody: String? = null
-                var isSuccess = false
-                var errorMsg: String? = null
-                
-                try {
-                    if (response.isSuccessful) {
-                        responseBody = response.body?.string()
-                        Log.d(TAG, "提交成功: $responseBody")
-                        isSuccess = true
-                    } else {
-                        errorMsg = "服务器错误: ${response.code}"
-                        Log.e(TAG, errorMsg)
-                        // 尝试读取错误响应体
-                        try {
-                            responseBody = response.body?.string()
-                            Log.e(TAG, "错误响应: $responseBody")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "读取错误响应失败: ${e.message}")
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "读取响应失败: ${e.message}", e)
-                    errorMsg = "读取响应失败: ${e.message}"
-                } finally {
-                    // 确保关闭响应体
-                    try {
-                        response.body?.close()
-                    } catch (e: Exception) {
-                        Log.w(TAG, "关闭响应体失败: ${e.message}")
-                    }
-                }
-                
-                // 保存到本地（在后台线程中执行）
-                saveMenuToLocal(menuData)
-                
-                // 更新UI（检查Activity是否还存在）
                 runOnUiThread {
-                    try {
-                        // 检查Activity是否已经被销毁
-                        if (isFinishing) {
-                            Log.w(TAG, "Activity正在结束，跳过UI更新")
-                            return@runOnUiThread
-                        }
-                        
-                        // 检查binding是否已初始化
-                        if (!::binding.isInitialized) {
-                            Log.w(TAG, "Binding未初始化，跳过UI更新")
-                            return@runOnUiThread
-                        }
-                        
-                        binding.saveButton.isEnabled = true
-                        binding.saveButton.text = "保存"
-                        
-                        if (isSuccess) {
-                            Toast.makeText(this@MenuActivity, "✅ 菜单已保存并上传", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(this@MenuActivity, "保存失败: ${errorMsg ?: "未知错误"}", Toast.LENGTH_SHORT).show()
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "更新UI失败: ${e.message}", e)
+                    binding.saveButton.isEnabled = true
+                    binding.saveButton.text = "保存"
+                    
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        Log.d(TAG, "提交成功: $responseBody")
+                        Toast.makeText(this, "✅ 菜单已保存并上传", Toast.LENGTH_SHORT).show()
+                        // 保存到本地
+                        saveMenuToLocal(menuData)
+                    } else {
+                        val errorMsg = "服务器错误: ${response.code}"
+                        Log.e(TAG, errorMsg)
+                        Toast.makeText(this, "保存失败: $errorMsg", Toast.LENGTH_SHORT).show()
+                        // 即使服务器失败，也保存到本地
+                        saveMenuToLocal(menuData)
                     }
                 }
                 
             } catch (e: IOException) {
                 Log.e(TAG, "网络错误: ${e.message}", e)
-                
-                // 保存到本地（在后台线程中执行）
-                try {
-                    saveMenuToLocal(menuData)
-                } catch (e2: Exception) {
-                    Log.e(TAG, "保存到本地失败: ${e2.message}", e2)
-                }
-                
-                // 更新UI
                 runOnUiThread {
-                    try {
-                        // 检查Activity是否已经被销毁
-                        if (isFinishing) {
-                            Log.w(TAG, "Activity正在结束，跳过UI更新")
-                            return@runOnUiThread
-                        }
-                        
-                        // 检查binding是否已初始化
-                        if (!::binding.isInitialized) {
-                            Log.w(TAG, "Binding未初始化，跳过UI更新")
-                            return@runOnUiThread
-                        }
-                        
-                        binding.saveButton.isEnabled = true
-                        binding.saveButton.text = "保存"
-                        Toast.makeText(this@MenuActivity, "网络错误，已保存到本地", Toast.LENGTH_SHORT).show()
-                    } catch (e2: Exception) {
-                        Log.e(TAG, "更新UI失败: ${e2.message}", e2)
-                    }
+                    binding.saveButton.isEnabled = true
+                    binding.saveButton.text = "保存"
+                    Toast.makeText(this, "网络错误，已保存到本地", Toast.LENGTH_SHORT).show()
+                    // 保存到本地
+                    saveMenuToLocal(menuData)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "保存菜单失败: ${e.message}", e)
-                
-                // 尝试保存到本地
-                try {
-                    saveMenuToLocal(menuData)
-                } catch (e2: Exception) {
-                    Log.e(TAG, "保存到本地失败: ${e2.message}", e2)
-                }
-                
-                // 更新UI
                 runOnUiThread {
-                    try {
-                        // 检查Activity是否已经被销毁
-                        if (isFinishing) {
-                            Log.w(TAG, "Activity正在结束，跳过UI更新")
-                            return@runOnUiThread
-                        }
-                        
-                        // 检查binding是否已初始化
-                        if (!::binding.isInitialized) {
-                            Log.w(TAG, "Binding未初始化，跳过UI更新")
-                            return@runOnUiThread
-                        }
-                        
-                        binding.saveButton.isEnabled = true
-                        binding.saveButton.text = "保存"
-                        Toast.makeText(this@MenuActivity, "保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
-                    } catch (e2: Exception) {
-                        Log.e(TAG, "更新UI失败: ${e2.message}", e2)
-                    }
+                    binding.saveButton.isEnabled = true
+                    binding.saveButton.text = "保存"
+                    Toast.makeText(this, "保存失败: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }.start()
