@@ -12,9 +12,12 @@
         <item name="android:windowLightStatusBar">true</item>
     </style>
     
-    <!-- 封面页主题 -->
+    <!-- 封面页主题（PNG 为透明底，叠在浅色渐变上） -->
     <style name="Theme.CampCookingAR.Splash" parent="Theme.CampCookingAR">
         <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowFullscreen">true</item>
     </style>
 </resources>
