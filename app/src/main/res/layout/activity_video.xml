@@ -113,7 +113,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="视频描述"
-            android:textSize="14sp"
+            android:textSize="28sp"
             android:textColor="@color/text_primary"
             android:maxLines="2"
             android:ellipsize="end"
