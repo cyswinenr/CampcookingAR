@@ -417,13 +417,11 @@ class MainActivity : AppCompatActivity() {
             missingFields.add("小组人数（1-12人）")
         }
         
-        // 验证人员姓名
+        // 收集人员姓名（不再强制要求填写）
         val names = mutableListOf<String>()
-        for ((index, input) in memberNameInputs.withIndex()) {
+        for (input in memberNameInputs) {
             val name = input.text.toString().trim()
-            if (name.isBlank()) {
-                missingFields.add("成员${index + 1}姓名")
-            } else {
+            if (name.isNotBlank()) {
                 names.add(name)
             }
         }
@@ -586,8 +584,8 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setDefaultValues() {
         // 设置默认学校名称
-        binding.schoolInput.setText("黄埔区开元学校")
-        
+        binding.schoolInput.setText("广州市第一中学，小组名：")
+
         // 设置默认年级为"高二"（索引2：0=请选择，1=高一，2=高二）
         binding.gradeSpinner.setSelection(2)
     }

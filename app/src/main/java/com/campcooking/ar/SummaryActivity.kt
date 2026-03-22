@@ -478,15 +478,16 @@ class SummaryActivity : AppCompatActivity() {
         try {
             val answer1 = binding.answer1Input.text?.toString()?.trim() ?: ""
             val answer2 = binding.answer2Input.text?.toString()?.trim() ?: ""
-            val answer3 = binding.answer3Input.text?.toString()?.trim() ?: ""
-            
+            // 问题三已屏蔽，使用空字符串
+            val answer3 = ""
+
             val success = summaryManager.saveSummary(
                 answer1 = answer1,
                 answer2 = answer2,
                 answer3 = answer3,
                 photos1 = photos1,
                 photos2 = photos2,
-                photos3 = photos3
+                photos3 = emptyList()
             )
             
             if (success && !silent) {
@@ -508,15 +509,16 @@ class SummaryActivity : AppCompatActivity() {
             // 先保存到本地
             val answer1 = binding.answer1Input.text?.toString()?.trim() ?: ""
             val answer2 = binding.answer2Input.text?.toString()?.trim() ?: ""
-            val answer3 = binding.answer3Input.text?.toString()?.trim() ?: ""
-            
+            // 问题三已屏蔽，使用空字符串
+            val answer3 = ""
+
             val saveSuccess = summaryManager.saveSummary(
                 answer1 = answer1,
                 answer2 = answer2,
                 answer3 = answer3,
                 photos1 = photos1,
                 photos2 = photos2,
-                photos3 = photos3
+                photos3 = emptyList()
             )
             
             if (!saveSuccess) {

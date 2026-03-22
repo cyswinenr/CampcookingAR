@@ -138,7 +138,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="请总结火势控制好的关键因素。课程中遇到过什么问题，如何解决？"
+                        android:text='单朵木棉或许单薄，但千枝万朵便能染红整座英雄城。野炊是一项复杂的工程，没有完美的个人，只有无坚不摧的团队。\n\n红棉宣言：请以"木棉"为灵感，为小组起一个专属的队名，并写下一句能代表团队精气神的"红棉宣言"。\n\n元素运用：请具体介绍一下，同学们是如何巧妙运用"木棉花"元素的？'
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
@@ -243,7 +243,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="哪道菜是你们的&quot;明星产品&quot;？菜品的特色和亮点是什么？可以设计一句推广语去推广我们的菜品。"
+                        android:text='木棉花在枝头热烈怒放时惹人"仰望"，落入锅中熬成靓汤时又懂得"俯身"。这不仅是自然规律，更向我们展示了英雄精神的两种姿态。\n\n英雄再定义：结合今天同学们的真实体验，你对"英雄"二字有了哪些新的理解？\n\n青年担当：作为"英雄城"的新时代青年，我们该如何像这朵木棉花一样——既保持向上攀登、绽放自我的勇气，又拥有一份默默奉献、托举他人的温情？'
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary"
@@ -323,6 +323,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white"

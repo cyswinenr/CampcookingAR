@@ -14,8 +14,8 @@
     <!-- ==================================================== -->
     <color name="splash_background">#FFC1E3</color>      <!-- 粉红色封面背景 -->
     <color name="ic_launcher_background">#00FFFFFF</color> <!-- 启动器图标底（透明背景） -->
-    <color name="title_color">#00695C</color>             <!-- 青松石绿标题 -->
-    <color name="subtitle_color">#4DB6AC</color>          <!-- 浅青色副标题 -->
+    <color name="title_color">#FF0000</color>             <!-- 红色标题 -->
+    <color name="subtitle_color">#FF0000</color>          <!-- 红色副标题 -->
     <color name="hint_color">#00695C</color>             <!-- 青松石绿提示 -->
     <color name="version_color">#4DB6AC</color>          <!-- 浅青色版本号 -->
 

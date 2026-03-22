@@ -209,42 +209,63 @@ class VideoActivity : AppCompatActivity() {
      */
     private fun playVideo(video: Video) {
         currentVideo = video
-        
+
         // 更新视频信息显示
         binding.videoTitle.text = video.title
         binding.videoDuration.text = "时长：${video.duration}"
         binding.videoDescription.text = video.description
         binding.videoCategory.text = "分类：${video.category}"
-        
+
         try {
-            // 获取外部存储视频文件路径
+            // 先尝试从assets加载视频
+            val assetUri = Uri.parse("asset:///videos/${video.fileName}")
+
+            // 验证assets中是否存在该文件
+            val assetExists = try {
+                assets.open("videos/${video.fileName}").close()
+                true
+            } catch (e: Exception) {
+                false
+            }
+
+            if (assetExists) {
+                // 从assets加载
+                val mediaItem = MediaItem.fromUri(assetUri)
+                player?.setMediaItem(mediaItem)
+                player?.prepare()
+                player?.play()
+                Toast.makeText(this, "正在播放：${video.title} (从APK内置)", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // assets中没有，尝试从外部存储加载
             val documentsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
             val videoFile = File(documentsDir, "${VideoConfig.VIDEO_FOLDER}/${video.fileName}")
-            
+
             if (!videoFile.exists()) {
                 // 视频文件不存在
                 Toast.makeText(
                     this,
-                    "视频文件未找到：\n${videoFile.absolutePath}\n\n请将视频文件复制到此位置",
+                    "视频文件未找到：\n${video.fileName}\n\n已尝试从assets和外部存储加载",
                     Toast.LENGTH_LONG
                 ).show()
                 binding.progressBar.visibility = View.GONE
                 return
             }
-            
+
             // 构建视频文件URI
             val videoUri = Uri.fromFile(videoFile)
-            
+
             // 创建媒体项
             val mediaItem = MediaItem.fromUri(videoUri)
-            
+
             // 设置视频源并播放
             player?.setMediaItem(mediaItem)
             player?.prepare()
             player?.play()
-            
+
             Toast.makeText(this, "正在播放：${video.title}", Toast.LENGTH_SHORT).show()
-            
+
         } catch (e: Exception) {
             Toast.makeText(
                 this,

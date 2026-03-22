@@ -94,6 +94,61 @@ object VideoConfig {
                 fileName = "番茄炒鸡蛋.mp4",
                 category = "菜式",
                 order = 6
+            ),
+
+            // 视频6：木棉花炒腊肉
+            Video(
+                id = 7,
+                title = "木棉花炒腊肉",
+                description = "木棉花瓣洗净焯水去涩沥干，腊肉切片热锅煸出油至微焦，倒入花快速翻炒调味装盘。",
+                duration = "1:00",
+                fileName = "木棉花炒腊肉.mp4",
+                category = "菜式",
+                order = 7
+            ),
+
+            // 视频7：木棉花炒鸡蛋
+            Video(
+                id = 8,
+                title = "木棉花炒鸡蛋",
+                description = "木棉花瓣洗净先烫一下（焯水）沥干，切小块，鸡蛋打散调味，热锅炒熟鸡蛋后倒入花合炒装盘。",
+                duration = "1:00",
+                fileName = "木棉花炒鸡蛋.mp4",
+                category = "菜式",
+                order = 8
+            ),
+
+            // 视频8：木棉花蒸鸡
+            Video(
+                id = 9,
+                title = "木棉花蒸鸡",
+                description = "鸡肉切块腌制，木棉花瓣洗净焯水沥干，同铺盘中入锅蒸熟即可。",
+                duration = "1:00",
+                fileName = "木棉花蒸鸡.mp4",
+                category = "菜式",
+                order = 9
+            ),
+
+            // 视频9：木棉花酥
+            Video(
+                id = 10,
+                title = "木棉花酥",
+                description = "木棉花瓣洗净一片片沥干，裹匀蛋液，入油锅炸至金黄酥脆即可。",
+                duration = "1:00",
+                fileName = "木棉花酥.mp4",
+                category = "菜式",
+                order = 10
+            ),
+
+            // 视频10：凉拌木棉花
+            Video(
+                id = 11,
+                title = "凉拌木棉花",
+                description = "木棉花瓣洗净焯水去涩，过凉水沥干，加盐、醋、香油等拌匀即可。",
+                duration = "1:00",
+                fileName = "凉拌木棉花.mp4",
+                category = "菜式",
+                order = 11
             )
         )
     }
