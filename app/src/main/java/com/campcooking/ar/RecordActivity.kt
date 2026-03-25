@@ -14,7 +14,6 @@ import android.widget.ScrollView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -43,7 +42,7 @@ import java.util.*
  * 4. 自动计时
  * 5. 数据持久化
  */
-class RecordActivity : AppCompatActivity() {
+class RecordActivity : TouchCursorBaseActivity() {
 
     private lateinit var binding: ActivityRecordBinding
     private lateinit var processRecord: ProcessRecord

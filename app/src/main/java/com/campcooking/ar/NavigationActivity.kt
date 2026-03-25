@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.databinding.ActivityNavigationBinding
 
 /**
@@ -12,7 +11,7 @@ import com.campcooking.ar.databinding.ActivityNavigationBinding
  * 显示四个功能入口：团队信息登记、团队分工、微课视频、过程记录
  * 四个图标横向排列在一行，每个图标都有高级的渐变背景和阴影效果
  */
-class NavigationActivity : AppCompatActivity() {
+class NavigationActivity : TouchCursorBaseActivity() {
     
     private lateinit var binding: ActivityNavigationBinding
     

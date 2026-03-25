@@ -9,7 +9,6 @@ import android.widget.ArrayAdapter
 import android.widget.ScrollView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityMainBinding
 import com.campcooking.ar.utils.DataSubmitManager
@@ -27,7 +26,7 @@ import com.google.android.material.textfield.TextInputLayout
      * - 人员姓名：根据人数动态生成输入框
      * - 支持数据持久化保存
      */
-class MainActivity : AppCompatActivity() {
+class MainActivity : TouchCursorBaseActivity() {
     
     private lateinit var binding: ActivityMainBinding
     private val teamInfo = TeamInfo()

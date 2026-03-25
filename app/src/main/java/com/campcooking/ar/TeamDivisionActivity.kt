@@ -15,7 +15,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.campcooking.ar.databinding.ActivityTeamDivisionBinding
 import com.campcooking.ar.utils.DataSubmitManager
@@ -26,7 +25,7 @@ import com.google.android.material.button.MaterialButton
  * 团队分工页面
  * 支持拖拽分配人员到不同的小组（A、B、C、D组）
  */
-class TeamDivisionActivity : AppCompatActivity() {
+class TeamDivisionActivity : TouchCursorBaseActivity() {
     
     private lateinit var binding: ActivityTeamDivisionBinding
     private lateinit var teamInfoManager: TeamInfoManager

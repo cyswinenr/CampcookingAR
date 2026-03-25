@@ -6,7 +6,6 @@ import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.data.TeamInfo
 import com.campcooking.ar.databinding.ActivityMenuBinding
 import com.campcooking.ar.utils.DataSubmitManager
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit
  * 菜单页面Activity
  * 用于输入和保存小组的菜单信息（汤和菜）
  */
-class MenuActivity : AppCompatActivity() {
+class MenuActivity : TouchCursorBaseActivity() {
     
     private lateinit var binding: ActivityMenuBinding
     private lateinit var teamInfoManager: TeamInfoManager

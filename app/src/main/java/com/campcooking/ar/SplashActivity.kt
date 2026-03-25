@@ -9,7 +9,6 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import com.campcooking.ar.databinding.ActivitySplashBinding
 import com.campcooking.ar.utils.DataCleaner
 import com.campcooking.ar.utils.DataSubmitManager
@@ -20,7 +19,7 @@ import com.campcooking.ar.utils.StoveNumberManager
  * 野炊教学应用封面页
  * 专为10-11寸平板横向使用设计
  */
-class SplashActivity : AppCompatActivity() {
+class SplashActivity : TouchCursorBaseActivity() {
     
     private lateinit var binding: ActivitySplashBinding
     

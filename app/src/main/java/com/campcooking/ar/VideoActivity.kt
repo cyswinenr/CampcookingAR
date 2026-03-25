@@ -9,7 +9,6 @@ import android.os.Environment
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.campcooking.ar.adapter.VideoListAdapter
@@ -28,7 +27,7 @@ import java.io.File
  * 视频文件存放位置：
  * 内部存储/Documents/CampcookingAR/Videos/
  */
-class VideoActivity : AppCompatActivity() {
+class VideoActivity : TouchCursorBaseActivity() {
     
     private lateinit var binding: ActivityVideoBinding
     private var player: ExoPlayer? = null
